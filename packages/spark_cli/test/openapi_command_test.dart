@@ -12,13 +12,14 @@ void main() {
     late Directory originalCwd;
     late CommandRunner<void> runner;
     late String sparkPackagePath;
+    late String sparkPackageName;
 
     setUp(() async {
       originalCwd = Directory.current;
       tempDir = Directory.systemTemp.createTempSync('spark_openapi_test_');
-      Directory.current = tempDir;
+      // No longer setting Directory.current = tempDir;
       runner = CommandRunner<void>('spark', 'Spark CLI')
-        ..addCommand(OpenApiCommand());
+        ..addCommand(OpenApiCommand(workingDirectory: tempDir));
 
       // Create project structure
       Directory(
@@ -26,24 +27,31 @@ void main() {
       ).createSync(recursive: true);
       Directory(p.join(tempDir.path, 'bin')).createSync(recursive: true);
 
-      // Default to monorepo structure
+      // 1. Try packages/spark (if running from repo root)
       var possiblePath = p.absolute(
-        p.join(originalCwd.path, 'packages', 'spark_framework', 'spark'),
+        p.join(originalCwd.path, 'packages', 'spark'),
       );
 
       if (!File(p.join(possiblePath, 'pubspec.yaml')).existsSync()) {
-        // Try parallel sibling (if running from spark_cli)
+        // 2. Try sibling ../spark (if running from packages/spark_cli)
         possiblePath = p.absolute(p.join(originalCwd.path, '..', 'spark'));
       }
 
-      if (!File(p.join(possiblePath, 'pubspec.yaml')).existsSync()) {
-        // Fallback to simple packages/spark
-        possiblePath = p.absolute(
-          p.join(originalCwd.path, 'packages', 'spark'),
-        );
-      }
-
       sparkPackagePath = possiblePath;
+
+      // Read package name from found pubspec
+      final pubspecContent = File(
+        p.join(sparkPackagePath, 'pubspec.yaml'),
+      ).readAsStringSync();
+      final nameMatch = RegExp(
+        r'^name:\s+(.+)$',
+        multiLine: true,
+      ).firstMatch(pubspecContent);
+      if (nameMatch != null) {
+        sparkPackageName = nameMatch.group(1)!.trim();
+      } else {
+        sparkPackageName = 'spark_framework'; // Fallback
+      }
 
       File(p.join(tempDir.path, 'pubspec.yaml')).writeAsStringSync('''
 name: test_project
@@ -51,13 +59,13 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  spark_framework:
+  $sparkPackageName:
     path: $sparkPackagePath
 ''');
     });
 
     tearDown(() {
-      Directory.current = originalCwd;
+      // Directory.current = originalCwd; // No longer needed
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
@@ -92,7 +100,7 @@ dependencies:
           File(
             p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
           ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/simple', method: 'GET')
 class SimpleEndpoint extends SparkEndpoint {
@@ -130,7 +138,7 @@ class DocumentedEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/no-tags', method: 'GET', summary: 'No tags endpoint')
 class NoTagsEndpoint extends SparkEndpoint {
@@ -153,7 +161,7 @@ class NoTagsEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/with-tags',
@@ -181,7 +189,7 @@ class WithTagsEndpoint extends SparkEndpoint {
           File(
             p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
           ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/no-body', method: 'POST', summary: 'No body endpoint')
 class NoBodyEndpoint extends SparkEndpoint {
@@ -207,7 +215,7 @@ class NoBodyEndpoint extends SparkEndpoint {
           File(
             p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
           ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class Dto { final String id; Dto(this.id); }
 
@@ -233,7 +241,7 @@ class RequiredBodyEndpoint extends SparkEndpointWithBody<Dto> {
           File(
             p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
           ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class Dto { final String id; Dto(this.id); }
 
@@ -253,7 +261,7 @@ class OptionalBodyEndpoint extends SparkEndpointWithBody<Dto> {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class Dto { final String id; Dto(this.id); }
 
@@ -276,7 +284,7 @@ class XmlEndpoint extends SparkEndpointWithBody<Dto> {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/default', method: 'GET', summary: 'Default response')
 class DefaultResponseEndpoint extends SparkEndpoint {
@@ -299,7 +307,7 @@ class DefaultResponseEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/create', method: 'POST', summary: 'Create resource')
 class CreateEndpoint extends SparkEndpoint {
@@ -322,7 +330,7 @@ class CreateEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/accepted',
@@ -347,7 +355,7 @@ class AcceptedEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class User {
   final String name;
@@ -378,7 +386,7 @@ class GetUserEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/users/:userId/posts/:postId', method: 'GET', summary: 'Get user post')
 class GetUserPostEndpoint extends SparkEndpoint {
@@ -411,7 +419,7 @@ class GetUserPostEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/search',
@@ -463,7 +471,7 @@ class SearchEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/op-id',
@@ -487,7 +495,7 @@ class OpIdEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/deprecated',
@@ -511,7 +519,7 @@ class DeprecatedEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/secure',
@@ -541,7 +549,7 @@ class SecureEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(
   path: '/external-docs',
@@ -571,7 +579,7 @@ class ExternalDocsEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/test', method: 'GET', summary: 'Test')
 class TestEndpoint extends SparkEndpoint {
@@ -581,7 +589,7 @@ class TestEndpoint extends SparkEndpoint {
 ''');
 
         File(p.join(tempDir.path, 'bin', 'server.dart')).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @OpenApi(
   title: 'My API',
@@ -609,7 +617,7 @@ void main() {}
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/test', method: 'GET', summary: 'Test')
 class TestEndpoint extends SparkEndpoint {
@@ -619,7 +627,7 @@ class TestEndpoint extends SparkEndpoint {
 ''');
 
         File(p.join(tempDir.path, 'bin', 'server.dart')).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @OpenApi(
   title: 'Secure API',
@@ -662,7 +670,7 @@ void main() {}
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class Address {
   final String street;
@@ -709,7 +717,7 @@ class GetPersonEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class Item {
   final String id;
@@ -755,7 +763,7 @@ class GetItemsEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class AllTypes {
   final String stringField;
@@ -797,7 +805,7 @@ class AllTypesEndpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/resource', method: 'GET', summary: 'Get resource')
 class GetEndpoint extends SparkEndpoint {

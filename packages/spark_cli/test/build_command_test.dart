@@ -8,17 +8,16 @@ import 'package:spark_cli/src/commands/build_command.dart';
 import 'package:spark_cli/src/io/process_runner.dart';
 import 'package:test/test.dart';
 
-// Reuse mocks from dev_command_test ideally, but for now copying simplicity.
-// In a real project we'd move mocks to a shared test utility file.
-// Since these are small, inline/local definition is fine.
-
 void main() {
   group('BuildCommand', () {
     late MockProcessRunner processRunner;
     late CommandRunner<void> runner;
     late MockProcess buildRunnerProcess;
 
+    late Directory tempDir;
+
     setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('spark_build_test');
       processRunner = MockProcessRunner();
       buildRunnerProcess = MockProcess();
 
@@ -27,24 +26,98 @@ void main() {
       processRunner.defaultResult = ProcessResult(0, 0, '', '');
 
       runner = CommandRunner<void>('spark', 'Spark CLI')
-        ..addCommand(BuildCommand(processRunner: processRunner));
+        ..addCommand(
+          BuildCommand(processRunner: processRunner, workingDirectory: tempDir),
+        );
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        try {
+          tempDir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
     });
 
     test('runs full build sequence successfully', () async {
-      // Setup temp directory
-      final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-      final originalCwd = Directory.current;
-      Directory.current = tempDir;
+      // Use tempDir from setUp
 
-      try {
-        // Create dummy web asset
+      // Create dummy web asset
+      final webDir = Directory(p.join(tempDir.path, 'web'));
+      webDir.createSync();
+      File(p.join(webDir.path, 'main.dart')).createSync();
+
+      // Create dummy generated server binary for the build command to find/move
+      // 'dart build cli' generates structure: <outputDir>/bundle/bin/<executable>
+      // Here outputDir is 'build/server_build' (inside tempDir)
+      final bundleBinDir = Directory(
+        p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
+      );
+      bundleBinDir.createSync(recursive: true);
+      final binaryName = Platform.isWindows ? 'server.exe' : 'server';
+      File(p.join(bundleBinDir.path, binaryName)).createSync();
+
+      // Mock build_runner success
+      Future.delayed(Duration(milliseconds: 10), () async {
+        buildRunnerProcess.stdoutController.add(
+          utf8.encode('[INFO] Succeeded after 1.0s\n'),
+        );
+        await buildRunnerProcess.stdoutController.close();
+        await buildRunnerProcess.stderrController.close();
+        buildRunnerProcess.exitCodeCompleter.complete(0);
+      });
+
+      // Suppress logs
+      await runZoned(
+        () async {
+          await runner.run(['build', '--no-clean']);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) {},
+        ),
+      );
+
+      // Allow async _printBuildSummary to complete before cleanup
+      await Future<void>.delayed(Duration(milliseconds: 100));
+
+      // Verify sequence
+      // 1. build_runner
+      expect(processRunner.calls[0], contains('dart run build_runner build'));
+
+      // 2. compile server
+      final serverBuildDir = p.join(tempDir.path, 'build', 'server_build');
+      expect(
+        processRunner.calls[1],
+        contains(
+          'dart build cli --target=bin/server.dart --output=$serverBuildDir',
+        ),
+      );
+
+      // 3. compile web assets
+      final jsOutput = p.join(tempDir.path, 'build', 'web', 'main.dart.js');
+      final jsInput = p.join(tempDir.path, 'web', 'main.dart');
+      expect(
+        processRunner.calls[2],
+        allOf(
+          contains('dart compile js'),
+          contains('-o $jsOutput'),
+          contains(jsInput),
+        ),
+      );
+    });
+
+    test(
+      'compiles nested web entry points preserving directory structure',
+      () async {
+        // Use tempDir from setUp
+
+        // Create nested web asset
         final webDir = Directory(p.join(tempDir.path, 'web'));
-        webDir.createSync();
-        File(p.join(webDir.path, 'main.dart')).createSync();
+        final subDir = Directory(p.join(webDir.path, 'docs'));
+        subDir.createSync(recursive: true);
+        File(p.join(subDir.path, 'page.dart')).createSync();
 
-        // Create dummy generated server binary for the build command to find/move
-        // 'dart build cli' generates structure: <outputDir>/bundle/bin/<executable>
-        // Here outputDir is 'build/server_build' (inside tempDir)
+        // Create dummy generated server binary
         final bundleBinDir = Directory(
           p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
         );
@@ -72,371 +145,60 @@ void main() {
           ),
         );
 
-        // Allow async _printBuildSummary to complete before cleanup
         await Future<void>.delayed(Duration(milliseconds: 100));
 
-        // Verify sequence
-        // 1. build_runner
-        expect(processRunner.calls[0], contains('dart run build_runner build'));
-
-        // 2. compile server
-        // Expect 'dart build cli ...'
-        // outputDir is 'build', so temp is 'build/server_build'
-        expect(
-          processRunner.calls[1],
-          contains(
-            'dart build cli --target=bin/server.dart --output=build/server_build',
-          ),
+        // Verify compilation of nested file
+        final jsOutput = p.join(
+          tempDir.path,
+          'build',
+          'web',
+          'docs',
+          'page.dart.js',
         );
+        final jsInput = p.join(tempDir.path, 'web', 'docs', 'page.dart');
 
-        // 3. compile web assets
-        // Verify path fix: output should be build/web/main.dart.js, not build/build/web/...
-        // The command constructs path using relative path from CWD + outputDir
-        // outputDir default is 'build'.
-        // expected: build/web/main.dart.js
         expect(
-          processRunner.calls[2],
-          allOf(
-            contains('dart compile js'),
-            contains('-o build/web/main.dart.js'),
-            contains('web/main.dart'),
+          processRunner.calls.any(
+            (call) =>
+                call.contains('dart compile js') &&
+                call.contains('-o $jsOutput') &&
+                call.contains(jsInput),
           ),
+          isTrue,
+          reason: 'Should compile nested web asset to matching output path',
         );
-      } finally {
-        Directory.current = originalCwd;
-        tempDir.deleteSync(recursive: true);
-      }
-    });
-
-    test(
-      'compiles nested web entry points preserving directory structure',
-      () async {
-        // Setup temp directory
-        final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-        final originalCwd = Directory.current;
-        Directory.current = tempDir;
-
-        try {
-          // Create nested web asset
-          final webDir = Directory(p.join(tempDir.path, 'web'));
-          final subDir = Directory(p.join(webDir.path, 'docs'));
-          subDir.createSync(recursive: true);
-          File(p.join(subDir.path, 'page.dart')).createSync();
-
-          // Create dummy generated server binary
-          final bundleBinDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
-          );
-          bundleBinDir.createSync(recursive: true);
-          final binaryName = Platform.isWindows ? 'server.exe' : 'server';
-          File(p.join(bundleBinDir.path, binaryName)).createSync();
-
-          // Mock build_runner success
-          Future.delayed(Duration(milliseconds: 10), () async {
-            buildRunnerProcess.stdoutController.add(
-              utf8.encode('[INFO] Succeeded after 1.0s\n'),
-            );
-            await buildRunnerProcess.stdoutController.close();
-            await buildRunnerProcess.stderrController.close();
-            buildRunnerProcess.exitCodeCompleter.complete(0);
-          });
-
-          // Suppress logs
-          await runZoned(
-            () async {
-              await runner.run(['build', '--no-clean']);
-            },
-            zoneSpecification: ZoneSpecification(
-              print: (self, parent, zone, line) {},
-            ),
-          );
-
-          await Future<void>.delayed(Duration(milliseconds: 100));
-
-          // Verify compilation of nested file
-          // Expected: build/web/docs/page.dart.js
-          expect(
-            processRunner.calls.any(
-              (call) =>
-                  call.contains('dart compile js') &&
-                  call.contains('-o build/web/docs/page.dart.js') &&
-                  call.contains('web/docs/page.dart'),
-            ),
-            isTrue,
-            reason: 'Should compile nested web asset to matching output path',
-          );
-        } finally {
-          Directory.current = originalCwd;
-          tempDir.deleteSync(recursive: true);
-        }
       },
     );
 
     test(
       'copies native libraries from bundle/lib to output lib directory',
       () async {
-        final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-        final originalCwd = Directory.current;
-        Directory.current = tempDir;
+        // Use tempDir from setUp
 
-        try {
-          // Create dummy web directory (required by build flow)
-          final webDir = Directory(p.join(tempDir.path, 'web'));
-          webDir.createSync();
-
-          // Create dummy generated server binary
-          final bundleBinDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
-          );
-          bundleBinDir.createSync(recursive: true);
-          final binaryName = Platform.isWindows ? 'server.exe' : 'server';
-          File(p.join(bundleBinDir.path, binaryName)).createSync();
-
-          // Create native library in bundle/lib/
-          final bundleLibDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'lib'),
-          );
-          bundleLibDir.createSync(recursive: true);
-          final nativeLibName = Platform.isWindows
-              ? 'sqlite3.dll'
-              : Platform.isMacOS
-              ? 'libsqlite3.dylib'
-              : 'libsqlite3.so';
-          final nativeLibFile = File(p.join(bundleLibDir.path, nativeLibName));
-          nativeLibFile.writeAsStringSync('fake native library content');
-
-          // Mock build_runner success
-          Future.delayed(Duration(milliseconds: 10), () async {
-            buildRunnerProcess.stdoutController.add(
-              utf8.encode('[INFO] Succeeded after 1.0s\n'),
-            );
-            await buildRunnerProcess.stdoutController.close();
-            await buildRunnerProcess.stderrController.close();
-            buildRunnerProcess.exitCodeCompleter.complete(0);
-          });
-
-          // Run build
-          await runZoned(
-            () async {
-              await runner.run(['build', '--no-clean']);
-            },
-            zoneSpecification: ZoneSpecification(
-              print: (self, parent, zone, line) {},
-            ),
-          );
-
-          // Allow async _printBuildSummary to complete before cleanup
-          await Future<void>.delayed(Duration(milliseconds: 100));
-
-          // Verify native library was copied to build/lib/
-          final copiedLib = File(
-            p.join(tempDir.path, 'build', 'lib', nativeLibName),
-          );
-          expect(
-            copiedLib.existsSync(),
-            isTrue,
-            reason: 'Native library should be copied to build/lib/',
-          );
-          expect(
-            copiedLib.readAsStringSync(),
-            equals('fake native library content'),
-            reason: 'Native library content should match',
-          );
-        } finally {
-          Directory.current = originalCwd;
-          tempDir.deleteSync(recursive: true);
-        }
-      },
-    );
-
-    test(
-      'copies nested native libraries preserving directory structure',
-      () async {
-        final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-        final originalCwd = Directory.current;
-        Directory.current = tempDir;
-
-        try {
-          // Create dummy web directory
-          final webDir = Directory(p.join(tempDir.path, 'web'));
-          webDir.createSync();
-
-          // Create dummy generated server binary
-          final bundleBinDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
-          );
-          bundleBinDir.createSync(recursive: true);
-          final binaryName = Platform.isWindows ? 'server.exe' : 'server';
-          File(p.join(bundleBinDir.path, binaryName)).createSync();
-
-          // Create nested native libraries in bundle/lib/
-          final bundleLibDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'lib'),
-          );
-          bundleLibDir.createSync(recursive: true);
-
-          // Create a nested subdirectory with a library
-          final nestedDir = Directory(p.join(bundleLibDir.path, 'subdir'));
-          nestedDir.createSync(recursive: true);
-          File(
-            p.join(nestedDir.path, 'nested_lib.so'),
-          ).writeAsStringSync('nested lib content');
-
-          // Also create a top-level library
-          File(
-            p.join(bundleLibDir.path, 'top_level.so'),
-          ).writeAsStringSync('top level content');
-
-          // Mock build_runner success
-          Future.delayed(Duration(milliseconds: 10), () async {
-            buildRunnerProcess.stdoutController.add(
-              utf8.encode('[INFO] Succeeded after 1.0s\n'),
-            );
-            await buildRunnerProcess.stdoutController.close();
-            await buildRunnerProcess.stderrController.close();
-            buildRunnerProcess.exitCodeCompleter.complete(0);
-          });
-
-          // Run build
-          await runZoned(
-            () async {
-              await runner.run(['build', '--no-clean']);
-            },
-            zoneSpecification: ZoneSpecification(
-              print: (self, parent, zone, line) {},
-            ),
-          );
-
-          // Allow async _printBuildSummary to complete before cleanup
-          await Future<void>.delayed(Duration(milliseconds: 100));
-
-          // Verify both libraries were copied with correct structure
-          final topLevelLib = File(
-            p.join(tempDir.path, 'build', 'lib', 'top_level.so'),
-          );
-          final nestedLib = File(
-            p.join(tempDir.path, 'build', 'lib', 'subdir', 'nested_lib.so'),
-          );
-
-          expect(
-            topLevelLib.existsSync(),
-            isTrue,
-            reason: 'Top-level library should be copied',
-          );
-          expect(
-            nestedLib.existsSync(),
-            isTrue,
-            reason:
-                'Nested library should be copied preserving directory structure',
-          );
-          expect(nestedLib.readAsStringSync(), equals('nested lib content'));
-        } finally {
-          Directory.current = originalCwd;
-          tempDir.deleteSync(recursive: true);
-        }
-      },
-    );
-
-    test(
-      'places server binary in build/bin/ for native lib resolution',
-      () async {
-        final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-        final originalCwd = Directory.current;
-        Directory.current = tempDir;
-
-        try {
-          // Create dummy web directory
-          final webDir = Directory(p.join(tempDir.path, 'web'));
-          webDir.createSync();
-
-          // Create dummy generated server binary
-          final bundleBinDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
-          );
-          bundleBinDir.createSync(recursive: true);
-          final binaryName = Platform.isWindows ? 'server.exe' : 'server';
-          File(
-            p.join(bundleBinDir.path, binaryName),
-          ).writeAsStringSync('binary content');
-
-          // Create native library in bundle/lib/
-          final bundleLibDir = Directory(
-            p.join(tempDir.path, 'build', 'server_build', 'bundle', 'lib'),
-          );
-          bundleLibDir.createSync(recursive: true);
-          final nativeLibName = Platform.isLinux
-              ? 'libsqlite3.so'
-              : 'libsqlite3.dylib';
-          File(
-            p.join(bundleLibDir.path, nativeLibName),
-          ).writeAsStringSync('native lib');
-
-          // Mock build_runner success
-          Future.delayed(Duration(milliseconds: 10), () async {
-            buildRunnerProcess.stdoutController.add(
-              utf8.encode('[INFO] Succeeded after 1.0s\n'),
-            );
-            await buildRunnerProcess.stdoutController.close();
-            await buildRunnerProcess.stderrController.close();
-            buildRunnerProcess.exitCodeCompleter.complete(0);
-          });
-
-          // Run build
-          await runZoned(
-            () async {
-              await runner.run(['build', '--no-clean']);
-            },
-            zoneSpecification: ZoneSpecification(
-              print: (self, parent, zone, line) {},
-            ),
-          );
-
-          await Future<void>.delayed(Duration(milliseconds: 100));
-
-          // Verify server is in build/bin/ (not build/)
-          final serverBinary = File(
-            p.join(tempDir.path, 'build', 'bin', binaryName),
-          );
-          expect(
-            serverBinary.existsSync(),
-            isTrue,
-            reason: 'Server binary should be at build/bin/server',
-          );
-
-          // Verify native library is at build/lib/ (sibling to bin/)
-          // This ensures ../lib/ from build/bin/server resolves to build/lib/
-          final nativeLib = File(
-            p.join(tempDir.path, 'build', 'lib', nativeLibName),
-          );
-          expect(
-            nativeLib.existsSync(),
-            isTrue,
-            reason: 'Native lib should be at build/lib/ (sibling to bin/)',
-          );
-        } finally {
-          Directory.current = originalCwd;
-          tempDir.deleteSync(recursive: true);
-        }
-      },
-    );
-
-    test('handles missing bundle/lib directory gracefully', () async {
-      final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-      final originalCwd = Directory.current;
-      Directory.current = tempDir;
-
-      try {
-        // Create dummy web directory
+        // Create dummy web directory (required by build flow)
         final webDir = Directory(p.join(tempDir.path, 'web'));
         webDir.createSync();
 
-        // Create dummy generated server binary WITHOUT bundle/lib/
+        // Create dummy generated server binary
         final bundleBinDir = Directory(
           p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
         );
         bundleBinDir.createSync(recursive: true);
         final binaryName = Platform.isWindows ? 'server.exe' : 'server';
         File(p.join(bundleBinDir.path, binaryName)).createSync();
+
+        // Create native library in bundle/lib/
+        final bundleLibDir = Directory(
+          p.join(tempDir.path, 'build', 'server_build', 'bundle', 'lib'),
+        );
+        bundleLibDir.createSync(recursive: true);
+        final nativeLibName = Platform.isWindows
+            ? 'sqlite3.dll'
+            : Platform.isMacOS
+            ? 'libsqlite3.dylib'
+            : 'libsqlite3.so';
+        final nativeLibFile = File(p.join(bundleLibDir.path, nativeLibName));
+        nativeLibFile.writeAsStringSync('fake native library content');
 
         // Mock build_runner success
         Future.delayed(Duration(milliseconds: 10), () async {
@@ -448,7 +210,7 @@ void main() {
           buildRunnerProcess.exitCodeCompleter.complete(0);
         });
 
-        // Run build - should not throw
+        // Run build
         await runZoned(
           () async {
             await runner.run(['build', '--no-clean']);
@@ -461,50 +223,31 @@ void main() {
         // Allow async _printBuildSummary to complete before cleanup
         await Future<void>.delayed(Duration(milliseconds: 100));
 
-        // Verify build/lib/ was NOT created (no native libs to copy)
-        final libDir = Directory(p.join(tempDir.path, 'build', 'lib'));
-        expect(
-          libDir.existsSync(),
-          isFalse,
-          reason: 'lib/ should not be created when no native libs exist',
+        // Verify native library was copied to build/lib/
+        final copiedLib = File(
+          p.join(tempDir.path, 'build', 'lib', nativeLibName),
         );
-      } finally {
-        Directory.current = originalCwd;
-        tempDir.deleteSync(recursive: true);
-      }
-    });
-    test('copies non-Dart static files from web/ to build/web/', () async {
-      final tempDir = Directory.systemTemp.createTempSync('spark_build_test');
-      final originalCwd = Directory.current;
-      Directory.current = tempDir;
+        expect(
+          copiedLib.existsSync(),
+          isTrue,
+          reason: 'Native library should be copied to build/lib/',
+        );
+        expect(
+          copiedLib.readAsStringSync(),
+          equals('fake native library content'),
+          reason: 'Native library content should match',
+        );
+      },
+    );
 
-      try {
-        // Create web directory with various assets
+    test(
+      'copies nested native libraries preserving directory structure',
+      () async {
+        // Use tempDir from setUp
+
+        // Create dummy web directory
         final webDir = Directory(p.join(tempDir.path, 'web'));
         webDir.createSync();
-        File(
-          p.join(webDir.path, 'main.dart'),
-        ).createSync(); // Should be compiled
-        File(
-          p.join(webDir.path, 'favicon.ico'),
-        ).writeAsStringSync('icon'); // Should be copied
-        File(
-          p.join(webDir.path, 'styles.css'),
-        ).writeAsStringSync('css'); // Should be copied
-
-        // Create a subdirectory with assets
-        final assetsDir = Directory(p.join(webDir.path, 'assets'));
-        assetsDir.createSync();
-        File(
-          p.join(assetsDir.path, 'logo.png'),
-        ).writeAsStringSync('png'); // Should be copied
-
-        // Create another subdirectory (not 'assets') with files
-        final otherDir = Directory(p.join(webDir.path, 'other'));
-        otherDir.createSync();
-        File(
-          p.join(otherDir.path, 'data.json'),
-        ).writeAsStringSync('json'); // Should be copied
 
         // Create dummy generated server binary
         final bundleBinDir = Directory(
@@ -513,6 +256,101 @@ void main() {
         bundleBinDir.createSync(recursive: true);
         final binaryName = Platform.isWindows ? 'server.exe' : 'server';
         File(p.join(bundleBinDir.path, binaryName)).createSync();
+
+        // Create nested native libraries in bundle/lib/
+        final bundleLibDir = Directory(
+          p.join(tempDir.path, 'build', 'server_build', 'bundle', 'lib'),
+        );
+        bundleLibDir.createSync(recursive: true);
+
+        // Create a nested subdirectory with a library
+        final nestedDir = Directory(p.join(bundleLibDir.path, 'subdir'));
+        nestedDir.createSync(recursive: true);
+        File(
+          p.join(nestedDir.path, 'nested_lib.so'),
+        ).writeAsStringSync('nested lib content');
+
+        // Also create a top-level library
+        File(
+          p.join(bundleLibDir.path, 'top_level.so'),
+        ).writeAsStringSync('top level content');
+
+        // Mock build_runner success
+        Future.delayed(Duration(milliseconds: 10), () async {
+          buildRunnerProcess.stdoutController.add(
+            utf8.encode('[INFO] Succeeded after 1.0s\n'),
+          );
+          await buildRunnerProcess.stdoutController.close();
+          await buildRunnerProcess.stderrController.close();
+          buildRunnerProcess.exitCodeCompleter.complete(0);
+        });
+
+        // Run build
+        await runZoned(
+          () async {
+            await runner.run(['build', '--no-clean']);
+          },
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {},
+          ),
+        );
+
+        // Allow async _printBuildSummary to complete before cleanup
+        await Future<void>.delayed(Duration(milliseconds: 100));
+
+        // Verify both libraries were copied with correct structure
+        final topLevelLib = File(
+          p.join(tempDir.path, 'build', 'lib', 'top_level.so'),
+        );
+        final nestedLib = File(
+          p.join(tempDir.path, 'build', 'lib', 'subdir', 'nested_lib.so'),
+        );
+
+        expect(
+          topLevelLib.existsSync(),
+          isTrue,
+          reason: 'Top-level library should be copied',
+        );
+        expect(
+          nestedLib.existsSync(),
+          isTrue,
+          reason:
+              'Nested library should be copied preserving directory structure',
+        );
+        expect(nestedLib.readAsStringSync(), equals('nested lib content'));
+      },
+    );
+
+    test(
+      'places server binary in build/bin/ for native lib resolution',
+      () async {
+        // Use tempDir from setUp
+
+        // Create dummy web directory
+        final webDir = Directory(p.join(tempDir.path, 'web'));
+        webDir.createSync();
+
+        // Create dummy generated server binary
+        final bundleBinDir = Directory(
+          p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
+        );
+        bundleBinDir.createSync(recursive: true);
+        final binaryName = Platform.isWindows ? 'server.exe' : 'server';
+        File(
+          p.join(bundleBinDir.path, binaryName),
+        ).writeAsStringSync('binary content');
+
+        // Create native library in bundle/lib/
+        final bundleLibDir = Directory(
+          p.join(tempDir.path, 'build', 'server_build', 'bundle', 'lib'),
+        );
+        bundleLibDir.createSync(recursive: true);
+        final nativeLibName = Platform.isLinux
+            ? 'libsqlite3.so'
+            : 'libsqlite3.dylib';
+        File(
+          p.join(bundleLibDir.path, nativeLibName),
+        ).writeAsStringSync('native lib');
 
         // Mock build_runner success
         Future.delayed(Duration(milliseconds: 10), () async {
@@ -536,57 +374,177 @@ void main() {
 
         await Future<void>.delayed(Duration(milliseconds: 100));
 
-        // Verify favicon.ico is copied
-        final favicon = File(
-          p.join(tempDir.path, 'build', 'web', 'favicon.ico'),
+        // Verify server is in build/bin/ (not build/)
+        final serverBinary = File(
+          p.join(tempDir.path, 'build', 'bin', binaryName),
         );
         expect(
-          favicon.existsSync(),
+          serverBinary.existsSync(),
           isTrue,
-          reason: 'favicon.ico should be copied',
+          reason: 'Server binary should be at build/bin/server',
         );
 
-        // Verify styles.css is copied
-        final styles = File(p.join(tempDir.path, 'build', 'web', 'styles.css'));
+        // Verify native library is at build/lib/ (sibling to bin/)
+        // This ensures ../lib/ from build/bin/server resolves to build/lib/
+        final nativeLib = File(
+          p.join(tempDir.path, 'build', 'lib', nativeLibName),
+        );
         expect(
-          styles.existsSync(),
+          nativeLib.existsSync(),
           isTrue,
-          reason: 'styles.css should be copied',
+          reason: 'Native lib should be at build/lib/ (sibling to bin/)',
         );
+      },
+    );
 
-        // Verify nested assets are copied
-        final logo = File(
-          p.join(tempDir.path, 'build', 'web', 'assets', 'logo.png'),
-        );
-        expect(
-          logo.existsSync(),
-          isTrue,
-          reason: 'assets/logo.png should be copied',
-        );
+    test('handles missing bundle/lib directory gracefully', () async {
+      // Use tempDir from setUp
 
-        // Verify other nested files are copied
-        final data = File(
-          p.join(tempDir.path, 'build', 'web', 'other', 'data.json'),
-        );
-        expect(
-          data.existsSync(),
-          isTrue,
-          reason: 'other/data.json should be copied',
-        );
+      // Create dummy web directory
+      final webDir = Directory(p.join(tempDir.path, 'web'));
+      webDir.createSync();
 
-        // Verify Dart files are NOT copied (they are compiled)
-        final mainDart = File(
-          p.join(tempDir.path, 'build', 'web', 'main.dart'),
+      // Create dummy generated server binary WITHOUT bundle/lib/
+      final bundleBinDir = Directory(
+        p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
+      );
+      bundleBinDir.createSync(recursive: true);
+      final binaryName = Platform.isWindows ? 'server.exe' : 'server';
+      File(p.join(bundleBinDir.path, binaryName)).createSync();
+
+      // Mock build_runner success
+      Future.delayed(Duration(milliseconds: 10), () async {
+        buildRunnerProcess.stdoutController.add(
+          utf8.encode('[INFO] Succeeded after 1.0s\n'),
         );
-        expect(
-          mainDart.existsSync(),
-          isFalse,
-          reason: 'main.dart should not be copied directly',
+        await buildRunnerProcess.stdoutController.close();
+        await buildRunnerProcess.stderrController.close();
+        buildRunnerProcess.exitCodeCompleter.complete(0);
+      });
+
+      // Run build - should not throw
+      await runZoned(
+        () async {
+          await runner.run(['build', '--no-clean']);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) {},
+        ),
+      );
+
+      // Allow async _printBuildSummary to complete before cleanup
+      await Future<void>.delayed(Duration(milliseconds: 100));
+
+      // Verify build/lib/ was NOT created (no native libs to copy)
+      final libDir = Directory(p.join(tempDir.path, 'build', 'lib'));
+      expect(
+        libDir.existsSync(),
+        isFalse,
+        reason: 'lib/ should not be created when no native libs exist',
+      );
+    });
+
+    test('copies non-Dart static files from web/ to build/web/', () async {
+      // Use tempDir from setUp
+
+      // Create web directory with various assets
+      final webDir = Directory(p.join(tempDir.path, 'web'));
+      webDir.createSync();
+      File(p.join(webDir.path, 'main.dart')).createSync(); // Should be compiled
+      File(
+        p.join(webDir.path, 'favicon.ico'),
+      ).writeAsStringSync('icon'); // Should be copied
+      File(
+        p.join(webDir.path, 'styles.css'),
+      ).writeAsStringSync('css'); // Should be copied
+
+      // Create a subdirectory with assets
+      final assetsDir = Directory(p.join(webDir.path, 'assets'));
+      assetsDir.createSync();
+      File(
+        p.join(assetsDir.path, 'logo.png'),
+      ).writeAsStringSync('png'); // Should be copied
+
+      // Create another subdirectory (not 'assets') with files
+      final otherDir = Directory(p.join(webDir.path, 'other'));
+      otherDir.createSync();
+      File(
+        p.join(otherDir.path, 'data.json'),
+      ).writeAsStringSync('json'); // Should be copied
+
+      // Create dummy generated server binary
+      final bundleBinDir = Directory(
+        p.join(tempDir.path, 'build', 'server_build', 'bundle', 'bin'),
+      );
+      bundleBinDir.createSync(recursive: true);
+      final binaryName = Platform.isWindows ? 'server.exe' : 'server';
+      File(p.join(bundleBinDir.path, binaryName)).createSync();
+
+      // Mock build_runner success
+      Future.delayed(Duration(milliseconds: 10), () async {
+        buildRunnerProcess.stdoutController.add(
+          utf8.encode('[INFO] Succeeded after 1.0s\n'),
         );
-      } finally {
-        Directory.current = originalCwd;
-        tempDir.deleteSync(recursive: true);
-      }
+        await buildRunnerProcess.stdoutController.close();
+        await buildRunnerProcess.stderrController.close();
+        buildRunnerProcess.exitCodeCompleter.complete(0);
+      });
+
+      // Run build
+      await runZoned(
+        () async {
+          await runner.run(['build', '--no-clean']);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) {},
+        ),
+      );
+
+      await Future<void>.delayed(Duration(milliseconds: 100));
+
+      // Verify favicon.ico is copied
+      final favicon = File(p.join(tempDir.path, 'build', 'web', 'favicon.ico'));
+      expect(
+        favicon.existsSync(),
+        isTrue,
+        reason: 'favicon.ico should be copied',
+      );
+
+      // Verify styles.css is copied
+      final styles = File(p.join(tempDir.path, 'build', 'web', 'styles.css'));
+      expect(
+        styles.existsSync(),
+        isTrue,
+        reason: 'styles.css should be copied',
+      );
+
+      // Verify nested assets are copied
+      final logo = File(
+        p.join(tempDir.path, 'build', 'web', 'assets', 'logo.png'),
+      );
+      expect(
+        logo.existsSync(),
+        isTrue,
+        reason: 'assets/logo.png should be copied',
+      );
+
+      // Verify other nested files are copied
+      final data = File(
+        p.join(tempDir.path, 'build', 'web', 'other', 'data.json'),
+      );
+      expect(
+        data.existsSync(),
+        isTrue,
+        reason: 'other/data.json should be copied',
+      );
+
+      // Verify Dart files are NOT copied (they are compiled)
+      final mainDart = File(p.join(tempDir.path, 'build', 'web', 'main.dart'));
+      expect(
+        mainDart.existsSync(),
+        isFalse,
+        reason: 'main.dart should not be copied directly',
+      );
     });
   });
 }

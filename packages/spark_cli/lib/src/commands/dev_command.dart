@@ -14,9 +14,11 @@ import '../errors/dev_error.dart';
 import '../errors/dev_error_collector.dart';
 import '../errors/dev_error_type.dart';
 import '../io/process_runner.dart';
-import '../parsers/build_runner_parser.dart';
+import '../utils/build_runner_utils.dart';
+import '../utils/directory_utils.dart';
 
 typedef VmServiceConnector = Future<VmService> Function(String uri);
+typedef WatcherFactory = Watcher Function(String path);
 
 class DevCommand extends Command<void> {
   @override
@@ -32,13 +34,26 @@ class DevCommand extends Command<void> {
 
   final ProcessRunner _processRunner;
   final VmServiceConnector _vmServiceConnector;
+  final Directory _workingDirectory;
+  final WatcherFactory _watcherFactory;
 
   DevCommand({
     ProcessRunner processRunner = const ProcessRunnerImpl(),
     VmServiceConnector? vmServiceConnector,
+    Directory? workingDirectory,
+    WatcherFactory? watcherFactory,
   }) : _processRunner = processRunner,
-       _vmServiceConnector = vmServiceConnector ?? vmServiceConnectUri;
+       _vmServiceConnector = vmServiceConnector ?? vmServiceConnectUri,
+       _workingDirectory = workingDirectory ?? Directory.current,
+       _watcherFactory = watcherFactory ?? ((path) => DirectoryWatcher(path)) {
+    _buildUtils = BuildRunnerUtils(
+      processRunner: processRunner,
+      console: _console,
+      workingDirectory: _workingDirectory,
+    );
+  }
 
+  late final BuildRunnerUtils _buildUtils;
   Process? _buildRunnerProcess;
   Process? _serverProcess;
   VmService? _vmService;
@@ -47,12 +62,12 @@ class DevCommand extends Command<void> {
 
   // Track router file hash to detect structural changes requiring restart
   String? _lastRouterHash;
-  static const _routerFilePath = 'lib/spark_router.g.dart';
+  String get _routerFilePath =>
+      p.join(_workingDirectory.path, 'lib', 'spark_router.g.dart');
 
   // Error handling components
   final ConsoleOutput _console = ConsoleOutput();
   final DevErrorCollector _errorCollector = DevErrorCollector();
-  final BuildRunnerParser _buildParser = BuildRunnerParser();
 
   // Completion tracking
   Completer<void>? _mainCompleter;
@@ -62,7 +77,11 @@ class DevCommand extends Command<void> {
   Future<void> run() async {
     _console.printInfo('Starting development environment...');
 
-    await _cleanBuildFolder();
+    await DirectoryUtils.cleanDirectory(
+      p.join(_workingDirectory.path, 'build'),
+      _console,
+      message: 'Cleaning build folder',
+    );
 
     _mainCompleter = Completer<void>();
     _setupSignalHandling();
@@ -109,28 +128,55 @@ class DevCommand extends Command<void> {
     _console.printGray('Cleaned up processes.');
   }
 
-  Future<void> _cleanBuildFolder() async {
-    final buildDir = Directory('build');
-    if (await buildDir.exists()) {
-      _console.printInfo('Cleaning build folder...');
-      await buildDir.delete(recursive: true);
-      _console.printGray('Build folder deleted.');
-    }
-  }
-
   Future<void> _startBuildRunner() async {
-    _console.printInfo('Starting build_runner...');
-    _buildRunnerProcess = await _processRunner.start('dart', [
-      'run',
-      'build_runner',
-      'watch',
-      '--output',
-      'web:build/web',
-      '--delete-conflicting-outputs',
-    ]);
-
     final completer = Completer<void>();
     var hasCompleted = false;
+
+    _buildRunnerProcess = await _buildUtils.startWatch(
+      extraArgs: ['--output', 'web:build/web'],
+      onLog: (line) {
+        if (line.contains('Succeeded after') || line.contains('Built with')) {
+          _buildUtils.parser.finalize();
+
+          // Show errors from this build if any
+          if (_buildUtils.parser.errors.isNotEmpty) {
+            _errorCollector.clearType(DevErrorType.build);
+            _errorCollector.addAll(_buildUtils.parser.errors);
+            _errorCollector.printSummary(clearAfter: true);
+            _buildUtils.parser.clear();
+          }
+
+          _console.printSuccess('Build completed.');
+          if (!completer.isCompleted) {
+            hasCompleted = true;
+            // Store initial router hash
+            _computeRouterHash().then((hash) => _lastRouterHash = hash);
+            completer.complete();
+          } else {
+            // Rebuild completed, check if router changed
+            _handleBuildComplete();
+          }
+        } else if (line.contains('Failed after')) {
+          _buildUtils.parser.finalize();
+          _errorCollector.clearType(DevErrorType.build);
+          _errorCollector.addAll(_buildUtils.parser.errors);
+          _errorCollector.printSummary();
+          _buildUtils.parser.clear();
+
+          // Don't complete with error on rebuild failures, only on initial build
+          if (!completer.isCompleted) {
+            hasCompleted = true;
+            completer.completeError(StateError('Initial build failed'));
+          }
+        } else if (line.contains('[INFO]')) {
+          // Suppress INFO logs
+        } else if (line.contains('Building...')) {
+          _console.clear();
+          _buildUtils.parser.clear();
+          _console.printWarning('Building...');
+        }
+      },
+    );
 
     // Monitor process exit
     _buildRunnerProcess!.exitCode.then((exitCode) {
@@ -148,59 +194,6 @@ class DevCommand extends Command<void> {
         }
       }
     });
-
-    _buildRunnerProcess!.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((line) {
-          if (line.contains('Succeeded after') || line.contains('Built with')) {
-            _buildParser.finalize();
-
-            // Show errors from this build if any
-            if (_buildParser.errors.isNotEmpty) {
-              _errorCollector.clearType(DevErrorType.build);
-              _errorCollector.addAll(_buildParser.errors);
-              _errorCollector.printSummary(clearAfter: true);
-              _buildParser.clear();
-            }
-
-            _console.printSuccess('Build completed.');
-            if (!completer.isCompleted) {
-              hasCompleted = true;
-              // Store initial router hash
-              _computeRouterHash().then((hash) => _lastRouterHash = hash);
-              completer.complete();
-            } else {
-              // Rebuild completed, check if router changed
-              _handleBuildComplete();
-            }
-          } else if (line.contains('Failed after')) {
-            _buildParser.finalize();
-            _errorCollector.clearType(DevErrorType.build);
-            _errorCollector.addAll(_buildParser.errors);
-            _errorCollector.printSummary();
-            _buildParser.clear();
-
-            // Don't complete with error on rebuild failures, only on initial build
-            if (!completer.isCompleted) {
-              hasCompleted = true;
-              completer.completeError(StateError('Initial build failed'));
-            }
-          } else if (line.contains('[INFO]')) {
-            // Suppress INFO logs
-          } else if (line.contains('Building...')) {
-            _console.clear();
-            _buildParser.clear();
-            _console.printWarning('Building...');
-          }
-        });
-
-    _buildRunnerProcess!.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((line) {
-          _buildParser.parseLine(line);
-        });
 
     _console.printGray('Waiting for first build to complete...');
 
@@ -277,6 +270,7 @@ class DevCommand extends Command<void> {
     _serverProcess = await _processRunner.start(
       'dart',
       ['run', '--enable-vm-service=0', 'bin/server.dart'],
+      workingDirectory: _workingDirectory.path,
       environment: {
         if (_liveReloadPort != null)
           'SPARK_DEV_RELOAD_PORT': _liveReloadPort.toString(),
@@ -430,7 +424,7 @@ class DevCommand extends Command<void> {
 
   void _startFileWatcher() {
     _console.printGray('Watching for file changes...');
-    final watcher = DirectoryWatcher(p.current);
+    final watcher = _watcherFactory(_workingDirectory.path);
     _fileWatcherSubscription = watcher.events.listen((event) {
       if (event.path.endsWith('.dart') &&
           !event.path.endsWith('.g.dart') &&

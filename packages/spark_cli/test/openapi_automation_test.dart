@@ -12,6 +12,7 @@ void main() {
     late Directory originalCwd;
     late CommandRunner<void> runner;
     late String sparkPackagePath;
+    late String sparkPackageName;
 
     setUp(() async {
       originalCwd = Directory.current;
@@ -58,13 +59,27 @@ void main() {
 
       sparkPackagePath = possiblePath;
 
+      // Read package name from found pubspec
+      final pubspecContent = File(
+        p.join(sparkPackagePath, 'pubspec.yaml'),
+      ).readAsStringSync();
+      final nameMatch = RegExp(
+        r'^name:\s+(.+)$',
+        multiLine: true,
+      ).firstMatch(pubspecContent);
+      if (nameMatch != null) {
+        sparkPackageName = nameMatch.group(1)!.trim();
+      } else {
+        sparkPackageName = 'spark_framework'; // Fallback
+      }
+
       File(p.join(tempDir.path, 'pubspec.yaml')).writeAsStringSync('''
 name: test_project
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  spark_framework:
+  $sparkPackageName:
     path: $sparkPackagePath
 ''');
     });
@@ -104,7 +119,7 @@ dependencies:
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/error-400', method: 'GET')
 class Error400Endpoint extends SparkEndpoint {
@@ -132,7 +147,7 @@ class Error400Endpoint extends SparkEndpoint {
         File(
           p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
         ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/error-500', method: 'GET')
 class Error500Endpoint extends SparkEndpoint {
@@ -154,7 +169,7 @@ class Error500Endpoint extends SparkEndpoint {
       File(
         p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
       ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/error-404', method: 'GET')
 class Error404Endpoint extends SparkEndpoint {
@@ -176,7 +191,7 @@ class Error404Endpoint extends SparkEndpoint {
       File(
         p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
       ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class UserDto {
   @NotEmpty()
@@ -204,7 +219,7 @@ class ValidationEndpoint extends SparkEndpointWithBody<UserDto> {
 
     test('deduces 401 from middleware throwing ApiError', () async {
       File(p.join(tempDir.path, 'lib', 'middleware.dart')).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 Middleware authMiddleware() {
   return (innerHandler) {
@@ -221,7 +236,7 @@ Middleware authMiddleware() {
       File(
         p.join(tempDir.path, 'lib', 'endpoints', 'middleware_endpoint.dart'),
       ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 import '../middleware.dart';
 
 @Endpoint(path: '/middleware-error', method: 'GET')
@@ -246,7 +261,7 @@ class MiddlewareEndpoint extends SparkEndpoint {
       File(
         p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
       ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 @Endpoint(path: '/multiple-errors', method: 'GET')
 class MultipleErrorsEndpoint extends SparkEndpoint {
@@ -280,8 +295,9 @@ class MultipleErrorsEndpoint extends SparkEndpoint {
     test(
       'Middleware with nested closures (sqliteMiddleware pattern)',
       () async {
-        final source = r'''
-        import 'package:spark_framework/spark.dart';
+        final source =
+            '''
+        import 'package:$sparkPackageName/spark.dart';
 
         Middleware sqliteMiddleware() {
           return (Handler innerHandler) {
@@ -336,8 +352,9 @@ class MultipleErrorsEndpoint extends SparkEndpoint {
       },
     );
     test('deduces multiple 400 errors as oneOf', () async {
-      final source = r'''
-        import 'package:spark_framework/spark.dart';
+      final source =
+          '''
+        import 'package:$sparkPackageName/spark.dart';
 
         @Endpoint(path: '/multi-400', method: 'GET')
         class Multi400Endpoint extends SparkEndpoint {

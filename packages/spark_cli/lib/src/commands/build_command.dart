@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -7,7 +6,8 @@ import 'package:path/path.dart' as p;
 
 import '../console/console_output.dart';
 import '../io/process_runner.dart';
-import '../parsers/build_runner_parser.dart';
+import '../utils/build_runner_utils.dart';
+import '../utils/directory_utils.dart';
 
 /// Builds the Spark project for production with optimized output.
 class BuildCommand extends Command<void> {
@@ -18,11 +18,20 @@ class BuildCommand extends Command<void> {
   String get description => 'Build the Spark project for production.';
 
   final ConsoleOutput _console = ConsoleOutput();
-  final BuildRunnerParser _buildParser = BuildRunnerParser();
+  late final BuildRunnerUtils _buildUtils;
   final ProcessRunner _processRunner;
+  final Directory _workingDirectory;
 
-  BuildCommand({ProcessRunner processRunner = const ProcessRunnerImpl()})
-    : _processRunner = processRunner {
+  BuildCommand({
+    ProcessRunner processRunner = const ProcessRunnerImpl(),
+    Directory? workingDirectory,
+  }) : _processRunner = processRunner,
+       _workingDirectory = workingDirectory ?? Directory.current {
+    _buildUtils = BuildRunnerUtils(
+      processRunner: processRunner,
+      console: _console,
+      workingDirectory: _workingDirectory,
+    );
     argParser.addFlag(
       'clean',
       defaultsTo: true,
@@ -40,7 +49,10 @@ class BuildCommand extends Command<void> {
   @override
   Future<void> run() async {
     final stopwatch = Stopwatch()..start();
-    final outputDir = argResults!['output'] as String;
+    final outputDir = p.join(
+      _workingDirectory.path,
+      argResults!['output'] as String,
+    );
     final clean = argResults!['clean'] as bool;
     final verbose = argResults!['verbose'] as bool;
 
@@ -50,11 +62,11 @@ class BuildCommand extends Command<void> {
     try {
       // Phase 1: Clean build directory
       if (clean) {
-        await _cleanBuildDirectory(outputDir);
+        await DirectoryUtils.cleanDirectory(outputDir, _console);
       }
 
       // Phase 2: Run build_runner for code generation
-      if (!await _runBuildRunner(verbose)) {
+      if (!await _buildUtils.runBuild(verbose: verbose)) {
         _printErrors();
         exit(1);
       }
@@ -87,63 +99,6 @@ class BuildCommand extends Command<void> {
     }
   }
 
-  /// Phase 1: Clean the build directory.
-  Future<void> _cleanBuildDirectory(String outputDir) async {
-    final dir = Directory(outputDir);
-    if (await dir.exists()) {
-      _console.printGray('Cleaning $outputDir/...');
-      await dir.delete(recursive: true);
-    }
-  }
-
-  /// Phase 2: Run build_runner for code generation.
-  Future<bool> _runBuildRunner(bool verbose) async {
-    _console.printInfo('Running code generation...');
-    _buildParser.clear();
-
-    final process = await _processRunner.start('dart', [
-      'run',
-      'build_runner',
-      'build',
-      '--delete-conflicting-outputs',
-    ]);
-
-    final stdoutCompleter = Completer<void>();
-    final stderrCompleter = Completer<void>();
-
-    process.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((line) {
-          _buildParser.parseLine(line);
-          if (verbose) {
-            _console.printGray('  $line');
-          }
-        }, onDone: stdoutCompleter.complete);
-
-    process.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .listen((line) {
-          _buildParser.parseLine(line);
-          if (verbose) {
-            _console.printGray('  $line');
-          }
-        }, onDone: stderrCompleter.complete);
-
-    await Future.wait([stdoutCompleter.future, stderrCompleter.future]);
-    final exitCode = await process.exitCode;
-    _buildParser.finalize();
-
-    if (exitCode != 0) {
-      _console.printError('Code generation failed.');
-      return false;
-    }
-
-    _console.printSuccess('Code generation complete.');
-    return true;
-  }
-
   /// Phase 3: Compile the server executable.
   Future<bool> _compileServer(String outputDir) async {
     _console.printInfo('Compiling server...');
@@ -155,22 +110,47 @@ class BuildCommand extends Command<void> {
     }
 
     // Use 'dart build cli' for bin/server.dart
-    // This generates a bundle at the specified output directory
     final tempBuildDir = p.join(outputDir, 'server_build');
 
+    if (!await _runServerCompilation(tempBuildDir)) {
+      return false;
+    }
+
+    if (!await _processServerBundle(outputDir, tempBuildDir)) {
+      return false;
+    }
+
+    // Cleanup temporary build directory
+    await DirectoryUtils.cleanDirectory(
+      tempBuildDir,
+      _console,
+      message: 'Cleaning temp',
+    );
+
+    _console.printSuccess('Server compiled.');
+    return true;
+  }
+
+  Future<bool> _runServerCompilation(String tempBuildDir) async {
     final process = await _processRunner.run('dart', [
       'build',
       'cli',
       '--target=bin/server.dart',
       '--output=$tempBuildDir',
-    ]);
+    ], workingDirectory: _workingDirectory.path);
 
     if (process.exitCode != 0) {
       _console.printError('Server compilation failed:');
       _console.printGray(process.stderr.toString());
       return false;
     }
+    return true;
+  }
 
+  Future<bool> _processServerBundle(
+    String outputDir,
+    String tempBuildDir,
+  ) async {
     // The output is in <tempBuildDir>/bundle/bin/<executable>
     final binaryName = Platform.isWindows ? 'server.exe' : 'server';
     final generatedBinary = File(
@@ -184,7 +164,7 @@ class BuildCommand extends Command<void> {
       return false;
     }
 
-    // Create bin directory for server binary (native libs expect ../lib/)
+    // Create bin directory for server binary
     final binDir = Directory(p.join(outputDir, 'bin'));
     if (!await binDir.exists()) {
       await binDir.create(recursive: true);
@@ -195,6 +175,15 @@ class BuildCommand extends Command<void> {
     await generatedBinary.copy(targetPath);
 
     // Copy native libraries from bundle/lib/ if they exist
+    await _copyNativeLibraries(outputDir, tempBuildDir);
+
+    return true;
+  }
+
+  Future<void> _copyNativeLibraries(
+    String outputDir,
+    String tempBuildDir,
+  ) async {
     final bundleLibDir = Directory(p.join(tempBuildDir, 'bundle', 'lib'));
     if (await bundleLibDir.exists()) {
       final targetLibDir = Directory(p.join(outputDir, 'lib'));
@@ -209,20 +198,11 @@ class BuildCommand extends Command<void> {
       }
       _console.printGray('  Copied native libraries.');
     }
-
-    // Cleanup temporary build directory
-    final tempDir = Directory(tempBuildDir);
-    if (await tempDir.exists()) {
-      await tempDir.delete(recursive: true);
-    }
-
-    _console.printSuccess('Server compiled.');
-    return true;
   }
 
   /// Phase 4: Compile web entry points with dart2js.
   Future<bool> _compileWebEntryPoints(String outputDir, bool verbose) async {
-    final webDir = Directory('web');
+    final webDir = Directory(p.join(_workingDirectory.path, 'web'));
     if (!await webDir.exists()) {
       _console.printWarning(
         'No web/ directory found, skipping web compilation.',
@@ -274,7 +254,7 @@ class BuildCommand extends Command<void> {
         '-o',
         outputPath,
         entry.path,
-      ]);
+      ], workingDirectory: _workingDirectory.path);
 
       if (process.exitCode != 0) {
         _console.printError('Failed to compile ${entry.path}:');
@@ -296,7 +276,7 @@ class BuildCommand extends Command<void> {
 
   /// Phase 5: Copy static assets from web/.
   Future<void> _copyStaticAssets(String outputDir) async {
-    final webDir = Directory('web');
+    final webDir = Directory(p.join(_workingDirectory.path, 'web'));
     if (!await webDir.exists()) {
       return;
     }
@@ -317,7 +297,6 @@ class BuildCommand extends Command<void> {
         if (relativePath.endsWith('.dart')) continue;
 
         // Skip hidden files and directories (start with .)
-        // Check if any part of the path starts with .
         if (p.split(relativePath).any((part) => part.startsWith('.'))) continue;
 
         final targetPath = p.join(targetDir.path, relativePath);
@@ -363,7 +342,7 @@ class BuildCommand extends Command<void> {
 
   /// Print collected build errors.
   void _printErrors() {
-    final errors = _buildParser.errors;
+    final errors = _buildUtils.parser.errors;
     if (errors.isEmpty) return;
 
     _console.printLine();

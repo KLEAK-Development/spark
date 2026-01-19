@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:path/path.dart' as p;
 import 'package:spark_cli/src/commands/dev_command.dart';
 import 'package:spark_cli/src/io/process_runner.dart';
 import 'package:test/test.dart';
@@ -122,7 +123,6 @@ void main() {
     late CommandRunner<void> runner;
     late MockVmService vmService;
     late Directory tempDir;
-    late Directory originalDir;
 
     setUp(() async {
       processRunner = MockProcessRunner();
@@ -130,11 +130,12 @@ void main() {
 
       // Setup temp directory for router check
       tempDir = await Directory.systemTemp.createTemp('spark_dev_regression');
-      originalDir = Directory.current;
-      Directory.current = tempDir;
+      // No global state mutation!
 
       // Create dummy router file
-      final routerFile = File('lib/spark_router.g.dart');
+      final routerFile = File(
+        p.join(tempDir.path, 'lib', 'spark_router.g.dart'),
+      );
       await routerFile.create(recursive: true);
       await routerFile.writeAsString('initial content');
 
@@ -143,13 +144,15 @@ void main() {
           DevCommand(
             processRunner: processRunner,
             vmServiceConnector: (uri) async => vmService,
+            workingDirectory: tempDir, // Explicitly pass working directory
           ),
         );
     });
 
     tearDown(() async {
-      Directory.current = originalDir;
-      await tempDir.delete(recursive: true);
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
     });
 
     test(
@@ -200,7 +203,9 @@ void main() {
         expect(serverStartCount, equals(1));
 
         // 3. Update router file to trigger restart logic on next build
-        final routerFile = File('lib/spark_router.g.dart');
+        final routerFile = File(
+          p.join(tempDir.path, 'lib', 'spark_router.g.dart'),
+        );
         await routerFile.writeAsString('updated content');
 
         // 4. Simulate build success again
@@ -231,9 +236,6 @@ void main() {
           reason:
               'Server should have been started exactly twice (initial + restart)',
         );
-
-        // If the race condition was present, the exit handler of the first process
-        // might have triggered another restart, leading to 3 starts or other weirdness.
       },
     );
   });

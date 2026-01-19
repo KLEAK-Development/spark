@@ -12,6 +12,7 @@ void main() {
     late Directory originalCwd;
     late CommandRunner<void> runner;
     late String sparkPackagePath;
+    late String sparkPackageName;
 
     setUp(() async {
       originalCwd = Directory.current;
@@ -50,13 +51,27 @@ void main() {
 
       sparkPackagePath = possiblePath;
 
+      // Read package name from found pubspec
+      final pubspecContent = File(
+        p.join(sparkPackagePath, 'pubspec.yaml'),
+      ).readAsStringSync();
+      final nameMatch = RegExp(
+        r'^name:\s+(.+)$',
+        multiLine: true,
+      ).firstMatch(pubspecContent);
+      if (nameMatch != null) {
+        sparkPackageName = nameMatch.group(1)!.trim();
+      } else {
+        sparkPackageName = 'spark_framework'; // Fallback
+      }
+
       File(p.join(tempDir.path, 'pubspec.yaml')).writeAsStringSync('''
 name: test_project
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  spark_framework:
+  $sparkPackageName:
     path: $sparkPackagePath
 ''');
 
@@ -93,7 +108,7 @@ dependencies:
       File(
         p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
       ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class ValidatedDto {
   @NotEmpty()
@@ -166,7 +181,7 @@ class CreateEndpoint extends SparkEndpointWithBody<ValidatedDto> {
       File(
         p.join(tempDir.path, 'lib', 'endpoints', 'endpoints.dart'),
       ).writeAsStringSync('''
-import 'package:spark_framework/spark.dart';
+import 'package:$sparkPackageName/spark.dart';
 
 class Wrapper {
   @NotEmpty()
