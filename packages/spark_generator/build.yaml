@@ -1,0 +1,40 @@
+builders:
+  # Processes @Page annotations on individual files
+  spark_pages:
+    import: "package:spark_generator/builder.dart"
+    builder_factories:
+      - sparkPagesBuilder
+    build_extensions:
+      .dart:
+        - .spark.g.part
+    auto_apply: dependents
+    build_to: cache
+    applies_builders:
+      - ":spark_router"
+      - "source_gen:combining_builder"
+
+  # Aggregates all page routes into a single router file
+  spark_router:
+    import: "package:spark_generator/builder.dart"
+    builder_factories:
+      - sparkRouterBuilder
+    build_extensions:
+      $lib$:
+        - spark_router.g.dart
+    auto_apply: dependents
+    build_to: source
+    required_inputs:
+      - .spark.g.part
+
+  # Generates web entry points for pages
+  spark_web_entry:
+    import: "package:spark_generator/builder.dart"
+    builder_factories:
+      - sparkWebEntryBuilder
+    build_extensions:
+      lib/pages/{{name}}.dart:
+        - web/{{name}}.dart
+    auto_apply: dependents
+    build_to: source
+    required_inputs:
+      - .spark.g.part

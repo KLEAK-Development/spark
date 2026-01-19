@@ -1,0 +1,12 @@
+name: _
+
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+workspace:
+  - packages/spark
+  - packages/spark/example
+  - packages/spark_cli
+  - packages/spark_generator

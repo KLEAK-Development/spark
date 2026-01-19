@@ -1,0 +1,92 @@
+import 'package:build_test/build_test.dart';
+import 'package:spark_generator/src/router_builder.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('RouterBuilder', () {
+    test('generates router and server config with new fields', () async {
+      final builder = RouterBuilder();
+
+      await testBuilder(
+        builder,
+        {
+          'a|lib/pages/home_page.dart': '''
+            import 'package:spark/spark.dart';
+
+            @Page(path: '/')
+            class HomePage extends SparkPage<void> {
+              @override
+              String render(void data, PageRequest request) => 'Hello';
+            }
+          ''',
+          'a|lib/pages/home_page.spark.g.part': '''
+// **************************************************************************
+// PageGenerator
+// **************************************************************************
+
+const _\$HomePageRoute = (
+  path: '/',
+  methods: <String>['GET', 'HEAD'],
+  pathParams: <String>[],
+);
+
+Future<Response> _\$handleHomePage(Request request) async {
+  return Response.ok('Helper');
+}
+''',
+        },
+        outputs: {
+          'a|lib/spark_router.g.dart': decodedMatches(
+            contains('class SparkServerConfig'),
+          ),
+        },
+      );
+    });
+
+    test(
+      'validates full content of generated file including HTTPS logic',
+      () async {
+        final builder = RouterBuilder();
+
+        await testBuilder(
+          builder,
+          {
+            'a|lib/pages/home_page.dart': '',
+            'a|lib/pages/home_page.spark.g.part': '''
+const _\$HomePageRoute = (
+  path: '/',
+  methods: <String>['GET'],
+  pathParams: <String>[],
+);
+
+Future<Response> _\$handleHomePage(Request request) async { return Response.ok('ok'); }
+''',
+          },
+          outputs: {
+            'a|lib/spark_router.g.dart': decodedMatches(
+              allOf([
+                contains('final Object host;'),
+                contains('final SecurityContext? securityContext;'),
+                contains('final bool shared;'),
+                contains('final bool redirectToHttps;'),
+                contains('final int? isolates;'),
+                contains("import 'dart:isolate';"),
+                contains(
+                  'if (config.redirectToHttps && config.securityContext != null)',
+                ),
+                contains('Isolate.spawnUri('),
+                contains('SPARK_WORKER_ID'),
+                contains('await shelf_io.serve('), // The redirect server
+                contains('securityContext: config.securityContext,'),
+                contains(
+                  'shared: config.shared || (config.isolates != null && config.isolates! > 1),',
+                ),
+                contains('lang: page.lang,'),
+              ]),
+            ),
+          },
+        );
+      },
+    );
+  });
+}

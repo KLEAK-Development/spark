@@ -1,0 +1,3 @@
+# Limit concurrency to 1 because each test spawns a Dart analyzer context
+# which uses significant memory. Running in parallel can cause VM crashes.
+concurrency: 1
