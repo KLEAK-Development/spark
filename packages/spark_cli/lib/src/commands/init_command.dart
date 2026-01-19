@@ -77,19 +77,17 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ^3.10.0
 
 dependencies:
-  spark_framework:
-    path: ../../packages/spark_framework/spark # local path for now, should be version later
+  spark_framework: ^1.0.0-alpha.1
   shelf: ^1.4.1
 
 dev_dependencies:
   build_runner: ^2.4.6
   lints: ^3.0.0
   test: ^1.24.0
-  spark_generator:
-    path: ../../packages/spark_framework/spark_generator # local path
+  spark_framework: ^1.0.0-alpha.1
 ''';
 
   final _analysisOptionsContent = '''
