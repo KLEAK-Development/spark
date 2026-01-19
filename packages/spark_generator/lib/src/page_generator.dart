@@ -1,9 +1,8 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:spark_framework/spark.dart' show Page;
+import 'package:spark_generator/src/generator_helpers.dart' as helpers;
 
 /// Generator that processes @Page annotations.
 ///
@@ -17,15 +16,10 @@ class PageGenerator extends GeneratorForAnnotation<Page> {
     ConstantReader annotation,
     BuildStep buildStep,
   ) {
-    if (element is! ClassElement) {
-      throw InvalidGenerationSourceError(
-        '@Page can only be applied to classes',
-        element: element,
-      );
-    }
+    helpers.validateClassElement(element, 'Page');
 
     // Verify the class extends SparkPage
-    if (!_extendsSparkPage(element)) {
+    if (!helpers.checkInheritance(element as ClassElement, 'SparkPage')) {
       throw InvalidGenerationSourceError(
         '@Page classes must extend SparkPage<T>',
         element: element,
@@ -41,15 +35,13 @@ class PageGenerator extends GeneratorForAnnotation<Page> {
         .toList();
 
     // Parse path parameters from the route pattern
-    final pathParams = _parsePathParams(path);
+    final pathParams = helpers.parsePathParams(path);
 
     // Convert path pattern to shelf_router format
     // /users/:id -> /users/<id>
-    final shelfPath = _convertToShelfPath(path);
+    final shelfPath = helpers.convertToShelfPath(path);
 
     // Get the generic type parameter T from SparkPage<T>
-    // ignore: unused_local_variable
-    final dataType = _getDataType(element);
 
     final buffer = StringBuffer();
 
@@ -143,41 +135,5 @@ class PageGenerator extends GeneratorForAnnotation<Page> {
     buffer.writeln('}');
 
     return buffer.toString();
-  }
-
-  bool _extendsSparkPage(ClassElement element) {
-    var current = element.supertype;
-    while (current != null) {
-      if (current.element.name == 'SparkPage') {
-        return true;
-      }
-      current = current.element.supertype;
-    }
-    return false;
-  }
-
-  String _getDataType(ClassElement element) {
-    var current = element.supertype;
-    while (current != null) {
-      if (current.element.name == 'SparkPage') {
-        final typeArgs = current.typeArguments;
-        if (typeArgs.isNotEmpty) {
-          return typeArgs.first.getDisplayString();
-        }
-        return 'dynamic';
-      }
-      current = current.element.supertype;
-    }
-    return 'dynamic';
-  }
-
-  List<String> _parsePathParams(String path) {
-    final paramPattern = RegExp(r':(\w+)');
-    return paramPattern.allMatches(path).map((m) => m.group(1)!).toList();
-  }
-
-  String _convertToShelfPath(String path) {
-    // Convert :param to <param> for shelf_router
-    return path.replaceAllMapped(RegExp(r':(\w+)'), (m) => '<${m.group(1)}>');
   }
 }

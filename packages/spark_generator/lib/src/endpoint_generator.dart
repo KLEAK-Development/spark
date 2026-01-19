@@ -1,10 +1,9 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:spark_framework/spark.dart' show Endpoint;
+import 'package:spark_generator/src/generator_helpers.dart' as helpers;
 
 /// Generator that processes @Endpoint annotations on classes.
 ///
@@ -20,16 +19,16 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
   ) {
     log.info('EndpointGenerator processing ${element.name}');
     try {
-      if (element is! ClassElement) {
-        throw InvalidGenerationSourceError(
-          '@Endpoint can only be applied to classes extending SparkEndpoint or SparkEndpointWithBody<T>',
-          element: element,
-        );
-      }
+      helpers.validateClassElement(element, 'Endpoint');
+
+      final classElement = element as ClassElement;
 
       // Check which base class is extended
-      final hasBody = _extendsSparkEndpointWithBody(element);
-      final hasNoBody = _extendsSparkEndpoint(element);
+      final hasBody = helpers.checkInheritance(
+        classElement,
+        'SparkEndpointWithBody',
+      );
+      final hasNoBody = helpers.checkInheritance(classElement, 'SparkEndpoint');
 
       if (!hasBody && !hasNoBody) {
         throw InvalidGenerationSourceError(
@@ -43,10 +42,10 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       final method = annotation.read('method').stringValue;
 
       // Parse path parameters from the route pattern
-      final pathParams = _parsePathParams(path);
+      final pathParams = helpers.parsePathParams(path);
 
       // Convert path pattern to shelf_router format
-      final shelfPath = _convertToShelfPath(path);
+      final shelfPath = helpers.convertToShelfPath(path);
 
       // Get the body type if using SparkEndpointWithBody
       final bodyType = hasBody ? _getBodyType(element) : null;
@@ -173,7 +172,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
     DartType bodyType,
     List<String>? allowedContentTypes,
   ) {
-    final bodyTypeName = bodyType.getDisplayString(withNullability: false);
+    final bodyTypeName = bodyType.getDisplayString();
 
     // Special case for Stream<MultipartPart>
     if (bodyTypeName == 'Stream<MultipartPart>') {
@@ -347,7 +346,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
 
       return '${element.name}($params)';
     }
-    return '$varName as ${type.getDisplayString(withNullability: false)}';
+    return '$varName as ${type.getDisplayString()}';
   }
 
   void _generateResponseSerialization(
@@ -385,7 +384,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
         '    return Response.ok(result.toString(), headers: {"content-type": "text/plain"});',
       );
     } else if (innerType is VoidType ||
-        innerType.getDisplayString(withNullability: false) == 'void') {
+        innerType.getDisplayString() == 'void') {
       buffer.writeln(
         '    return Response.ok("", headers: {"content-type": "text/plain"});',
       );
@@ -426,28 +425,6 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
     return varName; // Fallback
   }
 
-  bool _extendsSparkEndpoint(ClassElement element) {
-    var current = element.supertype;
-    while (current != null) {
-      if (current.element.name == 'SparkEndpoint') {
-        return true;
-      }
-      current = current.element.supertype;
-    }
-    return false;
-  }
-
-  bool _extendsSparkEndpointWithBody(ClassElement element) {
-    var current = element.supertype;
-    while (current != null) {
-      if (current.element.name == 'SparkEndpointWithBody') {
-        return true;
-      }
-      current = current.element.supertype;
-    }
-    return false;
-  }
-
   DartType? _getBodyType(ClassElement element) {
     var current = element.supertype;
     while (current != null) {
@@ -461,18 +438,6 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       current = current.element.supertype;
     }
     return null;
-  }
-
-  List<String> _parsePathParams(String path) {
-    final paramPattern = RegExp(r'\{(\w+)\}');
-    return paramPattern.allMatches(path).map((m) => m.group(1)!).toList();
-  }
-
-  String _convertToShelfPath(String path) {
-    return path.replaceAllMapped(
-      RegExp(r'\{(\w+)\}'),
-      (m) => '<${m.group(1)}>',
-    );
   }
 
   bool _isResponse(DartType type) {

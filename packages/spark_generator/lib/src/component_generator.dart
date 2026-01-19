@@ -1,10 +1,7 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
-// Use absolute URI to avoid package:spark barrel file which imports web
-// But we are in spark_generator package. use package:spark/src/annotations...
+import 'package:spark_generator/src/generator_helpers.dart' as helpers;
 import 'package:spark_framework/server.dart';
 
 /// Generator that processes @Component annotations for SparkComponents.
@@ -16,12 +13,8 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     BuildStep buildStep,
   ) {
     print('ComponentGenerator: Processing element ${element.name}');
-    if (element is! ClassElement) {
-      throw InvalidGenerationSourceError(
-        '@Component can only be applied to classes',
-        element: element,
-      );
-    }
+    helpers.validateClassElement(element, 'Component');
+    final classElement = element as ClassElement;
 
     final className = element.name;
     final buffer = StringBuffer();
@@ -29,7 +22,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     // Find all fields with @Attribute
     final attributes = <String, String>{}; // fieldName -> attrName
 
-    for (final field in element.fields) {
+    for (final field in classElement.fields) {
       // Access annotations list via dynamic to bypass type issues with unknown Analyzer version
       final dynamic metadata = field.metadata; // dynamic access
       final annotations = (metadata as dynamic).annotations as List;
@@ -44,8 +37,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
           final nameField = value.getField('name');
           final nameOverride = nameField?.toStringValue();
           // Paranoid null checks
-          // ignore: unnecessary_cast
-          final safeFieldName = (field.name as String?);
+          final safeFieldName = field.name;
           if (safeFieldName != null) {
             final attrName = nameOverride ?? safeFieldName;
             attributes[safeFieldName] = attrName.toString();
@@ -155,7 +147,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
           buffer.writeln("        if (newValue != null) {");
           buffer.writeln("          try {");
           buffer.writeln(
-            "            (this as $className).$field = ${type.getDisplayString(withNullability: false)}.fromJson(jsonDecode(newValue));",
+            "            (this as $className).$field = ${type.getDisplayString()}.fromJson(jsonDecode(newValue));",
           );
           buffer.writeln("          } catch (_) {}");
           buffer.writeln("        }");
@@ -163,7 +155,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
           // Fallback check if it has a constructor that takes a Map or dynamic?
           // For now, if no fromJson, we can't do much.
           buffer.writeln(
-            "        // Custom type '${type.getDisplayString(withNullability: false)}' must have a fromJson factory constructor.",
+            "        // Custom type '${type.getDisplayString()}' must have a fromJson factory constructor.",
           );
         }
       }
