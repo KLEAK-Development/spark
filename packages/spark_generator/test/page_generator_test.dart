@@ -221,5 +221,84 @@ void main() {
         },
       );
     });
+    test('generates cookie handling logic', () async {
+      await resolveSources(
+        {
+          'spark|lib/src/annotations/page.dart': '''
+          class Page {
+            final String path;
+            final List<String> methods;
+            const Page({required this.path, this.methods = const ['GET']});
+          }
+        ''',
+          'spark|lib/src/page/spark_page.dart': '''
+           abstract class SparkPage<T> {
+            List<dynamic> get middleware => [];
+            Future<void> loader(dynamic request);
+            dynamic render(dynamic data);
+            dynamic get components => [];
+          }
+        ''',
+          'spark|lib/spark.dart': '''
+          library spark;
+          export 'src/annotations/page.dart';
+          export 'src/page/spark_page.dart';
+        ''',
+          'a|lib/cookie_page.dart': '''
+          library a;
+          import 'package:spark/spark.dart';
+          
+          @Page(path: '/cookies')
+          class CookiePage extends SparkPage<void> {
+          }
+        ''',
+        },
+        (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/cookie_page.dart'),
+          );
+          final cookiePage = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'CookiePage');
+
+          final annotations = cookiePage.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Page';
+          });
+
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = PageGenerator();
+          final output = generator.generateForAnnotatedElement(
+            cookiePage,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/cookie_page.dart')),
+          );
+
+          // Verify destructuring of cookies
+          expect(output, contains(':final cookies'));
+
+          // Verify passing cookies to render helper
+          expect(
+            output,
+            contains(
+              '_\$renderPageResponse(page, data, pageRequest, statusCode, headers, cookies,',
+            ),
+          );
+
+          // Verify setting cookie header for redirects
+          expect(
+            output,
+            contains(
+              'HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList()',
+            ),
+          );
+        },
+      );
+    });
   });
 }

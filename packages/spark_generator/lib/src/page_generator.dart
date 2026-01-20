@@ -115,19 +115,23 @@ class PageGenerator extends GeneratorForAnnotation<Page> {
       scriptName = 'null';
     }
     buffer.writeln(
-      "      PageData(:final data, :final statusCode, :final headers) =>",
+      "      PageData(:final data, :final statusCode, :final headers, :final cookies) =>",
     );
     buffer.writeln(
-      "        _\$renderPageResponse(page, data, pageRequest, statusCode, headers, $scriptName),",
+      "        _\$renderPageResponse(page, data, pageRequest, statusCode, headers, cookies, $scriptName),",
     );
     buffer.writeln(
-      '      PageRedirect(:final location, :final statusCode, :final headers) =>',
+      '      PageRedirect(:final location, :final statusCode, :final headers, :final cookies) =>',
     );
     buffer.writeln(
-      "        Response(statusCode, headers: {...headers, 'location': location}),",
+      "        Response(statusCode, headers: {...headers, 'location': location, if (cookies.isNotEmpty) HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList()}),",
     );
-    buffer.writeln('      PageError(:final message, :final statusCode) =>');
-    buffer.writeln('        _\$renderErrorResponse(message, statusCode),');
+    buffer.writeln(
+      '      PageError(:final message, :final statusCode, :final cookies) =>',
+    );
+    buffer.writeln(
+      '        _\$renderErrorResponse(message, statusCode, cookies),',
+    );
     buffer.writeln('    };');
     buffer.writeln('  };');
     buffer.writeln();

@@ -203,7 +203,8 @@ class RouterBuilder implements Builder {
     buffer.writeln('  T data,');
     buffer.writeln('  PageRequest request,');
     buffer.writeln('  int statusCode,');
-    buffer.writeln('  Map<String, String> headers,');
+    buffer.writeln('  Map<String, Object> headers,');
+    buffer.writeln('  List<Cookie> cookies,');
     buffer.writeln('  String? scriptName,');
     buffer.writeln(') {');
     buffer.writeln('  final content = page.render(data, request).toString();');
@@ -227,12 +228,15 @@ class RouterBuilder implements Builder {
     buffer.writeln('    headers: {');
     buffer.writeln("      'content-type': 'text/html; charset=utf-8',");
     buffer.writeln('      ...headers,');
+    buffer.writeln(
+      "      if (cookies.isNotEmpty) HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList(),",
+    );
     buffer.writeln('    },');
     buffer.writeln('  );');
     buffer.writeln('}');
     buffer.writeln();
     buffer.writeln(
-      'Response _\$renderErrorResponse(String message, int statusCode) {',
+      'Response _\$renderErrorResponse(String message, int statusCode, List<Cookie> cookies) {',
     );
     buffer.writeln('  final html = renderPage(');
     buffer.writeln("    title: 'Error \$statusCode',");
@@ -247,9 +251,12 @@ class RouterBuilder implements Builder {
     buffer.writeln('  return Response(');
     buffer.writeln('    statusCode,');
     buffer.writeln('    body: html,');
+    buffer.writeln('    headers: {');
+    buffer.writeln("      'content-type': 'text/html; charset=utf-8',");
     buffer.writeln(
-      "    headers: {'content-type': 'text/html; charset=utf-8'},",
+      "      if (cookies.isNotEmpty) HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList(),",
     );
+    buffer.writeln('    },');
     buffer.writeln('  );');
     buffer.writeln('}');
     buffer.writeln();

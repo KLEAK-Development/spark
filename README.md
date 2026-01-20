@@ -32,10 +32,10 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  spark_framework: ^1.0.0-alpha.1
+  spark_framework: ^1.0.0-alpha.2
 
 dev_dependencies:
-  spark_generator: ^1.0.0-alpha.1
+  spark_generator: ^1.0.0-alpha.3
   build_runner: ^2.4.0
 ```
 
