@@ -23,7 +23,8 @@ Response _$renderPageResponse<T>(
   T data,
   PageRequest request,
   int statusCode,
-  Map<String, String> headers,
+  Map<String, Object> headers,
+  List<Cookie> cookies,
   String? scriptName,
 ) {
   final content = page.render(data, request).toString();
@@ -44,11 +45,20 @@ Response _$renderPageResponse<T>(
   return Response(
     statusCode,
     body: html,
-    headers: {'content-type': 'text/html; charset=utf-8', ...headers},
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      ...headers,
+      if (cookies.isNotEmpty)
+        HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList(),
+    },
   );
 }
 
-Response _$renderErrorResponse(String message, int statusCode) {
+Response _$renderErrorResponse(
+  String message,
+  int statusCode,
+  List<Cookie> cookies,
+) {
   final html = renderPage(
     title: 'Error $statusCode',
     content:
@@ -63,7 +73,11 @@ Response _$renderErrorResponse(String message, int statusCode) {
   return Response(
     statusCode,
     body: html,
-    headers: {'content-type': 'text/html; charset=utf-8'},
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      if (cookies.isNotEmpty)
+        HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList(),
+    },
   );
 }
 
@@ -355,21 +369,40 @@ Future<Response> _$handleHomePage(Request request) async {
     final response = await page.loader(pageRequest);
 
     return switch (response) {
-      PageData(:final data, :final statusCode, :final headers) =>
+      PageData(
+        :final data,
+        :final statusCode,
+        :final headers,
+        :final cookies,
+      ) =>
         _$renderPageResponse(
           page,
           data,
           pageRequest,
           statusCode,
           headers,
+          cookies,
           'home_page.dart.js',
         ),
-      PageRedirect(:final location, :final statusCode, :final headers) =>
-        Response(statusCode, headers: {...headers, 'location': location}),
-      PageError(:final message, :final statusCode) => _$renderErrorResponse(
-        message,
-        statusCode,
-      ),
+      PageRedirect(
+        :final location,
+        :final statusCode,
+        :final headers,
+        :final cookies,
+      ) =>
+        Response(
+          statusCode,
+          headers: {
+            ...headers,
+            'location': location,
+            if (cookies.isNotEmpty)
+              HttpHeaders.setCookieHeader: cookies
+                  .map((c) => c.toString())
+                  .toList(),
+          },
+        ),
+      PageError(:final message, :final statusCode, :final cookies) =>
+        _$renderErrorResponse(message, statusCode, cookies),
     };
   };
 

@@ -1,3 +1,5 @@
+import '../http/cookie.dart';
+
 /// Sealed class representing possible responses from a page loader.
 ///
 /// A loader can return one of:
@@ -57,8 +59,16 @@ final class PageData<T> extends PageResponse<T> {
   /// Additional HTTP headers for the response.
   final Map<String, String> headers;
 
+  /// List of cookies to set in the response.
+  final List<Cookie> cookies;
+
   /// Creates a page data response with the given [data].
-  const PageData(this.data, {this.statusCode = 200, this.headers = const {}});
+  const PageData(
+    this.data, {
+    this.statusCode = 200,
+    this.headers = const {},
+    this.cookies = const [],
+  });
 }
 
 /// Response indicating a redirect to another URL.
@@ -102,31 +112,43 @@ final class PageRedirect extends PageResponse<Never> {
 
   /// Creates a redirect response to the given [location].
   ///
+  /// List of cookies to set in the response.
+  final List<Cookie> cookies;
+
+  /// Creates a redirect response to the given [location].
+  ///
   /// Defaults to status code 302 (Found).
   const PageRedirect(
     this.location, {
     this.statusCode = 302,
     this.headers = const {},
+    this.cookies = const [],
   });
 
   /// Creates a permanent redirect (301 Moved Permanently).
   ///
   /// Use this when a resource has permanently moved to a new location.
   /// Browsers will cache this redirect.
-  const PageRedirect.permanent(String location)
-    : this(location, statusCode: 301);
+  const PageRedirect.permanent(
+    String location, {
+    List<Cookie> cookies = const [],
+  }) : this(location, statusCode: 301, cookies: cookies);
 
   /// Creates a temporary redirect (307 Temporary Redirect).
   ///
   /// Use this for temporary redirects that preserve the HTTP method.
-  const PageRedirect.temporary(String location)
-    : this(location, statusCode: 307);
+  const PageRedirect.temporary(
+    String location, {
+    List<Cookie> cookies = const [],
+  }) : this(location, statusCode: 307, cookies: cookies);
 
   /// Creates a "See Other" redirect (303 See Other).
   ///
   /// Use this to redirect after a POST request to a GET endpoint.
-  const PageRedirect.seeOther(String location)
-    : this(location, statusCode: 303);
+  const PageRedirect.seeOther(
+    String location, {
+    List<Cookie> cookies = const [],
+  }) : this(location, statusCode: 303, cookies: cookies);
 }
 
 /// Response for rendering an error page.
@@ -170,21 +192,40 @@ final class PageError extends PageResponse<Never> {
   /// Creates an error response with the given [message].
   ///
   /// Defaults to status code 500 (Internal Server Error).
-  const PageError(this.message, {this.statusCode = 500, this.data = const {}});
+  /// List of cookies to set in the response.
+  final List<Cookie> cookies;
+
+  /// Creates an error response with the given [message].
+  ///
+  /// Defaults to status code 500 (Internal Server Error).
+  const PageError(
+    this.message, {
+    this.statusCode = 500,
+    this.data = const {},
+    this.cookies = const [],
+  });
 
   /// Creates a 404 Not Found error.
-  const PageError.notFound([String message = 'Page not found'])
-    : this(message, statusCode: 404);
+  const PageError.notFound([
+    String message = 'Page not found',
+    List<Cookie> cookies = const [],
+  ]) : this(message, statusCode: 404, cookies: cookies);
 
   /// Creates a 403 Forbidden error.
-  const PageError.forbidden([String message = 'Access denied'])
-    : this(message, statusCode: 403);
+  const PageError.forbidden([
+    String message = 'Access denied',
+    List<Cookie> cookies = const [],
+  ]) : this(message, statusCode: 403, cookies: cookies);
 
   /// Creates a 400 Bad Request error.
-  const PageError.badRequest([String message = 'Bad request'])
-    : this(message, statusCode: 400);
+  const PageError.badRequest([
+    String message = 'Bad request',
+    List<Cookie> cookies = const [],
+  ]) : this(message, statusCode: 400, cookies: cookies);
 
   /// Creates a 401 Unauthorized error.
-  const PageError.unauthorized([String message = 'Unauthorized'])
-    : this(message, statusCode: 401);
+  const PageError.unauthorized([
+    String message = 'Unauthorized',
+    List<Cookie> cookies = const [],
+  ]) : this(message, statusCode: 401, cookies: cookies);
 }

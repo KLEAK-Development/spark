@@ -74,3 +74,4 @@ export 'src/page/page.dart';
 export 'src/endpoint/endpoint.dart';
 export 'src/errors/errors.dart';
 export 'src/http/content_type.dart';
+export 'src/http/cookie.dart';

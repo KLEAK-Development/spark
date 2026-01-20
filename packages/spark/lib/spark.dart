@@ -60,3 +60,4 @@ export 'src/style/style.dart';
 export 'src/style/css_types/css_types.dart';
 export 'src/errors/errors.dart';
 export 'src/http/content_type.dart';
+export 'src/http/cookie.dart';
