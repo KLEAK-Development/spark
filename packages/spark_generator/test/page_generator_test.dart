@@ -1,3 +1,4 @@
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
 import 'package:source_gen/source_gen.dart';
@@ -58,21 +59,19 @@ void main() {
           // We just need to find the annotation on the element.
           // We can use TypeChecker with the mocked URL.
 
-          final children = (libraryElement as dynamic).children as List;
-          final homePage = children.firstWhere(
-            (e) => (e as dynamic).name == 'HomePage',
-          );
+          final homePage = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'HomePage');
 
-          final annotations =
-              (homePage as dynamic).metadata.annotations as List;
+          final annotations = homePage.metadata.annotations;
           final annotation = annotations.firstWhere((a) {
-            final element = (a as dynamic).element;
-            final enclosing = (element as dynamic)?.enclosingElement;
-            return (enclosing as dynamic)?.name == 'Page';
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Page';
           });
 
           final constantReader = ConstantReader(
-            (annotation as dynamic).computeConstantValue(),
+            annotation.computeConstantValue(),
           );
 
           final generator = PageGenerator();
@@ -124,20 +123,18 @@ void main() {
           final libraryElement = await resolver.libraryFor(
             AssetId('a', 'lib/user_page.dart'),
           );
-          final children = (libraryElement as dynamic).children as List;
-          final userPage = children.firstWhere(
-            (e) => (e as dynamic).name == 'UserPage',
-          );
+          final userPage = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'UserPage');
 
-          final annotations =
-              (userPage as dynamic).metadata.annotations as List;
+          final annotations = userPage.metadata.annotations;
           final annotation = annotations.firstWhere((a) {
-            final element = (a as dynamic).element;
-            final enclosing = (element as dynamic)?.enclosingElement;
-            return (enclosing as dynamic)?.name == 'Page';
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Page';
           });
           final constantReader = ConstantReader(
-            (annotation as dynamic).computeConstantValue(),
+            annotation.computeConstantValue(),
           );
 
           final generator = PageGenerator();
@@ -195,20 +192,18 @@ void main() {
           final libraryElement = await resolver.libraryFor(
             AssetId('a', 'lib/inheritance_page.dart'),
           );
-          final children = (libraryElement as dynamic).children as List;
-          final childPage = children.firstWhere(
-            (e) => (e as dynamic).name == 'ChildPage',
-          );
+          final childPage = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'ChildPage');
 
-          final annotations =
-              (childPage as dynamic).metadata.annotations as List;
+          final annotations = childPage.metadata.annotations;
           final annotation = annotations.firstWhere((a) {
-            final element = (a as dynamic).element;
-            final enclosing = (element as dynamic)?.enclosingElement;
-            return (enclosing as dynamic)?.name == 'Page';
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Page';
           });
           final constantReader = ConstantReader(
-            (annotation as dynamic).computeConstantValue(),
+            annotation.computeConstantValue(),
           );
 
           final generator = PageGenerator();

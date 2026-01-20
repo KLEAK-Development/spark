@@ -383,6 +383,11 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       buffer.writeln(
         '    return Response.ok(result.toString(), headers: {"content-type": "text/plain"});',
       );
+    } else if (innerType.element?.name == 'DateTime' &&
+        innerType.element?.library?.name == 'dart.core') {
+      buffer.writeln(
+        '    return Response.ok(result.toIso8601String(), headers: {"content-type": "text/plain"});',
+      );
     } else if (innerType is VoidType ||
         innerType.getDisplayString() == 'void') {
       buffer.writeln(

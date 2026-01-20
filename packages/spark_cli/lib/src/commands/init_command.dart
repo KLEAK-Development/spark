@@ -87,7 +87,7 @@ dev_dependencies:
   build_runner: ^2.4.6
   lints: ^3.0.0
   test: ^1.24.0
-  spark_framework: ^1.0.0-alpha.1
+  spark_generator: ^1.0.0-alpha.2
 ''';
 
   final _analysisOptionsContent = '''

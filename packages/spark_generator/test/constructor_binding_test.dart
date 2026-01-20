@@ -1,3 +1,4 @@
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
 import 'package:source_gen/source_gen.dart';
@@ -122,18 +123,18 @@ void main() {
             AssetId('a', 'lib/test_lib.dart'),
           );
 
-          final createUserClass = (libraryElement as dynamic).children
-              .firstWhere((f) => (f as dynamic).name == 'CreateUserEndpoint');
+          final createUserClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'CreateUserEndpoint');
 
-          final annotations =
-              (createUserClass as dynamic).metadata.annotations as List;
+          final annotations = createUserClass.metadata.annotations;
           final annotation = annotations.firstWhere((a) {
-            final element = (a as dynamic).element;
-            final enclosing = (element as dynamic)?.enclosingElement;
-            return (enclosing as dynamic)?.name == 'Endpoint';
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Endpoint';
           });
           final constantReader = ConstantReader(
-            (annotation as dynamic).computeConstantValue(),
+            annotation.computeConstantValue(),
           );
 
           final generator = EndpointGenerator();

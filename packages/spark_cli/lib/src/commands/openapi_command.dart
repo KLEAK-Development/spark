@@ -309,7 +309,7 @@ class OpenApiCommand extends Command<void> {
     // Process Responses & Errors
     final statusCode = endpointAnnotation.getField('statusCode')?.toIntValue();
     _deduceSuccessResponse(classNode, operation, method, statusCode, schemas);
-    _deduceErrorResponses(classNode, operation);
+    _deduceErrorResponses(classNode, operation, element.library);
 
     if (operation.containsKey('requestBody')) {
       final requestBody = operation['requestBody'] as Map<String, dynamic>;
@@ -597,8 +597,18 @@ class OpenApiCommand extends Command<void> {
 
         if (type is! VoidType && type is! DynamicType) {
           final schema = _ensureSchema(type, schemas);
+          final isPrimitive =
+              type.isDartCoreString ||
+              type.isDartCoreInt ||
+              type.isDartCoreDouble ||
+              type.isDartCoreNum ||
+              type.isDartCoreBool ||
+              (type.element?.name == 'DateTime' &&
+                  type.element?.library?.name == 'dart.core');
+
+          final contentType = isPrimitive ? 'text/plain' : 'application/json';
           responseContent = {
-            'application/json': {'schema': schema},
+            contentType: {'schema': schema},
           };
         }
       }
@@ -613,6 +623,7 @@ class OpenApiCommand extends Command<void> {
   void _deduceErrorResponses(
     ClassDeclaration classNode,
     Map<String, dynamic> operation,
+    LibraryElement library,
   ) {
     final members = classNode.body is BlockClassBody
         ? (classNode.body as BlockClassBody).members
@@ -636,7 +647,7 @@ class OpenApiCommand extends Command<void> {
     );
 
     handlerMethod.visitChildren(
-      _ThrowVisitor((code, message, errorCode) {
+      _ThrowVisitor(library, (code, message, errorCode) {
         _addErrorResponse(responses, code, message, errorCode);
       }),
     );
@@ -737,16 +748,8 @@ class OpenApiCommand extends Command<void> {
           if (typeElement is ClassElement) {
             _analyzeElementSource(typeElement, operation);
           }
-        } else {
-          print(
-            'DEBUG: Unknown element type in middleware list: ${element.runtimeType}',
-          );
         }
       }
-    } else {
-      print(
-        'DEBUG: Middleware expression is not ListLiteral: ${expression.runtimeType}',
-      );
     }
   }
 
@@ -815,7 +818,7 @@ class OpenApiCommand extends Command<void> {
   ) {
     // Basic types
     if (type.isDartCoreInt) return {'type': 'integer'};
-    if (type.isDartCoreDouble) return {'type': 'number'};
+    if (type.isDartCoreDouble || type.isDartCoreNum) return {'type': 'number'};
     if (type.isDartCoreString) return {'type': 'string'};
     if (type.isDartCoreBool) return {'type': 'boolean'};
     if (type.element?.name == 'DateTime' &&
@@ -954,7 +957,7 @@ class OpenApiCommand extends Command<void> {
         if (node != null) {
           final responses = operation['responses'] as Map<String, dynamic>;
           node.visitChildren(
-            _ThrowVisitor((code, message, errorCode) {
+            _ThrowVisitor(library, (code, message, errorCode) {
               _addErrorResponse(responses, code, message, errorCode);
             }),
           );
@@ -967,9 +970,10 @@ class OpenApiCommand extends Command<void> {
 }
 
 class _ThrowVisitor extends RecursiveAstVisitor<void> {
+  final LibraryElement library;
   final Function(int, String, String) onErrorFound;
 
-  _ThrowVisitor(this.onErrorFound);
+  _ThrowVisitor(this.library, this.onErrorFound);
 
   @override
   void visitThrowExpression(ThrowExpression node) {
@@ -1006,6 +1010,14 @@ class _ThrowVisitor extends RecursiveAstVisitor<void> {
           }
         }
         onErrorFound(code, message, errorCode);
+      } else if (_isApiErrorSubclass(type)) {
+        // For ApiError subclasses, extract details from super() call
+        if (expression is InstanceCreationExpression) {
+          final details = _extractApiErrorSubclassDetails(type, expression);
+          if (details != null) {
+            onErrorFound(details.$1, details.$3, details.$2);
+          }
+        }
       } else if (type == 'SparkHttpException') {
         final args = argList.arguments;
         if (args.isNotEmpty) {
@@ -1019,44 +1031,151 @@ class _ThrowVisitor extends RecursiveAstVisitor<void> {
             onErrorFound(val, message, 'ERROR');
           }
         }
-      } else {
-        _checkSpecificExceptions(type);
       }
     }
     super.visitThrowExpression(node);
   }
 
-  void _checkSpecificExceptions(String type) {
-    int code = 500;
-    String message = 'Error';
-    String errorCode = 'ERROR';
-    bool found = false;
+  /// Check if a class by name extends ApiError by looking it up in the library
+  bool _isApiErrorSubclass(String className) {
+    // Look up the class in all classes defined in the library
+    for (final classElement in library.classes) {
+      if (classElement.name == className) {
+        for (final supertype in classElement.allSupertypes) {
+          if (supertype.element.name == 'ApiError') {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+    return false;
+  }
 
-    if (type.contains('BadRequest')) {
-      code = 400;
-      message = 'Bad Request';
-      errorCode = 'BAD_REQUEST';
-      found = true;
-    } else if (type.contains('Unauthorized')) {
-      code = 401;
-      message = 'Unauthorized';
-      errorCode = 'UNAUTHORIZED';
-      found = true;
-    } else if (type.contains('Forbidden')) {
-      code = 403;
-      message = 'Forbidden';
-      errorCode = 'FORBIDDEN';
-      found = true;
-    } else if (type.contains('NotFound')) {
-      code = 404;
-      message = 'Not Found';
-      errorCode = 'NOT_FOUND';
-      found = true;
+  /// Extracts statusCode, code, message from an ApiError subclass constructor.
+  /// Returns null if extraction fails.
+  (int, String, String)? _extractApiErrorSubclassDetails(
+    String className,
+    InstanceCreationExpression? creationExpression,
+  ) {
+    // Look up the class element from library.classes (already verified in _isApiErrorSubclass)
+    InterfaceElement? classElement;
+    for (final c in library.classes) {
+      if (c.name == className) {
+        classElement = c;
+        break;
+      }
+    }
+    if (classElement == null) return null;
+
+    // Find the unnamed constructor
+    ConstructorElement? constructor;
+    for (final c in classElement.constructors) {
+      final cName = c.name ?? '';
+      if (cName.isEmpty) {
+        constructor = c;
+        break;
+      }
+    }
+    if (constructor == null && classElement.constructors.isNotEmpty) {
+      constructor = classElement.constructors.first;
+    }
+    if (constructor == null) return null;
+
+    // Get constructor node to find super() call
+    final session = classElement.session;
+    if (session == null) return null;
+
+    final classLibrary = classElement.library;
+    final parsedLib = session.getParsedLibraryByElement(classLibrary);
+    if (parsedLib is! ParsedLibraryResult) return null;
+
+    // Find the constructor declaration
+    ConstructorDeclaration? constructorNode;
+    for (final unit in parsedLib.units) {
+      for (final decl in unit.unit.declarations) {
+        if (decl is ClassDeclaration &&
+            decl.namePart.typeName.lexeme == classElement.name) {
+          for (final member in (decl.body as BlockClassBody).members) {
+            if (member is ConstructorDeclaration) {
+              final memberName = member.name?.lexeme ?? '';
+              final cName = constructor.name ?? '';
+              // Treat "new" as empty string (unnamed constructor)
+              final normalizedCName = (cName == 'new' || cName.isEmpty)
+                  ? ''
+                  : cName;
+              if (memberName.isEmpty && normalizedCName.isEmpty) {
+                constructorNode = member;
+                break;
+              } else if (memberName == normalizedCName) {
+                constructorNode = member;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (constructorNode != null) break;
     }
 
-    if (found) {
-      onErrorFound(code, message, errorCode);
+    if (constructorNode == null) return null;
+
+    // Map parameters to arguments if creationExpression is provided
+    final paramMap = <String, Expression>{};
+    if (creationExpression != null) {
+      final args = creationExpression.argumentList.arguments;
+      final params = constructorNode.parameters.parameters;
+      int positionalIndex = 0;
+
+      for (final param in params) {
+        final paramName = param.name?.lexeme;
+        if (paramName == null) continue;
+
+        if (param.isNamed) {
+          final arg = args.firstWhereOrNull(
+            (a) => a is NamedExpression && a.name.label.name == paramName,
+          );
+          if (arg is NamedExpression) {
+            paramMap[paramName] = arg.expression;
+          }
+        } else {
+          // Positional
+          if (positionalIndex < args.length) {
+            final arg = args[positionalIndex];
+            if (arg is! NamedExpression) {
+              paramMap[paramName] = arg;
+              positionalIndex++;
+            }
+          }
+        }
+      }
     }
+
+    // Find super() initializer
+    for (final initializer in constructorNode.initializers) {
+      if (initializer is SuperConstructorInvocation) {
+        int statusCode = 500;
+        String code = 'ERROR';
+        String message = 'Error';
+
+        for (final arg in initializer.argumentList.arguments) {
+          if (arg is NamedExpression) {
+            final name = arg.name.label.name;
+            if (name == 'statusCode') {
+              final val = _extractIntValue(arg.expression);
+              if (val != null) statusCode = val;
+            } else if (name == 'code') {
+              code = _resolveStringExpression(arg.expression, paramMap) ?? code;
+            } else if (name == 'message') {
+              message =
+                  _resolveStringExpression(arg.expression, paramMap) ?? message;
+            }
+          }
+        }
+        return (statusCode, code, message);
+      }
+    }
+    return null;
   }
 
   int? _extractIntValue(Expression expr) {
@@ -1066,6 +1185,51 @@ class _ThrowVisitor extends RecursiveAstVisitor<void> {
 
   String? _extractStringValue(Expression expr) {
     if (expr is StringLiteral) return expr.stringValue;
+    return null;
+  }
+
+  String? _resolveStringExpression(
+    Expression expr,
+    Map<String, Expression> paramMap,
+  ) {
+    if (expr is StringLiteral && expr.stringValue != null) {
+      return expr.stringValue;
+    }
+
+    if (expr is StringInterpolation) {
+      final buffer = StringBuffer();
+      for (final element in expr.elements) {
+        if (element is InterpolationString) {
+          buffer.write(element.value);
+        } else if (element is InterpolationExpression) {
+          final metaExpr = element.expression;
+          if (metaExpr is SimpleIdentifier) {
+            final paramName = metaExpr.name;
+            if (paramMap.containsKey(paramName)) {
+              final argExpr = paramMap[paramName];
+              if (argExpr != null) {
+                final val = _resolveStringExpression(argExpr, {});
+                if (val != null) {
+                  buffer.write(val);
+                } else {
+                  // Fallback: simpler representation or placeholder?
+                  // For now, if we can't resolve, we might return null for whole string
+                  // or just continue. Let's return null to indicate failure to fully resolve.
+                  return null;
+                }
+              } else {
+                return null;
+              }
+            } else {
+              return null;
+            }
+          } else {
+            return null;
+          }
+        }
+      }
+      return buffer.toString();
+    }
     return null;
   }
 }

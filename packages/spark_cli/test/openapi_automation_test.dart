@@ -389,5 +389,240 @@ class MultipleErrorsEndpoint extends SparkEndpoint {
       expect(codes, contains('VALIDATION_ERROR'));
       expect(codes, contains('BAD_FORMAT'));
     });
+
+    test(
+      'does NOT document custom exceptions - only ApiError and SparkHttpException',
+      () async {
+        // Define a custom exception class that looks like a "BadRequest" exception
+        // This should NOT be documented since users must use ApiError or SparkHttpException
+        File(
+          p.join(tempDir.path, 'lib', 'endpoints', 'custom_exception.dart'),
+        ).writeAsStringSync('''
+import 'package:$sparkPackageName/spark.dart';
+
+class BadRequestException implements Exception {
+  final String message;
+  BadRequestException(this.message);
+}
+
+class UnauthorizedException implements Exception {
+  final String message;
+  UnauthorizedException(this.message);
+}
+
+@Endpoint(path: '/custom-error', method: 'GET')
+class CustomErrorEndpoint extends SparkEndpoint {
+  @override
+  Future<dynamic> handler(SparkRequest request) async {
+    if (true) {
+      throw BadRequestException('Invalid input');
+    }
+    throw UnauthorizedException('Not logged in');
+  }
+}
+''');
+
+        final content = await runOpenApiCommand();
+        final responses = content['paths']['/custom-error']['get']['responses'];
+
+        // Should only have 500 (default) and 200 - NOT 400 or 401
+        expect(
+          responses.containsKey('400'),
+          isFalse,
+          reason:
+              'Custom BadRequestException should NOT be auto-detected; use ApiError instead',
+        );
+        expect(
+          responses.containsKey('401'),
+          isFalse,
+          reason:
+              'Custom UnauthorizedException should NOT be auto-detected; use ApiError instead',
+        );
+        // Default 500 is always added
+        expect(responses.containsKey('500'), isTrue);
+      },
+    );
+
+    test('detects ApiError subclasses and documents them in OpenAPI', () async {
+      File(
+        p.join(tempDir.path, 'lib', 'endpoints', 'api_error_subclass.dart'),
+      ).writeAsStringSync('''
+import 'package:$sparkPackageName/spark.dart';
+
+class NotFoundError extends ApiError {
+  NotFoundError(String resource)
+      : super(
+          message: '\$resource not found',
+          code: 'NOT_FOUND',
+          statusCode: 404,
+        );
+}
+
+class ForbiddenError extends ApiError {
+  ForbiddenError()
+      : super(
+          message: 'Access denied',
+          code: 'FORBIDDEN',
+          statusCode: 403,
+        );
+}
+
+@Endpoint(path: '/subclass-error', method: 'GET')
+class SubclassErrorEndpoint extends SparkEndpoint {
+  @override
+  Future<dynamic> handler(SparkRequest request) async {
+    if (true) {
+      throw NotFoundError('User');
+    }
+    throw ForbiddenError();
+  }
+}
+''');
+
+      final content = await runOpenApiCommand();
+      final responses = content['paths']['/subclass-error']['get']['responses'];
+
+      // Should detect 404 from NotFoundError (extends ApiError)
+      expect(
+        responses.containsKey('404'),
+        isTrue,
+        reason: 'ApiError subclass NotFoundError should be detected',
+      );
+      // Expect interpolated message "User not found"
+      expect(responses['404']['description'], contains('User not found'));
+
+      // Should detect 403 from ForbiddenError (extends ApiError)
+      expect(
+        responses.containsKey('403'),
+        isTrue,
+        reason: 'ApiError subclass ForbiddenError should be detected',
+      );
+    });
+
+    test('deduces text/plain content type for String return type', () async {
+      File(
+        p.join(tempDir.path, 'lib', 'endpoints', 'string_endpoint.dart'),
+      ).writeAsStringSync('''
+import 'package:$sparkPackageName/spark.dart';
+
+@Endpoint(path: '/string-response', method: 'GET')
+class StringEndpoint extends SparkEndpoint {
+  @override
+  Future<String> handler(SparkRequest request) async {
+    return 'Hello World';
+  }
+}
+''');
+
+      final content = await runOpenApiCommand();
+      final responses =
+          content['paths']['/string-response']['get']['responses'];
+
+      expect(responses, contains('200'));
+      expect(responses['200']['content'], contains('text/plain'));
+      expect(
+        responses['200']['content']['text/plain']['schema']['type'],
+        equals('string'),
+      );
+      expect(responses['200']['content'], isNot(contains('application/json')));
+    });
+
+    test(
+      'deduces text/plain for primitive types (int, double, bool, DateTime)',
+      () async {
+        File(
+          p.join(tempDir.path, 'lib', 'endpoints', 'primitives.dart'),
+        ).writeAsStringSync('''
+import 'package:$sparkPackageName/spark.dart';
+
+@Endpoint(path: '/int', method: 'GET')
+class IntEndpoint extends SparkEndpoint {
+  @override
+  Future<int> handler(SparkRequest request) async => 42;
+}
+
+@Endpoint(path: '/double', method: 'GET')
+class DoubleEndpoint extends SparkEndpoint {
+  @override
+  Future<double> handler(SparkRequest request) async => 3.14;
+}
+
+@Endpoint(path: '/bool', method: 'GET')
+class BoolEndpoint extends SparkEndpoint {
+  @override
+  Future<bool> handler(SparkRequest request) async => true;
+}
+
+@Endpoint(path: '/datetime', method: 'GET')
+class DateTimeEndpoint extends SparkEndpoint {
+  @override
+  Future<DateTime> handler(SparkRequest request) async => DateTime.now();
+}
+''');
+
+        final content = await runOpenApiCommand();
+
+        // Check Int
+        final intResp = content['paths']['/int']['get']['responses']['200'];
+        expect(intResp['content'], contains('text/plain'));
+        expect(
+          intResp['content']['text/plain']['schema']['type'],
+          equals('integer'),
+        );
+
+        // Check Double
+        final doubleResp =
+            content['paths']['/double']['get']['responses']['200'];
+        expect(doubleResp['content'], contains('text/plain'));
+        expect(
+          doubleResp['content']['text/plain']['schema']['type'],
+          equals('number'),
+        );
+
+        // Check Bool
+        final boolResp = content['paths']['/bool']['get']['responses']['200'];
+        expect(boolResp['content'], contains('text/plain'));
+        expect(
+          boolResp['content']['text/plain']['schema']['type'],
+          equals('boolean'),
+        );
+
+        // Check DateTime
+        final dtResp = content['paths']['/datetime']['get']['responses']['200'];
+        expect(dtResp['content'], contains('text/plain'));
+        expect(
+          dtResp['content']['text/plain']['schema']['type'],
+          equals('string'),
+        );
+        expect(
+          dtResp['content']['text/plain']['schema']['format'],
+          equals('date-time'),
+        );
+      },
+    );
+
+    test('deduces text/plain for num return type', () async {
+      File(
+        p.join(tempDir.path, 'lib', 'endpoints', 'num_endpoint.dart'),
+      ).writeAsStringSync('''
+import 'package:$sparkPackageName/spark.dart';
+
+@Endpoint(path: '/num', method: 'GET')
+class NumEndpoint extends SparkEndpoint {
+  @override
+  Future<num> handler(SparkRequest request) async => 10;
+}
+''');
+
+      final content = await runOpenApiCommand();
+
+      final numResp = content['paths']['/num']['get']['responses']['200'];
+      expect(numResp['content'], contains('text/plain'));
+      // Expect type number for num
+      expect(
+        numResp['content']['text/plain']['schema']['type'],
+        equals('number'),
+      );
+    });
   });
 }

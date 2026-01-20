@@ -14,9 +14,9 @@
           "200": {
             "description": "Successful operation",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "type": "number"
                 }
               }
             }
@@ -169,7 +169,7 @@
           "200": {
             "description": "Successful operation",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
                   "type": "string"
                 }
@@ -256,7 +256,10 @@
             "type": "string",
             "minLength": 10
           }
-        }
+        },
+        "required": [
+          "name"
+        ]
       }
     },
     "securitySchemes": {
