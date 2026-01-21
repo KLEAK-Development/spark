@@ -1,8 +1,13 @@
-## 1.0.0-alpha.4
+## TBP
 
-## 1.0.0-alpha.3
+### Breaking changes
 
-- Added support for cookies
+- There is a new way to write Components. Please refer to the [documentation](https://spark.kleak.dev/docs/components) for more information.
+
+### Features
+
+- Added support for csp nonce on scripts and styles
+- Fix @Component reactive attributes, Future event was not working properly, and changing value when there was async gap also.
 
 ## 1.0.0-alpha.2
 
