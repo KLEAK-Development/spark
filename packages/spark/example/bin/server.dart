@@ -22,7 +22,7 @@ import 'package:spark_example/spark_router.g.dart';
 )
 void main() async {
   final server = await createSparkServer(
-    SparkServerConfig(port: 9003, middleware: [logRequests()]),
+    SparkServerConfig(port: 9004, middleware: [logRequests()]),
   );
   print('Server running at http://localhost:${server.port}');
 }

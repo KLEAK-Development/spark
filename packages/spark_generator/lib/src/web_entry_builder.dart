@@ -1,20 +1,27 @@
 import 'dart:async';
 
 import 'package:build/build.dart';
-import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/// Builder that generates a web entry point for each @Page.
+/// Builder that generates web entry points for @Page classes.
 ///
-/// For a page class `HomePage`, generates `web/homepage.dart`
-/// which registers and hydrates components.
+/// For a page class `HomePage` with components, generates:
+/// - `web/home_page.dart` - The page entry point for hydration
+///
+/// This builder relies on component_generator.dart generating the `*$Component`
+/// wrapper classes. It generates a simple main() that calls hydrateComponents()
+/// using the page's components getter.
 class WebEntryBuilder implements Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
     'lib/pages/{{name}}.dart': ['web/{{name}}.dart'],
   };
+
+  final _pageChecker = TypeChecker.fromUrl(
+    'package:spark_framework/src/annotations/page.dart#Page',
+  );
 
   @override
   Future<void> build(BuildStep buildStep) async {
@@ -24,11 +31,7 @@ class WebEntryBuilder implements Builder {
     final lib = await buildStep.inputLibrary;
     final reader = LibraryReader(lib);
 
-    final pages = reader.annotatedWith(
-      TypeChecker.fromUrl(
-        'package:spark_framework/src/annotations/page.dart#Page',
-      ),
-    );
+    final pages = reader.annotatedWith(_pageChecker);
     if (pages.isEmpty) return;
 
     for (final page in pages) {
@@ -37,9 +40,6 @@ class WebEntryBuilder implements Builder {
       if (className == null) continue;
 
       // Check if the page overrides the components getter
-      // Check if the page overrides the components getter
-      // We want to generate the script if the page or any of its parents (except SparkPage)
-      // defines components.
       final componentsGetter = (element as ClassElement).lookUpGetter(
         name: 'components',
         library: element.library,
@@ -50,17 +50,15 @@ class WebEntryBuilder implements Builder {
           componentsGetter.enclosingElement.name != 'SparkPage';
 
       if (!hasComponents) {
-        log.info(
-          'Skipping ${element.name} - no components override found. Enclosing: ${(element).lookUpGetter(name: 'components', library: element.library)?.enclosingElement.name}',
-        );
+        log.info('Skipping ${element.name} - no components override found.');
         continue;
       }
-      log.info('Generating entry for ${element.name}');
 
+      log.info('Generating web entry for ${element.name}');
+
+      // Generate the web entry point
       final inputId = buildStep.inputId;
       final relativePath = inputId.path.substring('lib/pages/'.length);
-      // relativePath is like "docs/introduction.dart" or "home_page.dart"
-
       final outputId = AssetId(inputId.package, 'web/$relativePath');
 
       final content = _generateWebEntry(className, inputId.uri.toString());
@@ -68,40 +66,26 @@ class WebEntryBuilder implements Builder {
     }
   }
 
-  String _generateWebEntry(String className, String importPath) {
-    final library = Library(
-      (b) => b
-        ..comments.add('GENERATED CODE - DO NOT MODIFY BY HAND')
-        ..directives.addAll([
-          Directive.import('package:spark_framework/spark.dart'),
-          Directive.import(importPath),
-        ])
-        ..body.add(
-          Method(
-            (b) => b
-              ..name = 'main'
-              ..returns = refer('void')
-              ..body = Block(
-                (b) => b
-                  ..statements.add(
-                    Code('''
-            // Register and hydrate all components used on this page.
-            // This entry point is auto-generated for $className.
-            hydrateComponents(
-              // Instantiate the page to access its components getter
-              Map.fromEntries(
-                $className().components.map((c) => MapEntry(c.tag, c.factory))
-              ),
-            );
-          '''),
-                  ),
-              ),
-          ),
-        ),
+  /// Generates a simple web entry point that uses the page's components getter.
+  String _generateWebEntry(String pageClassName, String pageImportPath) {
+    final buffer = StringBuffer();
+    buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
+    buffer.writeln();
+    buffer.writeln("import 'package:spark_framework/spark.dart';");
+    buffer.writeln("import '$pageImportPath';");
+    buffer.writeln();
+    buffer.writeln('void main() {');
+    buffer.writeln('  hydrateComponents(');
+    buffer.writeln('    Map.fromEntries(');
+    buffer.writeln(
+      '      $pageClassName().components.map((c) => MapEntry(c.tag, c.factory)),',
     );
+    buffer.writeln('    ),');
+    buffer.writeln('  );');
+    buffer.writeln('}');
 
     return DartFormatter(
       languageVersion: DartFormatter.latestLanguageVersion,
-    ).format('${library.accept(DartEmitter())}');
+    ).format(buffer.toString());
   }
 }

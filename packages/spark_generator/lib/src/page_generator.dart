@@ -118,7 +118,7 @@ class PageGenerator extends GeneratorForAnnotation<Page> {
       "      PageData(:final data, :final statusCode, :final headers, :final cookies) =>",
     );
     buffer.writeln(
-      "        _\$renderPageResponse(page, data, pageRequest, statusCode, headers, cookies, $scriptName),",
+      "        _\$renderPageResponse(page, data, pageRequest, statusCode, headers, cookies, $scriptName, req.context['spark.nonce'] as String?),",
     );
     buffer.writeln(
       '      PageRedirect(:final location, :final statusCode, :final headers, :final cookies) =>',

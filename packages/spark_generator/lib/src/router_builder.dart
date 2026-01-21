@@ -80,9 +80,11 @@ class RouterBuilder implements Builder {
 
     // Imports
     buffer.writeln();
+    buffer.writeln("import 'dart:async';");
     buffer.writeln("import 'dart:convert';");
     buffer.writeln("import 'dart:io';");
     buffer.writeln("import 'dart:isolate';");
+    buffer.writeln("import 'dart:math';");
     buffer.writeln();
     buffer.writeln("import 'package:shelf/shelf.dart';");
     buffer.writeln("import 'package:shelf/shelf_io.dart' as shelf_io;");
@@ -206,8 +208,12 @@ class RouterBuilder implements Builder {
     buffer.writeln('  Map<String, Object> headers,');
     buffer.writeln('  List<Cookie> cookies,');
     buffer.writeln('  String? scriptName,');
+    buffer.writeln('  String? nonce,');
     buffer.writeln(') {');
-    buffer.writeln('  final content = page.render(data, request).toString();');
+    buffer.writeln('  final content = runZoned(');
+    buffer.writeln('    () => page.render(data, request).toString(),');
+    buffer.writeln("    zoneValues: {'spark.cspNonce': nonce},");
+    buffer.writeln('  );');
     buffer.writeln();
     buffer.writeln('  final title = page.title(data, request);');
     buffer.writeln();
@@ -220,6 +226,7 @@ class RouterBuilder implements Builder {
     buffer.writeln('    inlineStyles: page.inlineStyles,');
     buffer.writeln('    headContent: page.headContent,');
     buffer.writeln('    lang: page.lang,');
+    buffer.writeln('    nonce: nonce,');
     buffer.writeln('  );');
     buffer.writeln();
     buffer.writeln('  return Response(');
@@ -384,6 +391,56 @@ class RouterBuilder implements Builder {
     buffer.writeln('    };');
     buffer.writeln('  });');
     buffer.writeln('');
+
+    // Helper function for CSP Middleware logic
+    buffer.writeln(r'''
+  // CSP Middleware
+  pipeline = pipeline.addMiddleware((innerHandler) {
+    return (request) async {
+      // 1. Generate nonce
+      final nonceBytes = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+      final nonce = base64Url.encode(nonceBytes).replaceAll('=', '');
+
+      // 2. Add to context
+      final requestWithNonce = request.change(context: {
+        ...request.context,
+        'spark.nonce': nonce,
+      });
+
+      // 3. Process request
+      final response = await innerHandler(requestWithNonce);
+
+      // 4. Check for existing CSP header
+      final csp = response.headers['content-security-policy'];
+      if (csp == null) {
+        return response;
+      }
+
+      // 5. Augment existing CSP
+      var newCsp = csp;
+      
+      // Handle script-src
+      if (newCsp.contains(RegExp(r'\bscript-src\b'))) {
+        newCsp = newCsp.replaceAll(RegExp(r'\bscript-src\b'), "script-src 'nonce-$nonce'");
+      } else {
+        newCsp = "$newCsp; script-src 'self' 'nonce-$nonce'";
+      }
+
+      // Handle style-src
+      if (newCsp.contains(RegExp(r'\bstyle-src\b'))) {
+        newCsp = newCsp.replaceAll(RegExp(r'\bstyle-src\b'), "style-src 'nonce-$nonce'");
+      } else {
+        newCsp = "$newCsp; style-src 'self' 'nonce-$nonce'";
+      }
+      
+      return response.change(headers: {
+        ...response.headers,
+        'content-security-policy': newCsp,
+      });
+    };
+  });
+''');
+    buffer.writeln();
     buffer.writeln('  for (final mw in config.middleware) {');
     buffer.writeln('    pipeline = pipeline.addMiddleware(mw);');
     buffer.writeln('  }');

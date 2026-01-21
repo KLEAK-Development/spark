@@ -45,6 +45,9 @@ class PageOptions {
   /// Additional meta tags as HTML strings.
   final List<String> metaTags;
 
+  /// The nonce for Content-Security-Policy.
+  final String? nonce;
+
   /// Creates page options.
   const PageOptions({
     required this.title,
@@ -58,6 +61,7 @@ class PageOptions {
     this.charset = 'UTF-8',
     this.viewport = 'width=device-width, initial-scale=1',
     this.metaTags = const [],
+    this.nonce,
   });
 }
 
@@ -87,6 +91,7 @@ String renderPage({
   String charset = 'UTF-8',
   String viewport = 'width=device-width, initial-scale=1',
   List<String> metaTags = const [],
+  String? nonce,
 }) {
   final buffer = StringBuffer();
 
@@ -123,12 +128,16 @@ String renderPage({
   }
 
   if (stylesStr != null && stylesStr.isNotEmpty) {
-    buffer.writeln('  <style>');
+    buffer.writeln(
+      '  <style${nonce != null && nonce.isNotEmpty ? ' nonce="$nonce"' : ''}>',
+    );
     buffer.writeln(stylesStr);
     buffer.writeln('  </style>');
   } else {
     // Default minimal styles
-    buffer.writeln('  <style>');
+    buffer.writeln(
+      '  <style${nonce != null && nonce.isNotEmpty ? ' nonce="$nonce"' : ''}>',
+    );
     buffer.writeln('    body {');
     buffer.writeln(
       '      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;',
@@ -159,12 +168,16 @@ String renderPage({
 
   // Main script (deferred to allow HTML to render first)
   if (scriptName != null && scriptName.isNotEmpty) {
-    buffer.writeln('  <script defer src="/${_escape(scriptName)}"></script>');
+    buffer.writeln(
+      '  <script defer src="/${_escape(scriptName)}"${nonce != null && nonce.isNotEmpty ? ' nonce="$nonce"' : ''}></script>',
+    );
   }
 
   // Additional scripts
   for (final script in additionalScripts) {
-    buffer.writeln('  <script defer src="${_escape(script)}"></script>');
+    buffer.writeln(
+      '  <script defer src="${_escape(script)}"${nonce != null && nonce.isNotEmpty ? ' nonce="$nonce"' : ''}></script>',
+    );
   }
 
   // Live Reload Script (Injected in Dev Mode)
@@ -173,7 +186,7 @@ String renderPage({
   // Since this is 'server/render_page.dart', dart:io is expected.
   // However, to be safe and clean, we can look for a global override or just use Platform.
   // implementation:
-  _injectLiveReload(buffer);
+  _injectLiveReload(buffer, nonce);
 
   buffer.writeln('</head>');
   buffer.writeln('<body>');
@@ -204,18 +217,17 @@ String renderPageWithOptions(PageOptions options) {
     inlineStyles: options.inlineStyles,
     headContent: options.headContent,
     lang: options.lang,
-    charset: options.charset,
-    viewport: options.viewport,
     metaTags: options.metaTags,
+    nonce: options.nonce,
   );
 }
 
-void _injectLiveReload(StringBuffer buffer) {
+void _injectLiveReload(StringBuffer buffer, [String? nonce]) {
   try {
     final portStr = Platform.environment['SPARK_DEV_RELOAD_PORT'];
     if (portStr != null) {
       buffer.writeln('''
-  <script>
+  <script${nonce != null && nonce.isNotEmpty ? ' nonce="$nonce"' : ''}>
     (function() {
       const socket = new WebSocket('ws://localhost:$portStr');
       socket.addEventListener('message', function (event) {

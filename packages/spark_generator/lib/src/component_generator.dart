@@ -1,10 +1,16 @@
+import 'dart:io';
+
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:spark_generator/src/generator_helpers.dart' as helpers;
 import 'package:spark_framework/server.dart';
 
 /// Generator that processes @Component annotations for SparkComponents.
+///
+/// Expects user's class in a file ending with _base.dart
+/// Generates an independent implementation file ending with _impl.dart
 class ComponentGenerator extends GeneratorForAnnotation<Component> {
   @override
   String generateForAnnotatedElement(
@@ -17,14 +23,185 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     final classElement = element as ClassElement;
 
     final className = element.name;
-    final buffer = StringBuffer();
+    if (className == null) {
+      throw InvalidGenerationSourceError(
+        '@Component class must have a name',
+        element: element,
+      );
+    }
 
-    // Find all fields with @Attribute
-    final attributes = <String, String>{}; // fieldName -> attrName
+    // Get the source file path from the build step
+    final sourceFilePath = buildStep.inputId.path;
+
+    // Verify the source file ends with _base.dart
+    if (!sourceFilePath.endsWith('_base.dart')) {
+      throw InvalidGenerationSourceError(
+        '@Component class must be in a file ending with _base.dart',
+        element: element,
+      );
+    }
+
+    // Generate complete reactive class with same name
+    return _generateCompleteReactiveClass(
+      classElement,
+      className,
+      annotation,
+      sourceFilePath,
+    );
+  }
+
+  /// Generates a complete reactive class for plain @Component classes.
+  String _generateCompleteReactiveClass(
+    ClassElement classElement,
+    String className,
+    ConstantReader annotation,
+    String sourceFilePath,
+  ) {
+    final buffer = StringBuffer();
+    final attributes = _extractAttributes(classElement);
+
+    // Check for render() method
+    final renderMethod = classElement.getMethod('render');
+    if (renderMethod == null) {
+      throw InvalidGenerationSourceError(
+        '@Component class must have a render() method',
+        element: classElement,
+      );
+    }
+
+    // Check for adoptedStyleSheets getter
+    final hasAdoptedStyleSheets =
+        classElement.getGetter('adoptedStyleSheets') != null;
+
+    // Check for static 'tag' field
+    final tagField = classElement.getField('tag');
+    if (tagField == null || !tagField.isStatic) {
+      throw InvalidGenerationSourceError(
+        '@Component class must have a static "tag" constant',
+        element: classElement,
+      );
+    }
+
+    // Generate imports
+    buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
+    buffer.writeln();
+    buffer.writeln('// ignore_for_file: unused_import');
+    buffer.writeln();
+
+    // Copy imports from the base file
+    final baseFileImports = _extractImports(sourceFilePath);
+    for (final import in baseFileImports) {
+      buffer.writeln(import);
+    }
+
+    // Add dart:convert if needed for JSON serialization
+    final needsJson = attributes.values.any(
+      (info) =>
+          !info.fieldType.isDartCoreString &&
+          !info.fieldType.isDartCoreInt &&
+          !info.fieldType.isDartCoreDouble &&
+          !info.fieldType.isDartCoreBool,
+    );
+    if (needsJson) {
+      buffer.writeln("import 'dart:convert';");
+    }
+
+    buffer.writeln();
+    buffer.writeln('/// Generated reactive implementation of [$className].');
+    buffer.writeln('class $className extends SparkComponent {');
+
+    // Generate static tag
+    final tagValue = _getStaticFieldValue(tagField);
+    buffer.writeln('  static const tag = $tagValue;');
+    buffer.writeln();
+
+    // Generate private fields for attributes
+    for (final entry in attributes.entries) {
+      final fieldName = entry.key;
+      final info = entry.value;
+      final typeStr = info.fieldType.getDisplayString();
+      final fieldElement = classElement.fields.firstWhere(
+        (f) => f.name == fieldName,
+      );
+
+      // Try to get default value
+      final defaultValue = _getFieldInitializer(fieldElement);
+      if (defaultValue != null && defaultValue.isNotEmpty) {
+        buffer.writeln('  $typeStr _$fieldName = $defaultValue;');
+      } else {
+        // No default value - will be initialized in constructor
+        buffer.writeln('  late $typeStr _$fieldName;');
+      }
+    }
+
+    buffer.writeln();
+
+    // Generate constructor matching user's constructor
+    _generateConstructor(
+      buffer,
+      classElement,
+      className,
+      attributes,
+      sourceFilePath,
+    );
+
+    // Generate reactive getters/setters
+    for (final entry in attributes.entries) {
+      final fieldName = entry.key;
+      final info = entry.value;
+      final typeStr = info.fieldType.getDisplayString();
+
+      buffer.writeln('  $typeStr get $fieldName => _$fieldName;');
+      buffer.writeln('  set $fieldName($typeStr v) {');
+      buffer.writeln('    if (_$fieldName != v) {');
+      buffer.writeln('      _$fieldName = v;');
+      buffer.writeln('      scheduleUpdate();');
+      buffer.writeln('    }');
+      buffer.writeln('  }');
+      buffer.writeln();
+    }
+
+    // Copy user's methods (render, etc.)
+    _copyUserMethods(buffer, classElement, attributes, sourceFilePath);
+
+    // tagName getter
+    buffer.writeln('  @override');
+    buffer.writeln('  String get tagName => tag;');
+    buffer.writeln();
+
+    // Generate observedAttributes, syncAttributes, dumpedAttributes, attributeChangedCallback
+    _generateAttributeMethods(
+      buffer,
+      classElement,
+      className,
+      attributes,
+      true, // uses private fields with reactive setters
+    );
+
+    // adoptedStyleSheets if available
+    if (hasAdoptedStyleSheets) {
+      final getter = classElement.getGetter('adoptedStyleSheets');
+      if (getter != null) {
+        final getterSource = _getGetterSource(getter, sourceFilePath);
+        if (getterSource != null) {
+          buffer.writeln('  @override');
+          buffer.writeln(getterSource);
+          buffer.writeln();
+        }
+      }
+    }
+
+    buffer.writeln('}');
+    return buffer.toString();
+  }
+
+  /// Extracts @Attribute annotated fields from a class.
+  Map<String, _AttributeInfo> _extractAttributes(ClassElement classElement) {
+    final attributes = <String, _AttributeInfo>{};
 
     for (final field in classElement.fields) {
-      // Access annotations list via dynamic to bypass type issues with unknown Analyzer version
-      final dynamic metadata = field.metadata; // dynamic access
+      // Access annotations list via dynamic to bypass type issues
+      final dynamic metadata = field.metadata;
       final annotations = (metadata as dynamic).annotations as List;
 
       for (final meta in annotations) {
@@ -36,141 +213,550 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
         if (typeName == 'Attribute') {
           final nameField = value.getField('name');
           final nameOverride = nameField?.toStringValue();
-          // Paranoid null checks
           final safeFieldName = field.name;
           if (safeFieldName != null) {
-            final attrName = nameOverride ?? safeFieldName;
-            attributes[safeFieldName] = attrName.toString();
+            final isPrivate = safeFieldName.startsWith('_');
+            final publicName = isPrivate
+                ? safeFieldName.substring(1)
+                : safeFieldName;
+            final attrName = (nameOverride ?? publicName).toLowerCase();
+            attributes[safeFieldName] = _AttributeInfo(
+              attrName: attrName,
+              isPrivate: isPrivate,
+              publicName: publicName,
+              fieldType: field.type,
+            );
           }
           break;
         }
       }
     }
 
-    // Generate Mixin
-    buffer.writeln('mixin _\$${className}Sync on SparkComponent {');
+    return attributes;
+  }
 
-    // 1. Generate observedAttributes
+  /// Generates observedAttributes, syncAttributes, dumpedAttributes, attributeChangedCallback.
+  void _generateAttributeMethods(
+    StringBuffer buffer,
+    ClassElement classElement,
+    String className,
+    Map<String, _AttributeInfo> attributes,
+    bool isWrapper,
+  ) {
+    // observedAttributes
     if (attributes.isNotEmpty) {
-      final attrList = attributes.values.map((a) => "'$a'").join(', ');
+      final attrList = attributes.values
+          .map((a) => "'${a.attrName}'")
+          .join(', ');
       buffer.writeln('  @override');
       buffer.writeln(
         '  List<String> get observedAttributes => const [$attrList];',
       );
+      buffer.writeln();
     }
 
-    // 2. Generate syncAttributes
+    // syncAttributes
     buffer.writeln('  @override');
     buffer.writeln('  void syncAttributes() {');
-
-    attributes.forEach((field, attr) {
-      final fieldElement = element.fields.firstWhere((f) => f.name == field);
-      final type = fieldElement.type;
-      final isPrimitive =
-          type.isDartCoreInt ||
-          type.isDartCoreDouble ||
-          type.isDartCoreBool ||
-          type.isDartCoreString;
-
-      if (isPrimitive) {
-        buffer.writeln(
-          "    setAttr('$attr', (this as $className).$field.toString());",
-        );
-      } else {
-        // Assume custom object with toJson
-        buffer.writeln(
-          "    setAttr('$attr', jsonEncode((this as $className).$field.toJson()));",
-        );
-      }
-    });
-
+    for (final entry in attributes.entries) {
+      final info = entry.value;
+      final accessName = info.isPrivate ? info.publicName : entry.key;
+      final serializeExpr = _getSerializeExpr(accessName, info.fieldType);
+      buffer.writeln("    setAttr('${info.attrName}', $serializeExpr);");
+    }
     buffer.writeln('  }');
+    buffer.writeln();
 
-    // 3. Generate dumpedAttributes
+    // dumpedAttributes
     buffer.writeln('  @override');
     buffer.writeln('  Map<String, String> get dumpedAttributes => {');
-    attributes.forEach((field, attr) {
-      final fieldElement = element.fields.firstWhere((f) => f.name == field);
-      final type = fieldElement.type;
-      final isPrimitive =
-          type.isDartCoreInt ||
-          type.isDartCoreDouble ||
-          type.isDartCoreBool ||
-          type.isDartCoreString;
-
-      if (isPrimitive) {
-        buffer.writeln("    '$attr': (this as $className).$field.toString(),");
-      } else {
-        buffer.writeln(
-          "    '$attr': jsonEncode((this as $className).$field.toJson()),",
-        );
-      }
-    });
+    for (final entry in attributes.entries) {
+      final info = entry.value;
+      final accessName = info.isPrivate ? info.publicName : entry.key;
+      final serializeExpr = _getSerializeExpr(accessName, info.fieldType);
+      buffer.writeln("    '${info.attrName}': $serializeExpr,");
+    }
     buffer.writeln('  };');
+    buffer.writeln();
 
-    // 4. Generate attributeChangedCallback (Attr -> Field)
+    // attributeChangedCallback
     buffer.writeln('  @override');
     buffer.writeln(
       '  void attributeChangedCallback(String name, String? oldValue, String? newValue) {',
     );
     buffer.writeln('    switch (name) {');
+    for (final entry in attributes.entries) {
+      final fieldName = entry.key;
+      final info = entry.value;
+      final type = info.fieldType;
 
-    attributes.forEach((field, attr) {
-      buffer.writeln("      case '$attr':");
-      // Find the field element to get its type
-      final fieldElement = element.fields.firstWhere((f) => f.name == field);
-      final type = fieldElement.type;
+      buffer.writeln("      case '${info.attrName}':");
+
+      // Determine the correct target access based on pattern:
+      // - New complete class pattern (isWrapper=true): use private field _$fieldName
+      // - Old mixin pattern (isWrapper=false): cast to original class and use fieldName as-is
+      final targetAccess = isWrapper
+          ? '_$fieldName'
+          : '(this as $className).$fieldName';
 
       if (type.isDartCoreInt) {
         buffer.writeln(
-          "        (this as $className).$field = int.tryParse(newValue ?? '') ?? 0;",
+          "        $targetAccess = int.tryParse(newValue ?? '') ?? 0;",
         );
       } else if (type.isDartCoreDouble) {
         buffer.writeln(
-          "        (this as $className).$field = double.tryParse(newValue ?? '') ?? 0.0;",
+          "        $targetAccess = double.tryParse(newValue ?? '') ?? 0.0;",
         );
       } else if (type.isDartCoreBool) {
         buffer.writeln(
-          "        (this as $className).$field = newValue != null && newValue != 'false';",
+          "        $targetAccess = newValue != null && newValue != 'false';",
         );
       } else if (type.isDartCoreString) {
-        buffer.writeln("        (this as $className).$field = newValue ?? '';");
+        buffer.writeln("        $targetAccess = newValue ?? '';");
       } else {
         // Check for fromJson factory
-        final element = type.element;
+        final typeElement = type.element;
         bool hasFromJson = false;
-        if (element is ClassElement) {
-          hasFromJson = element.constructors.any((c) => c.name == 'fromJson');
+        if (typeElement is ClassElement) {
+          hasFromJson = typeElement.constructors.any(
+            (c) => c.name == 'fromJson',
+          );
         }
 
         if (hasFromJson) {
           buffer.writeln("        if (newValue != null) {");
           buffer.writeln("          try {");
           buffer.writeln(
-            "            (this as $className).$field = ${type.getDisplayString()}.fromJson(jsonDecode(newValue));",
+            "            $targetAccess = ${type.getDisplayString()}.fromJson(jsonDecode(newValue));",
           );
           buffer.writeln("          } catch (_) {}");
           buffer.writeln("        }");
         } else {
-          // Fallback check if it has a constructor that takes a Map or dynamic?
-          // For now, if no fromJson, we can't do much.
           buffer.writeln(
-            "        // Custom type '${type.getDisplayString()}' must have a fromJson factory constructor.",
+            "        // Custom type '${type.getDisplayString()}' must have a fromJson factory.",
           );
         }
       }
       buffer.writeln('        break;');
-    });
-
+    }
     buffer.writeln('    }');
-    // Call super to trigger update()
     buffer.writeln(
       '    super.attributeChangedCallback(name, oldValue, newValue);',
     );
     buffer.writeln('  }');
-
-    buffer.writeln('}');
-
-    return buffer.toString();
   }
+
+  /// Returns an expression to serialize a field to string.
+  String _getSerializeExpr(String fieldName, DartType type) {
+    if (type.isDartCoreString) {
+      return fieldName;
+    } else if (type.isDartCoreInt ||
+        type.isDartCoreDouble ||
+        type.isDartCoreBool) {
+      return '$fieldName.toString()';
+    } else {
+      return 'jsonEncode($fieldName.toJson())';
+    }
+  }
+
+  /// Extracts import statements from the source file.
+  List<String> _extractImports(String sourceFilePath) {
+    try {
+      final file = File(sourceFilePath);
+      if (!file.existsSync()) return [];
+
+      final contents = file.readAsStringSync();
+      final imports = <String>[];
+
+      // Find all import statements
+      final lines = contents.split('\n');
+      for (final line in lines) {
+        final trimmed = line.trim();
+        if (trimmed.startsWith('import ') && trimmed.endsWith(';')) {
+          imports.add(trimmed);
+        }
+      }
+
+      return imports;
+    } catch (e) {
+      print('Failed to extract imports: $e');
+      return [];
+    }
+  }
+
+  // /// Returns an expression to parse an attribute value to a field type.
+  // String _getParseExpr(String fieldName, String attrName, DartType type) {
+  //   if (type.isDartCoreInt) {
+  //     return "getPropsInt('$attrName', 0)";
+  //   } else if (type.isDartCoreDouble) {
+  //     return "getPropsDouble('$attrName', 0)";
+  //   } else if (type.isDartCoreBool) {
+  //     final expr = "getPropsBool('$attrName')";
+  //     return "$expr != null && $expr != 'false'";
+  //   } else if (type.isDartCoreString) {
+  //     return "getPropsString('$attrName')";
+  //   } else {
+  //     final typeName = type.getDisplayString();
+  //     return "$typeName.fromJson(jsonDecode(getAttribute('$attrName') ?? '{}'))";
+  //   }
+  // }
+
+  /// Formats a parameter's default value for code generation.
+  String _formatDefaultValue(FormalParameterElement param) {
+    final constantValue = param.computeConstantValue();
+    if (constantValue == null) return '';
+
+    final type = param.type;
+
+    if (type.isDartCoreInt) {
+      final intVal = constantValue.toIntValue();
+      return intVal?.toString() ?? '';
+    } else if (type.isDartCoreDouble) {
+      final doubleVal = constantValue.toDoubleValue();
+      return doubleVal?.toString() ?? '';
+    } else if (type.isDartCoreBool) {
+      final boolVal = constantValue.toBoolValue();
+      return boolVal?.toString() ?? '';
+    } else if (type.isDartCoreString) {
+      final stringVal = constantValue.toStringValue();
+      return stringVal != null ? "'$stringVal'" : '';
+    } else {
+      // For complex const objects, use the source code representation
+      // This handles cases like "const CounterConfig()"
+      final source = param.defaultValueCode;
+      if (source != null && source.isNotEmpty) {
+        return source;
+      }
+
+      // Fallback: try to construct a const expression
+      final typeName = type.getDisplayString();
+      return 'const $typeName()';
+    }
+  }
+
+  /// Gets the value of a static field as a string.
+  String _getStaticFieldValue(FieldElement field) {
+    final constantValue = field.computeConstantValue();
+    if (constantValue != null) {
+      final stringValue = constantValue.toStringValue();
+      if (stringValue != null) {
+        return "'$stringValue'";
+      }
+    }
+    // Fallback: use the field name
+    return field.name ?? 'tag';
+  }
+
+  /// Gets a field's initializer expression from source.
+  String? _getFieldInitializer(FieldElement field) {
+    // Try to get constant value first
+    final constantValue = field.computeConstantValue();
+    if (constantValue != null) {
+      final type = field.type;
+      if (type.isDartCoreInt) {
+        return constantValue.toIntValue()?.toString();
+      } else if (type.isDartCoreDouble) {
+        return constantValue.toDoubleValue()?.toString();
+      } else if (type.isDartCoreBool) {
+        return constantValue.toBoolValue()?.toString();
+      } else if (type.isDartCoreString) {
+        final stringVal = constantValue.toStringValue();
+        return stringVal != null ? "'$stringVal'" : null;
+      } else {
+        return '${type.getDisplayString()}()';
+      }
+    }
+
+    return null;
+  }
+
+  /// Generates a constructor matching the user's constructor signature.
+  void _generateConstructor(
+    StringBuffer buffer,
+    ClassElement classElement,
+    String className,
+    Map<String, _AttributeInfo> attributes,
+    String sourceFilePath,
+  ) {
+    final constructor = classElement.unnamedConstructor;
+    if (constructor != null && constructor.formalParameters.isNotEmpty) {
+      buffer.writeln('  $className({');
+      for (final param in constructor.formalParameters) {
+        if (param.isNamed) {
+          final typeStr = param.type.getDisplayString();
+          final paramName = param.name;
+          final required = param.isRequired ? 'required ' : '';
+
+          // Handle default values
+          String defaultPart = '';
+          if (!param.isRequired && param.hasDefaultValue) {
+            final defaultValue = _formatDefaultValue(param);
+            if (defaultValue.isNotEmpty) {
+              defaultPart = ' = $defaultValue';
+            }
+          }
+
+          buffer.writeln('    $required$typeStr $paramName$defaultPart,');
+        }
+      }
+      buffer.writeln('  }) {');
+
+      // Initialize private fields from constructor parameters
+      for (final param in constructor.formalParameters) {
+        if (param.isNamed) {
+          final paramName = param.name;
+          if (attributes.containsKey(paramName)) {
+            buffer.writeln('    _$paramName = $paramName;');
+          }
+        }
+      }
+
+      // Initialize remaining fields with defaults if not already initialized
+      for (final entry in attributes.entries) {
+        final fieldName = entry.key;
+        final fieldElement = classElement.fields.firstWhere(
+          (f) => f.name == fieldName,
+        );
+
+        // Check if this field was initialized from a constructor parameter
+        final wasInitialized = constructor.formalParameters.any(
+          (p) => p.isNamed && p.name == fieldName,
+        );
+
+        if (!wasInitialized) {
+          // Check if the field has a default value
+          final defaultValue = _getFieldInitializer(fieldElement);
+          if (defaultValue != null && defaultValue.isNotEmpty) {
+            // Already has default in field declaration
+            continue;
+          } else {
+            // Need to initialize with a default
+            final type = entry.value.fieldType;
+            if (type.isDartCoreString) {
+              buffer.writeln("    _$fieldName = '';");
+            } else if (type.isDartCoreBool) {
+              buffer.writeln('    _$fieldName = false;');
+            } else if (type.isDartCoreInt) {
+              buffer.writeln('    _$fieldName = 0;');
+            } else if (type.isDartCoreDouble) {
+              buffer.writeln('    _$fieldName = 0.0;');
+            } else {
+              // Complex type - use default constructor if available
+              final typeStr = type.getDisplayString();
+              buffer.writeln('    _$fieldName = $typeStr();');
+            }
+          }
+        }
+      }
+      buffer.writeln('  }');
+      buffer.writeln();
+    } else {
+      // No-arg constructor
+      buffer.writeln('  $className();');
+      buffer.writeln();
+    }
+  }
+
+  /// Copies user's methods into the generated class.
+  void _copyUserMethods(
+    StringBuffer buffer,
+    ClassElement classElement,
+    Map<String, _AttributeInfo> attributes,
+    String sourceFilePath,
+  ) {
+    // Copy render method
+    final renderMethod = classElement.getMethod('render');
+    if (renderMethod != null) {
+      final methodSource = _getMethodSource(renderMethod, sourceFilePath);
+      if (methodSource != null && methodSource.isNotEmpty) {
+        buffer.writeln('@override');
+        buffer.writeln(methodSource.replaceFirst('render', 'build'));
+        buffer.writeln();
+      } else {
+        // Fallback: generate placeholder
+        buffer.writeln('  Element build() {');
+        buffer.writeln('    // TODO: Copy render method from user class');
+        buffer.writeln('    return div([]);');
+        buffer.writeln('  }');
+        buffer.writeln();
+      }
+    }
+
+    final onMountMethod = classElement.getMethod('onMount');
+    if (onMountMethod != null) {
+      final methodSource = _getMethodSource(onMountMethod, sourceFilePath);
+      if (methodSource != null && methodSource.isNotEmpty) {
+        buffer.writeln('@override');
+        buffer.writeln(
+          methodSource.replaceFirst(
+            'void onMount() {',
+            'void onMount() {\n    super.onMount();\n',
+          ),
+        );
+        buffer.writeln();
+      }
+    }
+
+    // Copy other non-static public methods (excluding getters/setters)
+    for (final method in classElement.methods) {
+      if (method.isStatic ||
+          method.name == 'render' ||
+          method.name == 'onMount') {
+        continue;
+      }
+
+      final methodSource = _getMethodSource(method, sourceFilePath);
+      if (methodSource != null && methodSource.isNotEmpty) {
+        buffer.writeln(methodSource);
+        buffer.writeln();
+      }
+    }
+  }
+
+  /// Extracts method source code from a method element.
+  String? _getMethodSource(MethodElement method, String sourceFilePath) {
+    final methodName = method.name;
+    if (methodName == null) return null;
+
+    try {
+      // Read the source file
+      final file = File(sourceFilePath);
+      if (!file.existsSync()) return null;
+
+      final contents = file.readAsStringSync();
+
+      // Use regex to find the method
+      // Pattern: optional annotations, return type, method name, parameters, async?, opening brace
+      final methodPattern = RegExp(
+        r'(?:@\w+\([^\)]*\)\s+)*' // optional annotations
+        r'(\w+(?:<[^>]+>)?)\s+' // return type
+        '$methodName'
+        r'\s*' // method name
+        r'\([^\)]*\)' // parameters
+        r'(?:\s+async)?' // optional async
+        r'\s*\{', // opening brace
+        multiLine: true,
+        dotAll: true,
+      );
+
+      final match = methodPattern.firstMatch(contents);
+      if (match != null) {
+        final start = match.start;
+        // Find the matching closing brace
+        int braceCount = 0;
+        int end = start;
+        bool foundOpenBrace = false;
+
+        for (int i = start; i < contents.length; i++) {
+          if (contents[i] == '{') {
+            braceCount++;
+            foundOpenBrace = true;
+          } else if (contents[i] == '}') {
+            braceCount--;
+            if (foundOpenBrace && braceCount == 0) {
+              end = i + 1;
+              break;
+            }
+          }
+        }
+
+        if (end > start) {
+          final methodSource = contents.substring(start, end).trim();
+          return '  $methodSource';
+        }
+      }
+    } catch (e) {
+      print('Failed to extract method source for $methodName: $e');
+    }
+
+    return null;
+  }
+
+  /// Extracts getter source code from a getter element.
+  String? _getGetterSource(
+    PropertyAccessorElement getter,
+    String sourceFilePath,
+  ) {
+    final getterName = getter.name;
+    if (getterName == null) return null;
+
+    try {
+      // Read the source file
+      final file = File(sourceFilePath);
+      if (!file.existsSync()) return null;
+
+      final contents = file.readAsStringSync();
+
+      // Use regex to find the getter
+      // Pattern: return type, 'get', getter name, then either '=>..;' or '{...}'
+      final getterPattern = RegExp(
+        r'(\w+(?:<[^>]+>)?)\s+get\s+' + getterName + r'\s*',
+        multiLine: true,
+      );
+
+      final match = getterPattern.firstMatch(contents);
+      if (match != null) {
+        final start = match.start;
+        int end = match.end;
+
+        // Check if it's arrow syntax or block syntax
+        // Skip whitespace
+        while (end < contents.length && contents[end].trim().isEmpty) {
+          end++;
+        }
+
+        if (end < contents.length - 1 &&
+            contents.substring(end, end + 2) == '=>') {
+          // Arrow syntax - find the semicolon
+          for (int i = end; i < contents.length; i++) {
+            if (contents[i] == ';') {
+              end = i + 1;
+              break;
+            }
+          }
+        } else {
+          // Block syntax - find matching closing brace
+          int braceCount = 0;
+          bool foundOpenBrace = false;
+
+          for (int i = end; i < contents.length; i++) {
+            if (contents[i] == '{') {
+              braceCount++;
+              foundOpenBrace = true;
+            } else if (contents[i] == '}') {
+              braceCount--;
+              if (foundOpenBrace && braceCount == 0) {
+                end = i + 1;
+                break;
+              }
+            }
+          }
+        }
+
+        if (end > start) {
+          final getterSource = contents.substring(start, end).trim();
+          return '  $getterSource';
+        }
+      }
+    } catch (e) {
+      print('Failed to extract getter source for $getterName: $e');
+    }
+
+    return null;
+  }
+}
+
+/// Helper class to store attribute information.
+class _AttributeInfo {
+  final String attrName;
+  final bool isPrivate;
+  final String publicName;
+  final DartType fieldType;
+
+  _AttributeInfo({
+    required this.attrName,
+    required this.isPrivate,
+    required this.publicName,
+    required this.fieldType,
+  });
 }

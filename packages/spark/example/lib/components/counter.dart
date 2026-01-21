@@ -27,7 +27,6 @@ import 'package:spark_framework/spark.dart';
 ///   hydrateComponents({'my-counter': Counter.new});
 /// }
 /// ```
-@Component(tag: 'my-counter')
 class Counter extends WebComponent {
   /// The custom element tag name.
   static const tag = 'my-counter';

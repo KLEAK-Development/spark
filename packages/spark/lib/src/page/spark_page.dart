@@ -1,7 +1,6 @@
 import '../html/node.dart';
 import 'page_request.dart';
 import 'page_response.dart';
-import '../component/component.dart';
 import '../style/style.dart';
 import 'package:shelf/shelf.dart' show Middleware;
 
@@ -13,7 +12,7 @@ class ComponentInfo {
   final String tag;
 
   /// Factory function to create component instances.
-  final WebComponent Function() factory;
+  final Function factory;
 
   /// Creates component info with the given [tag] and [factory].
   const ComponentInfo(this.tag, this.factory);

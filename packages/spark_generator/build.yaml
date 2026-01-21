@@ -1,4 +1,15 @@
 builders:
+  # Processes @Component annotations on _base.dart files
+  spark_components:
+    import: "package:spark_generator/builder.dart"
+    builder_factories:
+      - sparkComponentsBuilder
+    build_extensions:
+      _base.dart:
+        - .impl.dart
+    auto_apply: dependents
+    build_to: source
+
   # Processes @Page annotations on individual files
   spark_pages:
     import: "package:spark_generator/builder.dart"

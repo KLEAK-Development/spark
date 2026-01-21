@@ -17,8 +17,15 @@ import 'js_callback_web.dart'
     if (dart.library.io) 'js_callback_stub.dart'
     as js_callback;
 
+// Conditional import for adopted stylesheets
+import 'adopted_styles_web.dart'
+    if (dart.library.io) 'adopted_styles_stub.dart'
+    as adopted_styles;
+
 // Re-export DOM types for use in components
 export 'package:web/web.dart' if (dart.library.io) 'stubs.dart' hide Node;
+
+export 'query_stubs.dart' if (dart.library.html) 'query_web.dart';
 
 /// Whether we are running in a browser environment.
 ///
@@ -389,10 +396,37 @@ abstract class WebComponent {
     }
     return result;
   }
+
+  /// Applies CSS strings as adopted stylesheets to this component's shadow root.
+  ///
+  /// This uses the modern [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets)
+  /// API which is more efficient than creating `<style>` elements because:
+  /// - Stylesheets can be shared across multiple shadow roots
+  /// - CSS is only parsed once and cached
+  /// - The browser can optimize stylesheet application
+  ///
+  /// **Note:** This only works in the browser. On the server (during SSR),
+  /// this is a no-op since styles should be rendered as `<style>` elements.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// void onMount() {
+  ///   adoptStyleSheets([
+  ///     ':host { display: block; padding: 16px; }',
+  ///     'button { background: blue; color: white; }',
+  ///   ]);
+  /// }
+  /// ```
+  void adoptStyleSheets(List<String> cssTexts) {
+    if (_shadowRoot == null) return;
+    adopted_styles.setAdoptedStyleSheets(_shadowRoot!, cssTexts);
+  }
 }
 
 /// Factory function type for creating component instances.
-typedef ComponentFactory = WebComponent Function();
+typedef ComponentFactory = Function;
 
 /// Registry of component factories by tag name.
 final Map<String, ComponentFactory> _componentRegistry = {};
@@ -442,6 +476,12 @@ void hydrateAll() {
       if (element != null) {
         // Custom elements are HTMLElement instances by definition
         final component = factory();
+
+        // Skip hydration if not a WebComponent
+        if (component is! WebComponent) {
+          continue;
+        }
+
         component._hydrate(element as web.HTMLElement);
       }
     }

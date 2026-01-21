@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import '../html/dsl.dart' as html;
+import '../style/style.dart';
 import 'web_component.dart';
 import 'vdom.dart' as vdom;
 
@@ -20,20 +23,40 @@ import 'vdom.dart' as vdom;
 ///
 /// ```dart
 /// @Component(tag: 'my-counter')
-/// class Counter extends SparkComponent {
+/// class Counter extends SparkComponent with _$CounterSync {
 ///   @Attribute(observable: true)
-///   int value = 0;
+///   int _value = 0;  // Private backing field
 ///
 ///   @override
 ///   html.Element build() {
 ///     return html.div(
-///       ['Count: $value'],
-///       onClick: (_) => value++,
+///       ['Count: $value'],  // Use generated public getter
+///       onClick: (_) => value++,  // Generated setter triggers update
 ///     );
 ///   }
 /// }
 /// ```
+///
+/// For reactive state that auto-updates the UI, use private fields (with `_` prefix)
+/// and the generated public getter/setter will automatically trigger updates when
+/// the value changes.
 abstract class SparkComponent extends WebComponent {
+  bool _updateScheduled = false;
+
+  /// Called by generated setters when state changes.
+  /// Batches multiple changes within same microtask into single update.
+  void scheduleUpdate() {
+    if (!_updateScheduled && isHydrated) {
+      _updateScheduled = true;
+      scheduleMicrotask(_performScheduledUpdate);
+    }
+  }
+
+  void _performScheduledUpdate() {
+    _updateScheduled = false;
+    syncAttributes();
+  }
+
   /// Builds the reactive Virtual DOM structure for this component.
   ///
   /// This method is called:
@@ -54,24 +77,51 @@ abstract class SparkComponent extends WebComponent {
   /// instead to define your component's content.
   @override
   html.Element render() {
+    final children = _buildWithStyles();
     return html.element(tagName, [
-      html.template(shadowrootmode: 'open', [build()]),
+      html.template(shadowrootmode: 'open', children),
     ], attributes: dumpedAttributes);
+  }
+
+  /// Builds the component tree with styles automatically prepended.
+  List<html.Node> _buildWithStyles() {
+    final children = build();
+    final styles = adoptedStyleSheets;
+
+    // Prepend style element if styles are defined
+    if (styles != null) {
+      return [
+        html.style([styles]),
+        children,
+      ];
+    }
+
+    return [children];
   }
 
   /// Forces a re-render of the component.
   void update() {
     if (!isHydrated) return;
 
-    final newVdom = build();
+    // On the browser, styles are already applied via adoptedStyleSheets in onMount().
+    // We only need the build() result, not the style element, to avoid CSP issues
+    // with dynamically created <style> tags that wouldn't have a nonce.
+    final newVdom = [build()];
 
-    _wrapEvents(newVdom);
+    _wrapEventsInList(newVdom);
 
     final root = shadowRoot;
     if (root != null) {
-      vdom.mount(root, newVdom);
+      vdom.mountList(root, newVdom);
     } else {
-      vdom.mount(element, newVdom);
+      vdom.mountList(element, newVdom);
+    }
+  }
+
+  /// Wraps events in a list of nodes.
+  void _wrapEventsInList(List<html.Node> nodes) {
+    for (final node in nodes) {
+      _wrapEvents(node);
     }
   }
 
@@ -80,8 +130,12 @@ abstract class SparkComponent extends WebComponent {
       final keys = node.events.keys.toList();
       for (final key in keys) {
         final original = node.events[key]!;
-        node.events[key] = (arg) {
-          original(arg);
+        node.events[key] = (arg) async {
+          final result = original(arg);
+          // Await if the handler returns a Future
+          if (result is Future) {
+            await result;
+          }
           syncAttributes();
         };
       }
@@ -96,9 +150,60 @@ abstract class SparkComponent extends WebComponent {
   /// This should be overridden by the generated mixin or code.
   void syncAttributes() {}
 
+  /// Returns a map of attributes to be rendered on the host element during SSR.
+  Map<String, String> get dumpedAttributes;
+
+  /// Returns the stylesheet to apply to this component's shadow DOM.
+  ///
+  /// Override this getter to provide component styles. The styles will be
+  /// automatically applied to the shadow root during hydration using the
+  /// efficient `adoptedStyleSheets` API.
+  ///
+  /// **Benefits:**
+  /// - Styles are parsed once and cached
+  /// - More efficient than creating `<style>` elements
+  /// - Works seamlessly with type-safe CSS API
+  ///
+  /// **Note:** For SSR, you should still include styles in your template.
+  /// This is only for browser-side hydration.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// Stylesheet? get adoptedStyleSheets => css({
+  ///   ':host': .typed(
+  ///     display: .block,
+  ///     padding: .all(.px(16)),
+  ///   ),
+  ///   'button': .typed(
+  ///     backgroundColor: .hex('#2196f3'),
+  ///     color: .white,
+  ///   ),
+  /// });
+  /// ```
+  Stylesheet? get adoptedStyleSheets => null;
+
   @override
   void onMount() {
     super.onMount();
+
+    // Apply adopted stylesheets if defined (for browser efficiency)
+    final styles = adoptedStyleSheets;
+    if (styles != null) {
+      adoptStyleSheets([styles.toCss()]);
+
+      // Remove the SSR-rendered <style> element since adoptedStyleSheets now handles styles.
+      // This also ensures update() can patch correctly without the style element offset.
+      final root = shadowRoot;
+      if (root != null) {
+        final firstChild = root.firstElementChild;
+        if (firstChild != null && firstChild.tagName.toLowerCase() == 'style') {
+          firstChild.remove();
+        }
+      }
+    }
+
     update();
   }
 
@@ -112,7 +217,4 @@ abstract class SparkComponent extends WebComponent {
       update();
     }
   }
-
-  /// Returns a map of attributes to be rendered on the host element during SSR.
-  Map<String, String> get dumpedAttributes;
 }

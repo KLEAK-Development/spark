@@ -1,3 +1,5 @@
+## 1.0.0-alpha.4
+
 ## 1.0.0-alpha.3
 
 - Added support for cookies

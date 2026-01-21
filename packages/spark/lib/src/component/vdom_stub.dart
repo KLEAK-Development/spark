@@ -9,6 +9,9 @@ void patch(dynamic realNode, Node vNode) {
 /// Stub for mount.
 void mount(dynamic parent, Node vNode) {}
 
+/// Stub for mountList.
+void mountList(dynamic parent, List<Node> vNodes) {}
+
 /// Stub for patch.
 
 /// Stub implementation for VM/Server.

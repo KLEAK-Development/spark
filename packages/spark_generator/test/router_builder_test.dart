@@ -82,6 +82,16 @@ Future<Response> _\$handleHomePage(Request request) async { return Response.ok('
                   'shared: config.shared || (config.isolates != null && config.isolates! > 1),',
                 ),
                 contains('lang: page.lang,'),
+                // CSP Assertions
+                contains("final nonce = base64Url.encode(nonceBytes)"),
+                contains("'spark.nonce': nonce"),
+                contains("response.headers['content-security-policy']"),
+                contains("script-src 'nonce-\$nonce'"),
+                contains("style-src 'nonce-\$nonce'"),
+                contains(
+                  'String? nonce,',
+                ), // nonce parameter in _$renderPageResponse
+                contains('nonce: nonce,'), // passed to renderPage
               ]),
             ),
           },

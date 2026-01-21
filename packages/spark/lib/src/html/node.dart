@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 /// Base class for all HTML nodes.
@@ -63,6 +64,14 @@ class Element extends Node {
         );
       }
     });
+
+    // Auto-inject nonce for style tags if available in Zone
+    if (tag == 'style' && !attributes.containsKey('nonce')) {
+      final nonce = Zone.current['spark.cspNonce'];
+      if (nonce != null && nonce is String && nonce.isNotEmpty) {
+        buffer.write(' nonce="$nonce"');
+      }
+    }
 
     if (selfClosing && children.isEmpty) {
       buffer.write(' />');

@@ -345,6 +345,7 @@ class Document extends Node {
 class ShadowRoot extends DocumentFragment {
   Element? get host => null;
   String get mode => 'open';
+  Element? get firstElementChild => null;
 
   @override
   Element? querySelector(String selectors) => null;

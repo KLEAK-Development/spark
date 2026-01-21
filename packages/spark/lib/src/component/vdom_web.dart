@@ -26,6 +26,42 @@ void mount(dynamic parent, Node vNode) {
   }
 }
 
+/// Mounts a list of VDOM nodes into a parent element.
+/// Each node is mounted sequentially.
+void mountList(dynamic parent, List<Node> vNodes) {
+  if ((parent as JSAny?).isA<web.Node>() != true) return;
+  final node = parent as web.Node;
+
+  // Find all significant children
+  final significantNodes = <web.Node>[];
+  web.Node? child = node.firstChild;
+  while (child != null) {
+    if (!_isWhitespace(child)) {
+      significantNodes.add(child);
+    }
+    child = child.nextSibling;
+  }
+
+  final len = vNodes.length > significantNodes.length
+      ? vNodes.length
+      : significantNodes.length;
+
+  for (var i = 0; i < len; i++) {
+    if (i >= vNodes.length) {
+      // Remove extra DOM nodes
+      if (i < significantNodes.length) {
+        node.removeChild(significantNodes[i]);
+      }
+    } else if (i >= significantNodes.length) {
+      // Append new nodes
+      node.appendChild(createNode(vNodes[i]) as web.Node);
+    } else {
+      // Patch existing nodes
+      patch(significantNodes[i], vNodes[i]);
+    }
+  }
+}
+
 bool _isWhitespace(web.Node node) {
   return node.nodeType == 3 && (node.textContent ?? '').trim().isEmpty;
 }

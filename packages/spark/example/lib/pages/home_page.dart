@@ -8,9 +8,9 @@
 library;
 
 import 'package:spark_framework/spark.dart';
-import 'package:spark_example/components/counter_v2.dart';
 
 import '../components/counter.dart';
+import '../components/counter_final/counter_final.dart';
 
 /// Home page data model.
 ///
@@ -64,8 +64,9 @@ class HomePage extends SparkPage<HomePageData> {
     return div([
       h1(data.title),
       p(data.description),
+
       Counter(value: data.counterStart, label: 'Clicks').render(),
-      CounterV2(value: data.counterStart, label: 'Clicks').render(),
+      CounterFinal(value: data.counterStart).render(),
 
       p([
         strong(['Try it:']),
@@ -80,7 +81,8 @@ class HomePage extends SparkPage<HomePageData> {
   @override
   List<ComponentInfo> get components => [
     ComponentInfo(Counter.tag, Counter.new),
-    ComponentInfo(CounterV2.tag, CounterV2.new),
+    // ComponentInfo(CounterV2.tag, CounterV2.new),
+    ComponentInfo(CounterFinal.tag, CounterFinal.new),
   ];
 
   @override
