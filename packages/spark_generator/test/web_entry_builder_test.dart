@@ -368,7 +368,10 @@ void main() {
           final output = buildStep.outputs[outputId]!;
 
           // Check for proper imports
-          expect(output, contains("import 'package:spark_framework/spark.dart'"));
+          expect(
+            output,
+            contains("import 'package:spark_framework/spark.dart'"),
+          );
           expect(output, contains("import 'package:a/pages/styled_page.dart'"));
 
           // Check for generated code header

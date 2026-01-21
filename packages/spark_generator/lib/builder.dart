@@ -22,20 +22,15 @@ export 'src/component_generator.dart';
 /// Creates a builder that processes @Page annotations.
 ///
 /// This builder generates handler functions for each annotated page class.
-Builder sparkPagesBuilder(BuilderOptions options) => SharedPartBuilder([
-  PageGenerator(),
-  EndpointGenerator(),
-], 'spark');
+Builder sparkPagesBuilder(BuilderOptions options) =>
+    SharedPartBuilder([PageGenerator(), EndpointGenerator()], 'spark');
 
 /// Creates a builder that processes @Component annotations.
 ///
 /// This builder generates reactive implementation classes for components.
 /// Expects source files ending with _base.dart and generates _impl.dart files.
 Builder sparkComponentsBuilder(BuilderOptions options) =>
-    LibraryBuilder(
-      ComponentGenerator(),
-      generatedExtension: '.impl.dart',
-    );
+    LibraryBuilder(ComponentGenerator(), generatedExtension: '.impl.dart');
 
 /// Creates a builder that aggregates all page routes.
 ///

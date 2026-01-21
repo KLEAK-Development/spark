@@ -16,10 +16,12 @@ class SimpleBuildStep implements BuildStep {
 
 void main() {
   group('ComponentGenerator', () {
-    test('generates complete reactive class with private fields and setters', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+    test(
+      'generates complete reactive class with private fields and setters',
+      () async {
+        await resolveSources(
+          {
+            'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -30,7 +32,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+            'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -41,12 +43,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+            'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+            'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -67,53 +69,54 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+          },
+          (resolver) async {
+            final libraryElement = await resolver.libraryFor(
+              AssetId('a', 'lib/test_lib_base.dart'),
+            );
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+            final counterClass = libraryElement.children
+                .whereType<ClassElement>()
+                .firstWhere((e) => e.name == 'Counter');
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+            final annotations = counterClass.metadata.annotations;
+            final annotation = annotations.firstWhere((a) {
+              final element = a.element;
+              final enclosing = element?.enclosingElement;
+              return enclosing?.name == 'Component';
+            });
+            final constantReader = ConstantReader(
+              annotation.computeConstantValue(),
+            );
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+            final generator = ComponentGenerator();
+            final output = generator.generateForAnnotatedElement(
+              counterClass,
+              constantReader,
+              SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
+            );
 
-          // Should generate complete class extending SparkComponent
-          expect(output, contains('class Counter extends SparkComponent {'));
+            // Should generate complete class extending SparkComponent
+            expect(output, contains('class Counter extends SparkComponent {'));
 
-          // Should generate static tag
-          expect(output, contains('static const tag ='));
+            // Should generate static tag
+            expect(output, contains('static const tag ='));
 
-          // Should generate private field
-          expect(output, contains('_value'));
+            // Should generate private field
+            expect(output, contains('_value'));
 
-          // Should generate reactive getter
-          expect(output, contains('int get value => _value;'));
+            // Should generate reactive getter
+            expect(output, contains('int get value => _value;'));
 
-          // Should generate reactive setter with scheduleUpdate
-          expect(output, contains('set value(int v) {'));
-          expect(output, contains('if (_value != v) {'));
-          expect(output, contains('_value = v;'));
-          expect(output, contains('scheduleUpdate();'));
-        },
-      );
-    });
+            // Should generate reactive setter with scheduleUpdate
+            expect(output, contains('set value(int v) {'));
+            expect(output, contains('if (_value != v) {'));
+            expect(output, contains('_value = v;'));
+            expect(output, contains('scheduleUpdate();'));
+          },
+        );
+      },
+    );
 
     test('generates syncAttributes using field access', () async {
       await resolveSources(
@@ -192,10 +195,7 @@ void main() {
           );
 
           // syncAttributes should use field access
-          expect(
-            output,
-            contains("setAttr('value', value.toString());"),
-          );
+          expect(output, contains("setAttr('value', value.toString());"));
         },
       );
     });
@@ -281,10 +281,7 @@ void main() {
             output,
             contains("Map<String, String> get dumpedAttributes => {"),
           );
-          expect(
-            output,
-            contains("'value': value.toString(),"),
-          );
+          expect(output, contains("'value': value.toString(),"));
         },
       );
     });
@@ -514,16 +511,10 @@ void main() {
           );
 
           // observedAttributes should use custom name
-          expect(
-            output,
-            contains("const ['counter-value']"),
-          );
+          expect(output, contains("const ['counter-value']"));
 
           // attributeChangedCallback should use custom name
-          expect(
-            output,
-            contains("case 'counter-value':"),
-          );
+          expect(output, contains("case 'counter-value':"));
         },
       );
     });
@@ -616,8 +607,9 @@ void main() {
           expect(output, contains('set enabled(bool v)'));
 
           // Each setter should call scheduleUpdate
-          final scheduleUpdateCount =
-              'scheduleUpdate();'.allMatches(output).length;
+          final scheduleUpdateCount = 'scheduleUpdate();'
+              .allMatches(output)
+              .length;
           expect(scheduleUpdateCount, greaterThanOrEqualTo(3));
         },
       );
