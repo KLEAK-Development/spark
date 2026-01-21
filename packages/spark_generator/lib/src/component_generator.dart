@@ -614,55 +614,69 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Extracts method source code from a method element.
+  /// Finds the method by name and extracts from the previous declaration boundary.
   String? _getMethodSource(MethodElement method, String sourceFilePath) {
     final methodName = method.name;
     if (methodName == null) return null;
 
     try {
-      // Read the source file
       final file = File(sourceFilePath);
       if (!file.existsSync()) return null;
-
       final contents = file.readAsStringSync();
 
-      // Use regex to find the method
-      // Pattern: optional annotations, return type, method name, parameters, async?, opening brace
-      final methodPattern = RegExp(
-        r'(?:@\w+\([^\)]*\)\s+)*' // optional annotations
-        r'(\w+(?:<[^>]+>)?)\s+' // return type
-        '$methodName'
-        r'\s*' // method name
-        r'\([^\)]*\)' // parameters
-        r'(?:\s+async)?' // optional async
-        r'\s*\{', // opening brace
+      // Find method name followed by opening parenthesis
+      final pattern = RegExp(
+        r'\b' + RegExp.escape(methodName) + r'\s*\(',
         multiLine: true,
-        dotAll: true,
       );
 
-      final match = methodPattern.firstMatch(contents);
-      if (match != null) {
-        final start = match.start;
-        // Find the matching closing brace
-        int braceCount = 0;
-        int end = start;
-        bool foundOpenBrace = false;
+      final matches = pattern.allMatches(contents);
+      if (matches.isEmpty) return null;
 
-        for (int i = start; i < contents.length; i++) {
-          if (contents[i] == '{') {
+      for (final match in matches) {
+        // Go backwards to find previous closing brace or semicolon
+        // This marks the end of the previous declaration
+        int start = match.start - 1;
+        while (start > 0 && contents[start] != '}' && contents[start] != ';') {
+          start--;
+        }
+        // Move past the closing brace/semicolon
+        if (start > 0) start++;
+
+        // Skip any whitespace/newlines to get to start of this declaration
+        while (start < match.start &&
+            (contents[start] == ' ' ||
+                contents[start] == '\t' ||
+                contents[start] == '\n' ||
+                contents[start] == '\r')) {
+          start++;
+        }
+
+        // Find opening brace after method name
+        int pos = match.end;
+        while (pos < contents.length && contents[pos] != '{') {
+          pos++;
+        }
+        if (pos >= contents.length) continue;
+
+        // Find matching closing brace
+        int braceCount = 0;
+        int end = pos;
+        while (end < contents.length) {
+          if (contents[end] == '{') {
             braceCount++;
-            foundOpenBrace = true;
-          } else if (contents[i] == '}') {
+          } else if (contents[end] == '}') {
             braceCount--;
-            if (foundOpenBrace && braceCount == 0) {
-              end = i + 1;
+            if (braceCount == 0) {
+              end++;
               break;
             }
           }
+          end++;
         }
 
-        if (end > start) {
-          final methodSource = contents.substring(start, end).trim();
-          return '  $methodSource';
+        if (braceCount == 0 && end > start) {
+          return '  ${contents.substring(start, end).trim()}';
         }
       }
     } catch (e) {
@@ -673,6 +687,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Extracts getter source code from a getter element.
+  /// Finds the getter by name and extracts from the previous declaration boundary.
   String? _getGetterSource(
     PropertyAccessorElement getter,
     String sourceFilePath,
@@ -681,61 +696,78 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     if (getterName == null) return null;
 
     try {
-      // Read the source file
       final file = File(sourceFilePath);
       if (!file.existsSync()) return null;
-
       final contents = file.readAsStringSync();
 
-      // Use regex to find the getter
-      // Pattern: return type, 'get', getter name, then either '=>..;' or '{...}'
-      final getterPattern = RegExp(
-        r'(\w+(?:<[^>]+>)?)\s+get\s+' + getterName + r'\s*',
+      // Find "get getterName" pattern
+      final pattern = RegExp(
+        r'\bget\s+' + RegExp.escape(getterName) + r'\b',
         multiLine: true,
       );
 
-      final match = getterPattern.firstMatch(contents);
-      if (match != null) {
-        final start = match.start;
-        int end = match.end;
+      final matches = pattern.allMatches(contents);
+      if (matches.isEmpty) return null;
 
-        // Check if it's arrow syntax or block syntax
-        // Skip whitespace
-        while (end < contents.length && contents[end].trim().isEmpty) {
-          end++;
+      for (final match in matches) {
+        // Go backwards to find previous closing brace or semicolon
+        int start = match.start - 1;
+        while (start > 0 && contents[start] != '}' && contents[start] != ';') {
+          start--;
+        }
+        // Move past the closing brace/semicolon
+        if (start > 0) start++;
+
+        // Skip any whitespace/newlines
+        while (start < match.start &&
+            (contents[start] == ' ' ||
+                contents[start] == '\t' ||
+                contents[start] == '\n' ||
+                contents[start] == '\r')) {
+          start++;
         }
 
-        if (end < contents.length - 1 &&
-            contents.substring(end, end + 2) == '=>') {
-          // Arrow syntax - find the semicolon
-          for (int i = end; i < contents.length; i++) {
-            if (contents[i] == ';') {
-              end = i + 1;
-              break;
-            }
-          }
-        } else {
-          // Block syntax - find matching closing brace
-          int braceCount = 0;
-          bool foundOpenBrace = false;
+        // Find getter body - either => or {
+        int pos = match.end;
+        while (pos < contents.length &&
+            contents[pos] != '=' &&
+            contents[pos] != '{') {
+          pos++;
+        }
+        if (pos >= contents.length) continue;
 
-          for (int i = end; i < contents.length; i++) {
-            if (contents[i] == '{') {
+        int end;
+        if (pos + 1 < contents.length &&
+            contents[pos] == '=' &&
+            contents[pos + 1] == '>') {
+          // Arrow syntax - find semicolon
+          end = pos + 2;
+          while (end < contents.length && contents[end] != ';') {
+            end++;
+          }
+          if (end < contents.length) end++;
+        } else if (contents[pos] == '{') {
+          // Block syntax - find matching brace
+          int braceCount = 0;
+          end = pos;
+          while (end < contents.length) {
+            if (contents[end] == '{') {
               braceCount++;
-              foundOpenBrace = true;
-            } else if (contents[i] == '}') {
+            } else if (contents[end] == '}') {
               braceCount--;
-              if (foundOpenBrace && braceCount == 0) {
-                end = i + 1;
+              if (braceCount == 0) {
+                end++;
                 break;
               }
             }
+            end++;
           }
+        } else {
+          continue;
         }
 
         if (end > start) {
-          final getterSource = contents.substring(start, end).trim();
-          return '  $getterSource';
+          return '  ${contents.substring(start, end).trim()}';
         }
       }
     } catch (e) {
