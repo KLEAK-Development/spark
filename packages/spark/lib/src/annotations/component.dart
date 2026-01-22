@@ -56,11 +56,5 @@ class Component {
 /// Changes to the attribute in the DOM will update this field,
 /// and changes to this field (via `syncAttributes`) will update the DOM.
 class Attribute {
-  /// The attribute name. Defaults to the field name.
-  final String? name;
-
-  /// Whether changes to this attribute should trigger a re-render.
-  final bool observable;
-
-  const Attribute({this.name, this.observable = true});
+  const Attribute();
 }

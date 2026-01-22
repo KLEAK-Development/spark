@@ -15,6 +15,8 @@
 /// ```
 library;
 
+import 'dart:async';
+
 import 'node.dart';
 
 /// Helper to convert a dynamic list of children into [Node]s.
@@ -504,15 +506,15 @@ Element form(
   attributes: {'action': action, 'method': method, ...?attributes},
 );
 
-Element input({
+Element input<T>({
   String? type,
   String? name,
-  String? value,
+  T? value,
   String? placeholder,
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-  Function? onInput,
+  FutureOr<void> Function(T)? onInput,
   Function? onChange,
   Function? onKeyDown,
   Function? onKeyUp,

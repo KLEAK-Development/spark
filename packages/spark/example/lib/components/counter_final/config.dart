@@ -1,6 +1,6 @@
 class CounterConfig {
-  final int step;
-  final int secondsOfDelay;
+  final num step;
+  final num secondsOfDelay;
 
   const CounterConfig({this.step = 1, this.secondsOfDelay = 0});
 

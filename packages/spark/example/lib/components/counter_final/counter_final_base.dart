@@ -14,7 +14,7 @@ class CounterFinal {
   });
 
   @Attribute()
-  int value;
+  num value;
 
   @Attribute()
   String label;
@@ -101,7 +101,9 @@ class CounterFinal {
           onClick: (_) async {
             isUpdating = true;
             if (config.secondsOfDelay > 0) {
-              await Future.delayed(Duration(seconds: config.secondsOfDelay));
+              await Future.delayed(
+                Duration(seconds: config.secondsOfDelay.toInt()),
+              );
             }
             value -= config.step;
             isUpdating = false;
@@ -115,7 +117,9 @@ class CounterFinal {
           onClick: (_) async {
             isUpdating = true;
             if (config.secondsOfDelay > 0) {
-              await Future.delayed(Duration(seconds: config.secondsOfDelay));
+              await Future.delayed(
+                Duration(seconds: config.secondsOfDelay.toInt()),
+              );
             }
             value += config.step;
             isUpdating = false;
@@ -124,13 +128,13 @@ class CounterFinal {
       ]),
       div(className: 'step-controls', [
         span(['Step:']),
-        input(
-          attributes: {'type': 'number', 'value': config.step},
+        input<int>(
+          type: 'number',
+          value: config.step.toInt(),
           className: 'step-input',
           onInput: (e) {
-            final val = int.tryParse((e.target as HTMLInputElement).value) ?? 1;
             config = CounterConfig(
-              step: val,
+              step: e,
               secondsOfDelay: config.secondsOfDelay,
             );
           },
@@ -138,12 +142,12 @@ class CounterFinal {
       ]),
       div(className: 'step-controls', [
         span(['Delay:']),
-        input(
-          attributes: {'type': 'number', 'value': config.secondsOfDelay},
+        input<num>(
+          type: 'number',
+          value: config.secondsOfDelay,
           className: 'step-input',
-          onInput: (e) {
-            final val = int.tryParse((e.target as HTMLInputElement).value) ?? 1;
-            config = CounterConfig(secondsOfDelay: val, step: config.step);
+          onInput: (value) {
+            config = CounterConfig(step: config.step, secondsOfDelay: value);
           },
         ),
       ]),

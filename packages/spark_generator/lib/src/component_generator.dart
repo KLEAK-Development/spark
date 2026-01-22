@@ -100,6 +100,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
           !info.fieldType.isDartCoreString &&
           !info.fieldType.isDartCoreInt &&
           !info.fieldType.isDartCoreDouble &&
+          !info.fieldType.isDartCoreNum &&
           !info.fieldType.isDartCoreBool,
     );
     if (needsJson) {
@@ -307,6 +308,10 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
         buffer.writeln(
           "        $targetAccess = double.tryParse(newValue ?? '') ?? 0.0;",
         );
+      } else if (type.isDartCoreNum) {
+        buffer.writeln(
+          "        $targetAccess = num.tryParse(newValue ?? '') ?? 0;",
+        );
       } else if (type.isDartCoreBool) {
         buffer.writeln(
           "        $targetAccess = newValue != null && newValue != 'false';",
@@ -352,6 +357,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       return fieldName;
     } else if (type.isDartCoreInt ||
         type.isDartCoreDouble ||
+        type.isDartCoreNum ||
         type.isDartCoreBool) {
       return '$fieldName.toString()';
     } else {
@@ -414,6 +420,13 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     } else if (type.isDartCoreDouble) {
       final doubleVal = constantValue.toDoubleValue();
       return doubleVal?.toString() ?? '';
+    } else if (type.isDartCoreNum) {
+      // num can be either int or double at runtime
+      final intVal = constantValue.toIntValue();
+      if (intVal != null) return intVal.toString();
+      final doubleVal = constantValue.toDoubleValue();
+      if (doubleVal != null) return doubleVal.toString();
+      return '';
     } else if (type.isDartCoreBool) {
       final boolVal = constantValue.toBoolValue();
       return boolVal?.toString() ?? '';
@@ -457,6 +470,13 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
         return constantValue.toIntValue()?.toString();
       } else if (type.isDartCoreDouble) {
         return constantValue.toDoubleValue()?.toString();
+      } else if (type.isDartCoreNum) {
+        // num can be either int or double at runtime
+        final intVal = constantValue.toIntValue();
+        if (intVal != null) return intVal.toString();
+        final doubleVal = constantValue.toDoubleValue();
+        if (doubleVal != null) return doubleVal.toString();
+        return null;
       } else if (type.isDartCoreBool) {
         return constantValue.toBoolValue()?.toString();
       } else if (type.isDartCoreString) {
@@ -540,6 +560,8 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
               buffer.writeln('    _$fieldName = 0;');
             } else if (type.isDartCoreDouble) {
               buffer.writeln('    _$fieldName = 0.0;');
+            } else if (type.isDartCoreNum) {
+              buffer.writeln('    _$fieldName = 0;');
             } else {
               // Complex type - use default constructor if available
               final typeStr = type.getDisplayString();
@@ -624,9 +646,17 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       if (!file.existsSync()) return null;
       final contents = file.readAsStringSync();
 
-      // Find method name followed by opening parenthesis
+      // Match method declarations with return type or modifiers before method name
+      // This pattern ensures we match actual method declarations, not method calls
+      // The lookahead ensures at least one of: annotation, modifier, or return type is present
       final pattern = RegExp(
-        r'\b' + RegExp.escape(methodName) + r'\s*\(',
+        r'(?:^|\n)\s*'
+        // Positive lookahead: require at least annotation, modifier, or return type
+        r'(?=(?:@\w+\s+|(?:static|const|final|late|override)\s+|\w+(?:<[^>]+>)?(?:\?)?\s+))'
+        // Now match the actual components
+        r'(?:@\w+\s+)*(?:(?:static|const|final|late|override)\s+)*(?:\w+(?:<[^>]+>)?(?:\?)?\s+)?'
+        '${RegExp.escape(methodName)}'
+        r'\s*\(',
         multiLine: true,
       );
 
@@ -634,49 +664,87 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       if (matches.isEmpty) return null;
 
       for (final match in matches) {
-        // Go backwards to find previous closing brace or semicolon
-        // This marks the end of the previous declaration
-        int start = match.start - 1;
-        while (start > 0 && contents[start] != '}' && contents[start] != ';') {
-          start--;
-        }
-        // Move past the closing brace/semicolon
-        if (start > 0) start++;
-
-        // Skip any whitespace/newlines to get to start of this declaration
-        while (start < match.start &&
-            (contents[start] == ' ' ||
-                contents[start] == '\t' ||
-                contents[start] == '\n' ||
-                contents[start] == '\r')) {
+        // Extract the full match and find where the actual declaration starts
+        // Skip any leading newlines
+        int start = match.start;
+        while (start < contents.length &&
+            (contents[start] == '\n' || contents[start] == '\r')) {
           start++;
         }
 
-        // Find opening brace after method name
+        // Find opening brace or arrow after method signature
         int pos = match.end;
-        while (pos < contents.length && contents[pos] != '{') {
+        bool isArrowFunction = false;
+        while (pos < contents.length &&
+            contents[pos] != '{' &&
+            contents[pos] != '=') {
           pos++;
         }
         if (pos >= contents.length) continue;
 
-        // Find matching closing brace
-        int braceCount = 0;
-        int end = pos;
-        while (end < contents.length) {
-          if (contents[end] == '{') {
-            braceCount++;
-          } else if (contents[end] == '}') {
-            braceCount--;
-            if (braceCount == 0) {
+        // Check if it's an arrow function
+        if (pos + 1 < contents.length &&
+            contents[pos] == '=' &&
+            contents[pos + 1] == '>') {
+          isArrowFunction = true;
+        }
+
+        int end;
+        if (isArrowFunction) {
+          // Arrow function - find semicolon or end of expression
+          end = pos + 2;
+          int braceCount = 0;
+          int parenCount = 0;
+          int bracketCount = 0;
+
+          while (end < contents.length) {
+            final char = contents[end];
+            if (char == '{') {
+              braceCount++;
+            } else if (char == '}') {
+              braceCount--;
+            } else if (char == '(') {
+              parenCount++;
+            } else if (char == ')') {
+              parenCount--;
+            } else if (char == '[') {
+              bracketCount++;
+            } else if (char == ']') {
+              bracketCount--;
+            } else if (char == ';' &&
+                braceCount == 0 &&
+                parenCount == 0 &&
+                bracketCount == 0) {
               end++;
               break;
             }
+            end++;
           }
-          end++;
+        } else {
+          // Block function - find matching closing brace
+          int braceCount = 0;
+          end = pos;
+          while (end < contents.length) {
+            if (contents[end] == '{') {
+              braceCount++;
+            } else if (contents[end] == '}') {
+              braceCount--;
+              if (braceCount == 0) {
+                end++;
+                break;
+              }
+            }
+            end++;
+          }
         }
 
-        if (braceCount == 0 && end > start) {
-          return '  ${contents.substring(start, end).trim()}';
+        if (end > start) {
+          final extracted = contents.substring(start, end).trim();
+          // Verify this looks like a valid method (basic sanity check)
+          if (extracted.contains(methodName) &&
+              (extracted.contains('{') || extracted.contains('=>'))) {
+            return '  $extracted';
+          }
         }
       }
     } catch (e) {

@@ -1,5 +1,5 @@
 import 'dart:js_interop';
-import 'package:web/web.dart' as web;
+import 'package:spark_framework/src/component/web_component.dart' as web;
 import '../html/node.dart';
 import '../html/dsl.dart' as html;
 import 'js_callback_web.dart'
@@ -196,13 +196,26 @@ void _updateEvents(web.HTMLElement el, Map<String, Function> newEvents) {
   newEvents.forEach((event, handler) {
     if (!oldEvents.containsKey(event)) {
       final proxy = js_callback.jsCallbackImpl((dynamic e) {
-        if ((e as JSAny?).isA<web.Event>() == true) {
+        if ((e as JSAny?).isA<web.Event>()) {
           final target = (e as web.Event).currentTarget as web.HTMLElement;
           final dbId = target.getAttribute('data-spark-id');
           if (dbId != null) {
             final handlers = _listenersConfig[dbId];
             if (handlers != null && handlers.containsKey(event)) {
-              (handlers[event] as Function)(e);
+              dynamic data = e;
+              if (target.isA<web.HTMLInputElement>()) {
+                final t = target as web.HTMLInputElement;
+                if (target.type == 'number') {
+                  data = num.tryParse(t.value);
+                } else if (target.type == 'checkbox') {
+                  data = t.checked;
+                } else if (target.type == 'text' || target.type == 'password') {
+                  data = t.value;
+                } else {
+                  data = {'value': t.value, 'checked': t.checked};
+                }
+              }
+              (handlers[event] as Function)(data);
             }
           }
         }

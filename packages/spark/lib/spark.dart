@@ -50,7 +50,8 @@
 /// `SparkPage` class. See `package:spark/server.dart` for details.
 library;
 
-export 'src/component/component.dart' hide Text, Element, Request, Response;
+export 'src/component/component.dart'
+    hide Text, Element, Request, Response, Node;
 export 'src/utils/utils.dart';
 export 'src/annotations/annotations.dart';
 export 'src/page/page.dart';

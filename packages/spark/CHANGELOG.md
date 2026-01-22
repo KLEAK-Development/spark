@@ -1,4 +1,4 @@
-## TBP
+## 1.0.0-alpha.2 - 22-01-2025
 
 ### Breaking changes
 
@@ -6,6 +6,7 @@
 
 ### Features
 
+- Add type to input element onInput event based on the type of the input
 - Added support for cookies
 - Added support for csp nonce on scripts and styles
 - Fix @Component

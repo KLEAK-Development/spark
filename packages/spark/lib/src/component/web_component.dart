@@ -23,7 +23,7 @@ import 'adopted_styles_web.dart'
     as adopted_styles;
 
 // Re-export DOM types for use in components
-export 'package:web/web.dart' if (dart.library.io) 'stubs.dart' hide Node;
+export 'package:web/web.dart' if (dart.library.io) 'stubs.dart';
 
 export 'query_stubs.dart' if (dart.library.html) 'query_web.dart';
 

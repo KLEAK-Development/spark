@@ -1,4 +1,4 @@
-## TBP
+## 1.0.0-alpha.3 - 22-01-2025
 
 ### Breaking changes
 
@@ -8,6 +8,7 @@
 
 - Added support for csp nonce on scripts and styles
 - Fix @Component reactive attributes, Future event was not working properly, and changing value when there was async gap also.
+- Fix method extraction in component generator
 
 ## 1.0.0-alpha.2
 

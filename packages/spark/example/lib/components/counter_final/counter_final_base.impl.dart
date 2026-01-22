@@ -17,13 +17,13 @@ import 'dart:convert';
 class CounterFinal extends SparkComponent {
   static const tag = 'counter-final';
 
-  late int _value;
+  late num _value;
   late String _label;
   late bool _isUpdating;
   late CounterConfig _config;
 
   CounterFinal({
-    int value = 0,
+    num value = 0,
     CounterConfig config = const CounterConfig(),
     String label = 'Clicks',
     bool isUpdating = false,
@@ -34,8 +34,8 @@ class CounterFinal extends SparkComponent {
     _isUpdating = isUpdating;
   }
 
-  int get value => _value;
-  set value(int v) {
+  num get value => _value;
+  set value(num v) {
     if (_value != v) {
       _value = v;
       scheduleUpdate();
@@ -84,7 +84,9 @@ class CounterFinal extends SparkComponent {
           onClick: (_) async {
             isUpdating = true;
             if (config.secondsOfDelay > 0) {
-              await Future.delayed(Duration(seconds: config.secondsOfDelay));
+              await Future.delayed(
+                Duration(seconds: config.secondsOfDelay.toInt()),
+              );
             }
             value -= config.step;
             isUpdating = false;
@@ -98,7 +100,9 @@ class CounterFinal extends SparkComponent {
           onClick: (_) async {
             isUpdating = true;
             if (config.secondsOfDelay > 0) {
-              await Future.delayed(Duration(seconds: config.secondsOfDelay));
+              await Future.delayed(
+                Duration(seconds: config.secondsOfDelay.toInt()),
+              );
             }
             value += config.step;
             isUpdating = false;
@@ -107,13 +111,13 @@ class CounterFinal extends SparkComponent {
       ]),
       div(className: 'step-controls', [
         span(['Step:']),
-        input(
-          attributes: {'type': 'number', 'value': config.step},
+        input<int>(
+          type: 'number',
+          value: config.step.toInt(),
           className: 'step-input',
           onInput: (e) {
-            final val = int.tryParse((e.target as HTMLInputElement).value) ?? 1;
             config = CounterConfig(
-              step: val,
+              step: e,
               secondsOfDelay: config.secondsOfDelay,
             );
           },
@@ -121,12 +125,12 @@ class CounterFinal extends SparkComponent {
       ]),
       div(className: 'step-controls', [
         span(['Delay:']),
-        input(
-          attributes: {'type': 'number', 'value': config.secondsOfDelay},
+        input<num>(
+          type: 'number',
+          value: config.secondsOfDelay,
           className: 'step-input',
-          onInput: (e) {
-            final val = int.tryParse((e.target as HTMLInputElement).value) ?? 1;
-            config = CounterConfig(secondsOfDelay: val, step: config.step);
+          onInput: (value) {
+            config = CounterConfig(step: config.step, secondsOfDelay: value);
           },
         ),
       ]),
@@ -168,7 +172,7 @@ class CounterFinal extends SparkComponent {
   ) {
     switch (name) {
       case 'value':
-        _value = int.tryParse(newValue ?? '') ?? 0;
+        _value = num.tryParse(newValue ?? '') ?? 0;
         break;
       case 'label':
         _label = newValue ?? '';
