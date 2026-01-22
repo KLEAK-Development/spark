@@ -1,3 +1,5 @@
+import 'package:spark_framework/spark.dart';
+
 @Component(tag: 'contact-form')
 class ContactForm {
   static const tag = 'contact-form';
