@@ -34,8 +34,6 @@ builders:
         - spark_router.g.dart
     auto_apply: dependents
     build_to: source
-    required_inputs:
-      - .spark.g.part
 
   # Generates web entry points for pages
   spark_web_entry:

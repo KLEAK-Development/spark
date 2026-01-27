@@ -1,3 +1,8 @@
+## 1.0.0-alpha.5 - 27-01-2026
+
+- Fixed nested pages web entry generation (pages in subdirectories now generate correct web entry paths).
+- Fixed component imports in web entries to use implementation files (`_base.impl.dart`) instead of source files.
+
 ## 1.0.0-alpha.4 - 27-01-2026
 
 - Fixed web entry generation to avoid importing the page definition file. This allows using `dart:io` in pages.

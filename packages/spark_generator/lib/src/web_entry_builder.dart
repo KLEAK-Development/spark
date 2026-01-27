@@ -108,9 +108,21 @@ class WebEntryBuilder implements Builder {
 
       if (components.isEmpty) continue;
 
+      final pathSegments = buildStep.inputId.pathSegments;
+      // pathSegments look like ['package', 'lib', 'pages', 'docs', 'intro.dart']
+      // We want to construct web/docs/intro.dart
+      // Find index of 'pages' and take everything after it
+      final pagesIndex = pathSegments.indexOf('pages');
+
+      final relativeSegments =
+          pagesIndex != -1 && pagesIndex + 1 < pathSegments.length
+          ? pathSegments.sublist(pagesIndex + 1)
+          : [pathSegments.last];
+
       final outputId = AssetId(
         buildStep.inputId.package,
-        'web/${buildStep.inputId.pathSegments.last}',
+        // Join 'web' with the preserved relative path segments
+        ['web', ...relativeSegments].join('/'),
       );
 
       final content = _generateWebEntry(componentImports, components);
@@ -152,7 +164,11 @@ class WebEntryBuilder implements Builder {
 
     // imports
     for (final importPath in componentImports) {
-      buffer.writeln("import '$importPath';");
+      // If the import is a base file, import the generated implementation instead
+      final effectiveImport = importPath.endsWith('_base.dart')
+          ? importPath.replaceAll(RegExp(r'\.dart$'), '.impl.dart')
+          : importPath;
+      buffer.writeln("import '$effectiveImport';");
     }
 
     buffer.writeln();
