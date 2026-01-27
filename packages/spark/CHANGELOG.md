@@ -1,3 +1,11 @@
+## 1.0.0-alpha.3 - 27-01-2026
+
+- Updated spark_generator to 1.0.0-alpha.4. This allows using `dart:io` in Pages.
+
+### Breaking changes
+
+- `SparkPage.components` getter now returns `List<Type>` instead of ComponentInfo list. This simplifies usage: `[Counter]` instead of `[ComponentInfo(Counter.tag, Counter.new)]`.
+
 ## 1.0.0-alpha.2 - 22-01-2025
 
 ### Breaking changes

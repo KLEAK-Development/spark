@@ -1,18 +1,12 @@
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:analyzer/dart/element/element.dart';
 
-/// Builder that generates web entry points for @Page classes.
-///
-/// For a page class `HomePage` with components, generates:
-/// - `web/home_page.dart` - The page entry point for hydration
-///
-/// This builder relies on component_generator.dart generating the `*$Component`
-/// wrapper classes. It generates a simple main() that calls hydrateComponents()
-/// using the page's components getter.
 class WebEntryBuilder implements Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
@@ -25,8 +19,7 @@ class WebEntryBuilder implements Builder {
 
   @override
   Future<void> build(BuildStep buildStep) async {
-    final resolver = buildStep.resolver;
-    if (!await resolver.isLibrary(buildStep.inputId)) return;
+    if (!await buildStep.resolver.isLibrary(buildStep.inputId)) return;
 
     final lib = await buildStep.inputLibrary;
     final reader = LibraryReader(lib);
@@ -36,56 +29,141 @@ class WebEntryBuilder implements Builder {
 
     for (final page in pages) {
       final element = page.element;
-      final className = element.name;
-      if (className == null) continue;
+      if (element is! ClassElement) continue;
 
-      // Check if the page overrides the components getter
-      final componentsGetter = (element as ClassElement).lookUpGetter(
-        name: 'components',
-        library: element.library,
-      );
+      // Use getGetter to check if the class declares the getter
+      final componentsGetter = element.getGetter('components');
 
+      // Ensure it's not inherited from SparkPage (actually getGetter returns declared one primarily,
+      // but checking enclosingName is safe)
       final hasComponents =
           componentsGetter != null &&
           componentsGetter.enclosingElement.name != 'SparkPage';
 
-      if (!hasComponents) {
-        log.info('Skipping ${element.name} - no components override found.');
-        continue;
+      if (!hasComponents) continue;
+
+      final session = element.session;
+      if (session == null) continue;
+
+      final parsedLib = await session.getResolvedLibraryByElement(
+        element.library,
+      );
+      if (parsedLib is! ResolvedLibraryResult) continue;
+
+      MethodDeclaration? getterNode;
+      // Search all units for the getter declaration (avoiding Element.source usage)
+      for (final unitResult in parsedLib.units) {
+        for (final decl in unitResult.unit.declarations) {
+          if (decl is ClassDeclaration &&
+              decl.namePart.typeName.lexeme ==
+                  componentsGetter.enclosingElement.name) {
+            for (final member in (decl.body as BlockClassBody).members) {
+              if (member is MethodDeclaration &&
+                  member.isGetter &&
+                  member.name.lexeme == 'components') {
+                getterNode = member;
+                break;
+              }
+            }
+          }
+          if (getterNode != null) break;
+        }
+        if (getterNode != null) break;
       }
 
-      log.info('Generating web entry for ${element.name}');
+      if (getterNode == null) continue;
 
-      // Generate the web entry point
-      final inputId = buildStep.inputId;
-      final relativePath = inputId.path.substring('lib/pages/'.length);
-      final outputId = AssetId(inputId.package, 'web/$relativePath');
+      final body = getterNode.body;
+      if (body is! ExpressionFunctionBody) continue;
 
-      final content = _generateWebEntry(className, inputId.uri.toString());
-      await buildStep.writeAsString(outputId, content);
+      final list = body.expression;
+      if (list is! ListLiteral) continue;
+
+      if (list.elements.isEmpty) continue;
+
+      final componentImports = <String>{};
+      final components = <MapEntry<String, String>>[];
+
+      for (final item in list.elements) {
+        final referencedClasses = _findReferencedClasses(item);
+
+        for (final componentElement in referencedClasses) {
+          final tagField = componentElement.getField('tag');
+          if (tagField == null || !tagField.isStatic) continue;
+
+          final constant = tagField.computeConstantValue();
+          if (constant == null) continue;
+          final tagValue = constant.toStringValue();
+          if (tagValue == null) continue;
+
+          // Use library identifier as import URI (definingCompilationUnit is missing)
+          final importUri = componentElement.library.identifier;
+
+          componentImports.add(importUri);
+          final name = componentElement.name;
+          if (name == null) continue;
+          components.add(MapEntry(tagValue, name));
+        }
+      }
+
+      if (components.isEmpty) continue;
+
+      final outputId = AssetId(
+        buildStep.inputId.package,
+        'web/${buildStep.inputId.pathSegments.last}',
+      );
+
+      final content = _generateWebEntry(componentImports, components);
+      await buildStep.writeAsString(
+        outputId,
+        DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+        ).format(content),
+      );
     }
   }
 
-  /// Generates a simple web entry point that uses the page's components getter.
-  String _generateWebEntry(String pageClassName, String pageImportPath) {
+  Set<ClassElement> _findReferencedClasses(AstNode node) {
+    final classes = <ClassElement>{};
+
+    // Simple recursive visitor closure
+    void visit(AstNode n) {
+      if (n is SimpleIdentifier) {
+        final element = n.element;
+        if (element is ClassElement && !element.isAbstract) {
+          classes.add(element);
+        }
+      }
+      n.childEntities.whereType<AstNode>().forEach(visit);
+    }
+
+    visit(node);
+    return classes;
+  }
+
+  String _generateWebEntry(
+    Set<String> componentImports,
+    List<MapEntry<String, String>> components,
+  ) {
     final buffer = StringBuffer();
     buffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     buffer.writeln();
     buffer.writeln("import 'package:spark_framework/spark.dart';");
-    buffer.writeln("import '$pageImportPath';");
+
+    // imports
+    for (final importPath in componentImports) {
+      buffer.writeln("import '$importPath';");
+    }
+
     buffer.writeln();
     buffer.writeln('void main() {');
-    buffer.writeln('  hydrateComponents(');
-    buffer.writeln('    Map.fromEntries(');
-    buffer.writeln(
-      '      $pageClassName().components.map((c) => MapEntry(c.tag, c.factory)),',
-    );
-    buffer.writeln('    ),');
-    buffer.writeln('  );');
+    buffer.writeln('  hydrateComponents({');
+    for (final component in components) {
+      buffer.writeln("    '${component.key}': ${component.value}.new,");
+    }
+    buffer.writeln('  });');
     buffer.writeln('}');
 
-    return DartFormatter(
-      languageVersion: DartFormatter.latestLanguageVersion,
-    ).format(buffer.toString());
+    return buffer.toString();
   }
 }

@@ -1,3 +1,7 @@
+## 1.0.0-alpha.4 - 27-01-2026
+
+- Fixed web entry generation to avoid importing the page definition file. This allows using `dart:io` in pages.
+
 ## 1.0.0-alpha.3 - 22-01-2025
 
 ### Breaking changes

@@ -79,11 +79,7 @@ class HomePage extends SparkPage<HomePageData> {
   String title(HomePageData data, PageRequest request) => data.title;
 
   @override
-  List<ComponentInfo> get components => [
-    ComponentInfo(Counter.tag, Counter.new),
-    // ComponentInfo(CounterV2.tag, CounterV2.new),
-    ComponentInfo(CounterFinal.tag, CounterFinal.new),
-  ];
+  List<Type> get components => [Counter, CounterFinal];
 
   @override
   Stylesheet? get inlineStyles => css({

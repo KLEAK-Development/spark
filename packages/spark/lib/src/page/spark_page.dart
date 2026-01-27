@@ -4,20 +4,6 @@ import 'page_response.dart';
 import '../style/style.dart';
 import 'package:shelf/shelf.dart' show Middleware;
 
-/// Information about a component used by a page.
-///
-/// Used to register components for client-side hydration.
-class ComponentInfo {
-  /// The custom element tag name.
-  final String tag;
-
-  /// Factory function to create component instances.
-  final Function factory;
-
-  /// Creates component info with the given [tag] and [factory].
-  const ComponentInfo(this.tag, this.factory);
-}
-
 /// Abstract base class for Spark pages.
 ///
 /// Pages are the entry points for your application's routes. Each page
@@ -74,9 +60,7 @@ class ComponentInfo {
 /// @Page(path: '/counter')
 /// class CounterPage extends SparkPage<void> {
 ///   @override
-///   List<ComponentInfo> get components => [
-///     ComponentInfo('my-counter', Counter.new),
-///   ];
+///   List<Type> get components => [Counter];
 ///
 ///   @override
 ///   Future<PageResponse<void>> loader(PageRequest request) async {
@@ -142,21 +126,25 @@ abstract class SparkPage<T> {
   /// ```
   Node render(T data, PageRequest request);
 
-  /// Returns the list of island components used by this page.
+  /// Returns the list of island component types used by this page.
   ///
   /// These components will be registered for hydration on the client.
-  /// Override this getter to declare which components your page uses.
+  /// Override this getter to declare which component types your page uses.
+  ///
+  /// The build system uses this list to generate a web-entrypoint that
+  /// registers these components for hydration, without needing to import
+  /// the page itself (allowing pages to use dart:io).
   ///
   /// ## Example
   ///
   /// ```dart
   /// @override
-  /// List<ComponentInfo> get components => [
-  ///   ComponentInfo('my-counter', Counter.new),
-  ///   ComponentInfo('user-card', UserCard.new),
+  /// List<Type> get components => [
+  ///   Counter,
+  ///   UserCard,
   /// ];
   /// ```
-  List<ComponentInfo> get components => [];
+  List<Type> get components => [];
 
   /// Returns the page title.
   ///
