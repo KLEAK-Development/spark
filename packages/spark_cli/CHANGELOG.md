@@ -1,3 +1,7 @@
+## 1.0.0-alpha.4 - 27-01-2026
+
+- Fixed `spark dev` hang when using a project with no components.
+
 ## 1.0.0-alpha.3
 
 - Fixed OpenAPI generation to correctly detect and document ApiError subclasses and SparkHttpException

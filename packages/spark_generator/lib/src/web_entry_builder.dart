@@ -10,7 +10,7 @@ import 'package:source_gen/source_gen.dart';
 class WebEntryBuilder implements Builder {
   @override
   Map<String, List<String>> get buildExtensions => {
-    'lib/pages/{{name}}.dart': ['web/{{name}}.dart'],
+    '^lib/pages/{{}}.dart': ['web/{{}}.dart'],
   };
 
   final _pageChecker = TypeChecker.fromUrl(
@@ -108,22 +108,7 @@ class WebEntryBuilder implements Builder {
 
       if (components.isEmpty) continue;
 
-      final pathSegments = buildStep.inputId.pathSegments;
-      // pathSegments look like ['package', 'lib', 'pages', 'docs', 'intro.dart']
-      // We want to construct web/docs/intro.dart
-      // Find index of 'pages' and take everything after it
-      final pagesIndex = pathSegments.indexOf('pages');
-
-      final relativeSegments =
-          pagesIndex != -1 && pagesIndex + 1 < pathSegments.length
-          ? pathSegments.sublist(pagesIndex + 1)
-          : [pathSegments.last];
-
-      final outputId = AssetId(
-        buildStep.inputId.package,
-        // Join 'web' with the preserved relative path segments
-        ['web', ...relativeSegments].join('/'),
-      );
+      final outputId = buildStep.allowedOutputs.single;
 
       final content = _generateWebEntry(componentImports, components);
       await buildStep.writeAsString(

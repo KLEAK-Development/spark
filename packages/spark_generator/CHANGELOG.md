@@ -1,3 +1,7 @@
+## 1.0.0-alpha.6 - 27-01-2026
+
+- Internal improvements.
+
 ## 1.0.0-alpha.5 - 27-01-2026
 
 - Fixed nested pages web entry generation (pages in subdirectories now generate correct web entry paths).

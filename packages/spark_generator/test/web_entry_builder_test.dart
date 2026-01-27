@@ -14,8 +14,10 @@ class MockBuildStep implements BuildStep {
 
   // ignore: unused_field
   final Resolver _resolver;
+  @override
+  final Iterable<AssetId> allowedOutputs;
 
-  MockBuildStep(this.inputId, this._resolver);
+  MockBuildStep(this.inputId, this._resolver, {this.allowedOutputs = const []});
 
   @override
   Future<void> writeAsString(
@@ -119,12 +121,16 @@ void main() {
         },
         (resolver) async {
           final inputId = AssetId('a', 'lib/pages/home_page.dart');
-          final buildStep = MockBuildStep(inputId, resolver);
+          final outputId = AssetId('a', 'web/home_page.dart');
+          final buildStep = MockBuildStep(
+            inputId,
+            resolver,
+            allowedOutputs: [outputId],
+          );
           final builder = WebEntryBuilder();
 
           await builder.build(buildStep);
 
-          final outputId = AssetId('a', 'web/home_page.dart');
           expect(buildStep.outputs, contains(outputId));
 
           final output = buildStep.outputs[outputId]!;
@@ -173,7 +179,11 @@ void main() {
         },
         (resolver) async {
           final inputId = AssetId('a', 'lib/pages/simple_page.dart');
-          final buildStep = MockBuildStep(inputId, resolver);
+          final buildStep = MockBuildStep(
+            inputId,
+            resolver,
+            allowedOutputs: [AssetId('a', 'web/simple_page.dart')],
+          );
           final builder = WebEntryBuilder();
 
           await builder.build(buildStep);
@@ -262,12 +272,16 @@ void main() {
         },
         (resolver) async {
           final inputId = AssetId('a', 'lib/pages/reactive_page.dart');
-          final buildStep = MockBuildStep(inputId, resolver);
+          final outputId = AssetId('a', 'web/reactive_page.dart');
+          final buildStep = MockBuildStep(
+            inputId,
+            resolver,
+            allowedOutputs: [outputId],
+          );
           final builder = WebEntryBuilder();
 
           await builder.build(buildStep);
 
-          final outputId = AssetId('a', 'web/reactive_page.dart');
           expect(buildStep.outputs, contains(outputId));
 
           final output = buildStep.outputs[outputId]!;
@@ -365,12 +379,16 @@ void main() {
         },
         (resolver) async {
           final inputId = AssetId('a', 'lib/pages/styled_page.dart');
-          final buildStep = MockBuildStep(inputId, resolver);
+          final outputId = AssetId('a', 'web/styled_page.dart');
+          final buildStep = MockBuildStep(
+            inputId,
+            resolver,
+            allowedOutputs: [outputId],
+          );
           final builder = WebEntryBuilder();
 
           await builder.build(buildStep);
 
-          final outputId = AssetId('a', 'web/styled_page.dart');
           expect(buildStep.outputs, contains(outputId));
 
           final output = buildStep.outputs[outputId]!;
@@ -463,12 +481,16 @@ void main() {
           },
           (resolver) async {
             final inputId = AssetId('a', 'lib/pages/io_page.dart');
-            final buildStep = MockBuildStep(inputId, resolver);
+            final outputId = AssetId('a', 'web/io_page.dart');
+            final buildStep = MockBuildStep(
+              inputId,
+              resolver,
+              allowedOutputs: [outputId],
+            );
             final builder = WebEntryBuilder();
 
             await builder.build(buildStep);
 
-            final outputId = AssetId('a', 'web/io_page.dart');
             expect(buildStep.outputs, contains(outputId));
 
             final output = buildStep.outputs[outputId]!;

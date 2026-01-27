@@ -135,7 +135,10 @@ class DevCommand extends Command<void> {
     _buildRunnerProcess = await _buildUtils.startWatch(
       extraArgs: ['--output', 'web:build/web'],
       onLog: (line) {
-        if (line.contains('Succeeded after') || line.contains('Built with')) {
+        if (line.contains('Succeeded after') ||
+            line.contains('Built with') ||
+            line.contains('No actions completed') ||
+            line.contains('wrote 0 outputs')) {
           _buildUtils.parser.finalize();
 
           // Show errors from this build if any

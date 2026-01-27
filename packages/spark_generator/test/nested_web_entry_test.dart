@@ -14,8 +14,10 @@ class MockBuildStep implements BuildStep {
 
   // ignore: unused_field
   final Resolver _resolver;
+  @override
+  final Iterable<AssetId> allowedOutputs;
 
-  MockBuildStep(this.inputId, this._resolver);
+  MockBuildStep(this.inputId, this._resolver, {this.allowedOutputs = const []});
 
   @override
   Future<void> writeAsString(
@@ -29,6 +31,7 @@ class MockBuildStep implements BuildStep {
   @override
   Resolver get resolver => _resolver;
 
+  // Implement inputLibrary to return the library matching inputId
   @override
   Future<LibraryElement> get inputLibrary async {
     if (await resolver.isLibrary(inputId)) {
@@ -43,37 +46,72 @@ class MockBuildStep implements BuildStep {
 
 void main() {
   group('WebEntryBuilder Nested & Imports', () {
-    test('generates web entry for nested page with correct path and imports', () async {
-      await resolveSources(
-        {
-          'spark_framework|lib/src/annotations/page.dart': '''
+    // Explicitly verify the path mapping logic (buildExtensions)
+    // This addresses "are we really testing something" by validating the configuration
+    test('verifies correct buildExtensions mapping logic', () {
+      final builder = WebEntryBuilder();
+      final extensions = builder.buildExtensions;
+
+      final input = 'lib/pages/docs/intro.dart';
+      bool matched = false;
+      String? output;
+
+      for (final key in extensions.keys) {
+        if (key.startsWith('^')) {
+          final prefix = key.substring(1).replaceAll('{{}}.dart', '');
+          if (input.startsWith(prefix) && input.endsWith('.dart')) {
+            final capture = input.substring(prefix.length, input.length - 5);
+            final outputPattern = extensions[key]!.first;
+            output = outputPattern
+                .replaceAll('{{}}', capture)
+                .replaceAll('.dart', '.dart');
+            matched = true;
+          }
+        }
+      }
+
+      expect(
+        matched,
+        isTrue,
+        reason: 'Input $input should find a match in buildExtensions',
+      );
+      expect(
+        output,
+        equals('web/docs/intro.dart'),
+        reason: 'Output path should be correctly mapped',
+      );
+    });
+
+    test('generates web entry for nested page with correct imports', () async {
+      final inputs = {
+        'spark_framework|lib/src/annotations/page.dart': '''
           class Page {
             const Page({required String path});
           }
         ''',
-          'spark_framework|lib/src/annotations/component.dart': '''
+        'spark_framework|lib/src/annotations/component.dart': '''
           class Component {
             final String tag;
             const Component({required this.tag});
           }
         ''',
-          'spark_framework|lib/src/page/spark_page.dart': '''
+        'spark_framework|lib/src/page/spark_page.dart': '''
            abstract class SparkPage<T> {
              List<dynamic> get components => [];
           }
         ''',
-          'spark_framework|lib/src/component/spark_component.dart': '''
+        'spark_framework|lib/src/component/spark_component.dart': '''
           abstract class SparkComponent {}
         ''',
-          'spark_framework|lib/spark.dart': '''
+        'spark_framework|lib/spark.dart': '''
           library spark;
           export 'src/annotations/page.dart';
           export 'src/annotations/component.dart';
           export 'src/page/spark_page.dart';
           export 'src/component/spark_component.dart';
         ''',
-          // A component using _base.dart convention
-          'a|lib/components/nested/counter_base.dart': '''
+        // A component using _base.dart convention
+        'a|lib/components/nested/counter_base.dart': '''
           import 'package:spark_framework/spark.dart';
 
           @Component(tag: Counter.tag)
@@ -81,8 +119,8 @@ void main() {
             static const tag = 'nested-counter';
           }
         ''',
-          // A page in a nested directory using the component
-          'a|lib/pages/docs/intro.dart': '''
+        // A page in a nested directory using the component
+        'a|lib/pages/docs/intro.dart': '''
           import 'package:spark_framework/spark.dart';
           import '../../components/nested/counter_base.dart';
 
@@ -98,49 +136,35 @@ void main() {
             List<ComponentInfo> get components => [ComponentInfo(Counter.tag, () {})];
           }
         ''',
-        },
-        (resolver) async {
-          final inputId = AssetId('a', 'lib/pages/docs/intro.dart');
-          final buildStep = MockBuildStep(inputId, resolver);
-          final builder = WebEntryBuilder();
+      };
 
-          await builder.build(buildStep);
+      await resolveSources(inputs, (resolver) async {
+        final inputId = AssetId('a', 'lib/pages/docs/intro.dart');
+        final outputId = AssetId('a', 'web/docs/intro.dart');
 
-          // Expect output to be in web/docs/intro.dart (preserving structure)
-          final outputId = AssetId('a', 'web/docs/intro.dart');
+        // We inject the expected output ID here based on the mapping test above
+        final buildStep = MockBuildStep(
+          inputId,
+          resolver,
+          allowedOutputs: [outputId],
+        );
+        final builder = WebEntryBuilder();
 
-          // Debug prints if it fails
-          if (!buildStep.outputs.containsKey(outputId)) {
-            print('Actual outputs: ${buildStep.outputs.keys}');
-          }
+        await builder.build(buildStep);
 
-          expect(buildStep.outputs, contains(outputId));
+        expect(buildStep.outputs, contains(outputId));
+        final output = buildStep.outputs[outputId]!;
 
-          final output = buildStep.outputs[outputId]!;
-
-          // Check that it imports the .impl.dart version of the component
-          // The source was counter_base.dart, so we expect counter.impl.dart or counter_base.impl.dart
-          // Based on component_generator, it generates .impl.dart extension on imports
-          // Wait, component_generator generates extensions on the FILE.
-          // If file is `counter_base.dart`, build.yaml says it outputs `.impl.dart`.
-          // And traditionally simple imports might be replacing `_base.dart` with `.impl.dart`.
-          // Let's assert we see `.impl.dart` and NOT `_base.dart`
-
-          expect(
-            output,
-            contains(
-              "import 'package:a/components/nested/counter_base.impl.dart';",
-            ),
-            reason: 'Should import the implementation file, not the base file',
-          );
-
-          expect(
-            output,
-            isNot(contains("counter_base.dart")),
-            reason: 'Should NOT import the base file directly',
-          );
-        },
-      );
+        expect(
+          output,
+          contains(
+            "import 'package:a/components/nested/counter_base.impl.dart';",
+          ),
+        );
+        expect(output, isNot(contains("counter_base.dart")));
+        expect(output, contains("hydrateComponents"));
+        expect(output, contains("'nested-counter': Counter.new"));
+      });
     });
   });
 }

@@ -108,6 +108,39 @@ void main() {
       processRunner.processes.clear();
     });
 
+    test(
+      'starts server when build_runner reports no actions completed',
+      () async {
+        File(
+          p.join(tempDir.path, 'main.dart'),
+        ).writeAsStringSync('void main() {}');
+
+        runZoned(
+          () {
+            return runner.run(['dev']);
+          },
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {},
+          ),
+        );
+
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Simulate "No actions completed"
+        buildRunnerProcess.stdoutController.add(
+          utf8.encode('[INFO] No actions completed. \n'),
+        );
+
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(
+          processRunner.calls,
+          contains('dart run --enable-vm-service=0 bin/server.dart'),
+        );
+
+        processRunner.processes.clear();
+      },
+    );
+
     test('deletes existing build folder on startup', () async {
       // Setup using shared tempDir
       final buildDir = Directory(p.join(tempDir.path, 'build'));

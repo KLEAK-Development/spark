@@ -41,8 +41,8 @@ builders:
     builder_factories:
       - sparkWebEntryBuilder
     build_extensions:
-      lib/pages/{{name}}.dart:
-        - web/{{name}}.dart
+      ^lib/pages/{{}}.dart:
+        - web/{{}}.dart
     auto_apply: dependents
     build_to: source
     required_inputs:
