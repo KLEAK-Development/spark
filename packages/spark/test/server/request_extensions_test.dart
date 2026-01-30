@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';
-import 'package:spark_framework/src/server/request_extensions.dart';
+import 'package:spark_framework/src/server/request_ip_extension.dart';
 import 'package:test/test.dart';
 
 void main() {
