@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:spark_framework/spark.dart' show Endpoint;
@@ -301,6 +302,13 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
   }
 
   String _generateTypeParsing(DartType type, String varName) {
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return '$varName == null ? null : ${_generateTypeParsingImpl(type, varName)}';
+    }
+    return _generateTypeParsingImpl(type, varName);
+  }
+
+  String _generateTypeParsingImpl(DartType type, String varName) {
     if (type.isDartCoreString) {
       return '$varName.toString()';
     } else if (type.isDartCoreInt) {
