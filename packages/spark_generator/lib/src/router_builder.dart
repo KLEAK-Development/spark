@@ -141,20 +141,6 @@ class RouterBuilder implements Builder {
       }
     }
 
-    // Register CSS handler
-    buffer.writeln();
-    buffer.writeln(
-      "  router.get('/_spark/css/<tagName>.css', (Request request, String tagName) {",
-    );
-    buffer.writeln("    final css = componentStyles.get(tagName);");
-    buffer.writeln("    if (css == null) {");
-    buffer.writeln("      return Response.notFound('Style not found');");
-    buffer.writeln("    }");
-    buffer.writeln(
-      "    return Response.ok(css, headers: {'content-type': 'text/css'});",
-    );
-    buffer.writeln("  });");
-
     buffer.writeln();
     buffer.writeln('  return router;');
     buffer.writeln('}');

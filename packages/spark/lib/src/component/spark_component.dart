@@ -94,8 +94,8 @@ abstract class SparkComponent extends WebComponent {
       componentStyles.register(tagName, styles.toCss());
 
       return [
-        // Use link tag instead of inline style
-        html.link(rel: 'stylesheet', href: '/_spark/css/$tagName.css'),
+        // Use inline style instead of link tag
+        html.style([styles.toCss()]),
         children,
       ];
     }
@@ -193,20 +193,17 @@ abstract class SparkComponent extends WebComponent {
     super.onMount();
 
     // Apply adopted stylesheets if defined (for browser efficiency)
-    // Apply adopted stylesheets if defined (for browser efficiency)
     final styles = adoptedStyleSheets;
     if (styles != null) {
       adoptStyleSheets([styles.toCss()]);
 
-      // Remove the SSR-rendered <link> element since adoptedStyleSheets now handles styles.
-      // This also ensures update() can patch correctly without the link element offset.
+      // Remove the SSR-rendered <style> element since adoptedStyleSheets now handles styles.
+      // This also ensures update() can patch correctly.
       final root = shadowRoot;
       if (root != null) {
         final firstChild = root.firstElementChild;
-        // Check for link tag instead of style tag
-        if (firstChild != null &&
-            firstChild.tagName.toLowerCase() == 'link' &&
-            firstChild.getAttribute('rel') == 'stylesheet') {
+        // Check for style tag
+        if (firstChild != null && firstChild.tagName.toLowerCase() == 'style') {
           firstChild.remove();
         }
       }

@@ -601,14 +601,6 @@ Router createSparkRouter() {
   router.get('/test', _$handleTestPage);
   router.get('/test2', _$handleTest2Page);
 
-  router.get('/_spark/css/<tagName>.css', (Request request, String tagName) {
-    final css = componentStyles.get(tagName);
-    if (css == null) {
-      return Response.notFound('Style not found');
-    }
-    return Response.ok(css, headers: {'content-type': 'text/css'});
-  });
-
   return router;
 }
 
