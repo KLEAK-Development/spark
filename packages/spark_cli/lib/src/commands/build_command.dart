@@ -141,12 +141,10 @@ class BuildCommand extends Command<void> {
     }
 
     final process = await _processRunner.run('dart', [
-      'compile',
-      'exe',
-      'bin/server.dart',
-      '-o',
-      outputBinPath,
-      '-Dspark.minify=true',
+      'build',
+      'cli',
+      '--target=bin/server.dart',
+      '--output=$tempBuildDir',
     ], workingDirectory: _workingDirectory.path);
 
     if (process.exitCode != 0) {
@@ -263,7 +261,6 @@ class BuildCommand extends Command<void> {
         '-O2', // Production optimizations
         '-o',
         outputPath,
-        '-Dspark.minify=true',
         entry.path,
       ], workingDirectory: _workingDirectory.path);
 

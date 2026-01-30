@@ -49,4 +49,15 @@ void main() {
       expect(output, contains('color: red;'));
     });
   });
+
+  test('respects minification settings (unminified in dev)', () {
+    // In test environment (VM), dart.vm.product is false.
+    // So we expect unminified CSS with indentation/newlines.
+    final style = Style(color: 'red');
+    final css = style.toCss();
+    // Check for newline after property
+    expect(css, contains(';\n'));
+    // Check for indentation
+    expect(css, contains('  color: red;'));
+  });
 }

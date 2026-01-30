@@ -1,6 +1,6 @@
 import 'css_types/css_types.dart';
 
-const bool _minify = bool.fromEnvironment('spark.minify');
+const bool _minify = bool.fromEnvironment('dart.vm.product');
 
 /// A common interface for CSS styles and stylesheets.
 abstract class CssStyle {
