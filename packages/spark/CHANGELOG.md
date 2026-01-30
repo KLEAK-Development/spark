@@ -1,3 +1,14 @@
+## 1.0.0-alpha.4 - 30-01-2026
+
+### Features
+
+- Added `clientIp` extension to `shelf.Request`.
+- Added `onClick` event support to Anchor (`a`) tag in DSL.
+
+### Bug Fixes & Refactors
+
+- Fixed CSP nonce injection for scripts and styles to support strict CSP headers.
+
 ## 1.0.0-alpha.3 - 27-01-2026
 
 - Updated spark_generator to 1.0.0-alpha.4. This allows using `dart:io` in Pages.
