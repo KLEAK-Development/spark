@@ -58,6 +58,7 @@ export 'src/page/page.dart';
 export 'src/endpoint/endpoint.dart';
 export 'src/html/dsl.dart';
 export 'src/style/style.dart';
+export 'src/style/style_registry.dart';
 export 'src/style/css_types/css_types.dart';
 export 'src/errors/errors.dart';
 export 'src/http/content_type.dart';

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../html/dsl.dart' as html;
 import '../style/style.dart';
+import '../style/style_registry.dart';
 import 'web_component.dart';
 import 'vdom.dart' as vdom;
 
@@ -88,10 +89,13 @@ abstract class SparkComponent extends WebComponent {
     final children = build();
     final styles = adoptedStyleSheets;
 
-    // Prepend style element if styles are defined
+    // Register styles for deduplication
     if (styles != null) {
+      componentStyles.register(tagName, styles.toCss());
+
       return [
-        html.style([styles]),
+        // Use link tag instead of inline style
+        html.link(rel: 'stylesheet', href: '/_spark/css/$tagName.css'),
         children,
       ];
     }
@@ -189,16 +193,20 @@ abstract class SparkComponent extends WebComponent {
     super.onMount();
 
     // Apply adopted stylesheets if defined (for browser efficiency)
+    // Apply adopted stylesheets if defined (for browser efficiency)
     final styles = adoptedStyleSheets;
     if (styles != null) {
       adoptStyleSheets([styles.toCss()]);
 
-      // Remove the SSR-rendered <style> element since adoptedStyleSheets now handles styles.
-      // This also ensures update() can patch correctly without the style element offset.
+      // Remove the SSR-rendered <link> element since adoptedStyleSheets now handles styles.
+      // This also ensures update() can patch correctly without the link element offset.
       final root = shadowRoot;
       if (root != null) {
         final firstChild = root.firstElementChild;
-        if (firstChild != null && firstChild.tagName.toLowerCase() == 'style') {
+        // Check for link tag instead of style tag
+        if (firstChild != null &&
+            firstChild.tagName.toLowerCase() == 'link' &&
+            firstChild.getAttribute('rel') == 'stylesheet') {
           firstChild.remove();
         }
       }
