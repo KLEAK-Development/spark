@@ -1,5 +1,7 @@
 import 'css_types/css_types.dart';
 
+const bool _minify = bool.fromEnvironment('spark.minify');
+
 /// A common interface for CSS styles and stylesheets.
 abstract class CssStyle {
   String toCss();
@@ -16,11 +18,20 @@ class Stylesheet implements CssStyle {
   String toCss() {
     final buffer = StringBuffer();
     final sortedKeys = rules.keys.toList()..sort();
-    for (final selector in sortedKeys) {
-      final style = rules[selector]!;
-      buffer.writeln('$selector {');
-      buffer.write(style.toCss());
-      buffer.writeln('}');
+
+    if (_minify) {
+      for (final selector in sortedKeys) {
+        final style = rules[selector]!;
+        // Remove spaces around braces and colons
+        buffer.write('$selector{${style.toCss()}}');
+      }
+    } else {
+      for (final selector in sortedKeys) {
+        final style = rules[selector]!;
+        buffer.writeln('$selector {');
+        buffer.write(style.toCss());
+        buffer.writeln('}');
+      }
     }
     return buffer.toString();
   }
@@ -406,11 +417,22 @@ class Style implements CssStyle {
   String toCss() {
     final buffer = StringBuffer();
     final sortedKeys = _properties.keys.toList()..sort();
-    for (final property in sortedKeys) {
-      buffer.writeln('  $property: ${_properties[property]};');
-    }
-    if (stylesheet != null) {
-      buffer.write(stylesheet!.toCss());
+
+    if (_minify) {
+      for (final property in sortedKeys) {
+        // No indentation, no spaces after colon/semicolon
+        buffer.write('$property:${_properties[property]};');
+      }
+      if (stylesheet != null) {
+        buffer.write(stylesheet!.toCss());
+      }
+    } else {
+      for (final property in sortedKeys) {
+        buffer.writeln('  $property: ${_properties[property]};');
+      }
+      if (stylesheet != null) {
+        buffer.write(stylesheet!.toCss());
+      }
     }
     return buffer.toString();
   }

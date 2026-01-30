@@ -132,11 +132,21 @@ class BuildCommand extends Command<void> {
   }
 
   Future<bool> _runServerCompilation(String tempBuildDir) async {
+    final binaryName = Platform.isWindows ? 'server.exe' : 'server';
+    final outputBinPath = p.join(tempBuildDir, 'bundle', 'bin', binaryName);
+
+    final outputDir = Directory(p.dirname(outputBinPath));
+    if (!await outputDir.exists()) {
+      await outputDir.create(recursive: true);
+    }
+
     final process = await _processRunner.run('dart', [
-      'build',
-      'cli',
-      '--target=bin/server.dart',
-      '--output=$tempBuildDir',
+      'compile',
+      'exe',
+      'bin/server.dart',
+      '-o',
+      outputBinPath,
+      '-Dspark.minify=true',
     ], workingDirectory: _workingDirectory.path);
 
     if (process.exitCode != 0) {
@@ -253,6 +263,7 @@ class BuildCommand extends Command<void> {
         '-O2', // Production optimizations
         '-o',
         outputPath,
+        '-Dspark.minify=true',
         entry.path,
       ], workingDirectory: _workingDirectory.path);
 
