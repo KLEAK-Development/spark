@@ -1,6 +1,6 @@
 name: spark_generator
 description: Code generator for Spark Framework pages and components
-version: 1.0.0-alpha.7
+version: 1.0.0-alpha.8
 resolution: workspace
 
 homepage: https://spark.kleak.dev

@@ -1,3 +1,8 @@
+## 1.0.0-alpha.5
+
+- Implement CSS minification logic and enable it during the build process for server and client compilation.
+- Switch CSS minification to use the `dart.vm.product` flag, remove custom build flags, and add new tests for minification behavior.
+
 ## 1.0.0-alpha.4 - 30-01-2026
 
 ### Features

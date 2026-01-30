@@ -1,3 +1,7 @@
+## 1.0.0-alpha.8
+
+- add null-aware type parsing to endpoint generator
+
 ## 1.0.0-alpha.7 - 30-01-2026
 
 - Fixed issue where components defined in base classes were not detected by the builder.
