@@ -109,6 +109,11 @@ void main() {
           equals('<input type="text" name="user" value="kevin" />'),
         );
       });
+
+      test('a helper with onClick', () {
+        final el = a('Link', href: '#', onClick: () {});
+        expect(el.toHtml(), equals('<a href="#">Link</a>'));
+      });
     });
   });
 }

@@ -68,7 +68,7 @@ void main() {
         ''',
           'spark_framework|lib/src/page/spark_page.dart': '''
            abstract class SparkPage<T> {
-             List<dynamic> get components => [];
+             List<Type> get components => [];
           }
         ''',
           'spark_framework|lib/src/component/spark_component.dart': '''
@@ -106,16 +106,12 @@ void main() {
           import 'package:spark_framework/spark.dart';
           import '../components/counter.dart';
 
-          class ComponentInfo {
-             final String tag;
-             final Function factory;
-             const ComponentInfo(this.tag, this.factory);
-          }
 
           @Page(path: '/')
           class HomePage extends SparkPage<void> {
             @override
-            List<ComponentInfo> get components => [ComponentInfo(Counter.tag, () {})];
+
+            List<Type> get components => [Counter];
           }
         ''',
         },
@@ -160,7 +156,7 @@ void main() {
         ''',
           'spark_framework|lib/src/page/spark_page.dart': '''
            abstract class SparkPage<T> {
-             List<dynamic> get components => [];
+             List<Type> get components => [];
           }
         ''',
           'spark_framework|lib/spark.dart': '''
@@ -216,7 +212,7 @@ void main() {
         ''',
           'spark_framework|lib/src/page/spark_page.dart': '''
            abstract class SparkPage<T> {
-             List<dynamic> get components => [];
+             List<Type> get components => [];
           }
         ''',
           'spark_framework|lib/src/component/spark_component.dart': '''
@@ -257,16 +253,12 @@ void main() {
           import 'package:spark_framework/spark.dart';
           import '../components/reactive_counter.dart';
 
-          class ComponentInfo {
-             final String tag;
-             final Function factory;
-             const ComponentInfo(this.tag, this.factory);
-          }
 
           @Page(path: '/reactive')
           class ReactivePage extends SparkPage<void> {
             @override
-            List<ComponentInfo> get components => [ComponentInfo(ReactiveCounter.tag, () {})];
+
+            List<Type> get components => [ReactiveCounter];
           }
         ''',
         },
@@ -328,7 +320,7 @@ void main() {
         ''',
           'spark_framework|lib/src/page/spark_page.dart': '''
            abstract class SparkPage<T> {
-             List<dynamic> get components => [];
+             List<Type> get components => [];
           }
         ''',
           'spark_framework|lib/src/component/spark_component.dart': '''
@@ -364,16 +356,12 @@ void main() {
           import 'package:spark_framework/spark.dart';
           import '../components/styled_component.dart';
 
-          class ComponentInfo {
-             final String tag;
-             final Function factory;
-             const ComponentInfo(this.tag, this.factory);
-          }
 
           @Page(path: '/styled')
           class StyledPage extends SparkPage<void> {
             @override
-            List<ComponentInfo> get components => [ComponentInfo(StyledComponent.tag, () {})];
+
+            List<Type> get components => [StyledComponent];
           }
         ''',
         },
@@ -427,7 +415,7 @@ void main() {
           ''',
             'spark_framework|lib/src/page/spark_page.dart': '''
             abstract class SparkPage<T> {
-              List<dynamic> get components => [];
+              List<Type> get components => [];
             }
           ''',
             'spark_framework|lib/src/component/spark_component.dart': '''
@@ -462,16 +450,12 @@ void main() {
             import 'dart:io'; // This should not poison the web entry
             import '../components/safe_component.dart';
 
-            class ComponentInfo {
-               final String tag;
-               final Function factory;
-               const ComponentInfo(this.tag, this.factory);
-            }
 
             @Page(path: '/io')
             class IoPage extends SparkPage<void> {
               @override
-              List<ComponentInfo> get components => [ComponentInfo(SafeComponent.tag, () {})];
+
+              List<Type> get components => [SafeComponent];
 
               void doServerStuff() {
                 File('foo.txt').readAsStringSync();

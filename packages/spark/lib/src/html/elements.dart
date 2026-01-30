@@ -365,12 +365,14 @@ Element a(
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
+  Function? onClick,
 }) => _el(
   'a',
   children,
   id: id,
   className: className,
   attributes: {'href': href, 'target': target, ...?attributes},
+  events: {if (onClick != null) 'click': onClick},
 );
 
 Element code(

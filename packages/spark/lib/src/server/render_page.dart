@@ -1,6 +1,7 @@
 /// HTML page rendering utilities for server-side rendering.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import '../style/style.dart';
@@ -151,19 +152,21 @@ String renderPage({
 
   // Additional head content
   if (headContent != null) {
-    if (headContent is String && headContent.isNotEmpty) {
-      buffer.writeln(headContent);
-    } else if (headContent is Node) {
-      buffer.writeln(headContent.toHtml());
-    } else if (headContent is List) {
-      for (final item in headContent) {
-        if (item is Node) {
-          buffer.writeln(item.toHtml());
-        } else if (item != null) {
-          buffer.writeln(item.toString());
+    runZoned(() {
+      if (headContent is String && headContent.isNotEmpty) {
+        buffer.writeln(headContent);
+      } else if (headContent is Node) {
+        buffer.writeln(headContent.toHtml());
+      } else if (headContent is List) {
+        for (final item in headContent) {
+          if (item is Node) {
+            buffer.writeln(item.toHtml());
+          } else if (item != null) {
+            buffer.writeln(item.toString());
+          }
         }
       }
-    }
+    }, zoneValues: {if (nonce != null) 'spark.cspNonce': nonce});
   }
 
   // Main script (deferred to allow HTML to render first)

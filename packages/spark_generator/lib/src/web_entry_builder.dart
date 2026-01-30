@@ -31,53 +31,112 @@ class WebEntryBuilder implements Builder {
       final element = page.element;
       if (element is! ClassElement) continue;
 
-      // Use getGetter to check if the class declares the getter
-      final componentsGetter = element.getGetter('components');
+      // Use lookUpGetter to check if the class declares or inherits the getter
+      final componentsGetter = element.lookUpGetter(
+        name: 'components',
+        library: element.library,
+      );
 
-      // Ensure it's not inherited from SparkPage (actually getGetter returns declared one primarily,
-      // but checking enclosingName is safe)
+      if (componentsGetter == null) continue;
+
+      // Ensure it's not inherited from SparkPage
       final hasComponents =
-          componentsGetter != null &&
           componentsGetter.enclosingElement.name != 'SparkPage';
 
       if (!hasComponents) continue;
 
+      final getterDefiningClass = componentsGetter.enclosingElement;
+      // Allow ClassElement or MixinElement
+      if (getterDefiningClass is! ClassElement &&
+          getterDefiningClass is! MixinElement) {
+        continue;
+      }
+
       final session = element.session;
       if (session == null) continue;
 
+      final targetLibrary = getterDefiningClass.library;
+      if (targetLibrary == null) continue;
+
       final parsedLib = await session.getResolvedLibraryByElement(
-        element.library,
+        targetLibrary,
       );
       if (parsedLib is! ResolvedLibraryResult) continue;
 
-      MethodDeclaration? getterNode;
+      AstNode? targetNode;
       // Search all units for the getter declaration (avoiding Element.source usage)
       for (final unitResult in parsedLib.units) {
         for (final decl in unitResult.unit.declarations) {
-          if (decl is ClassDeclaration &&
-              decl.namePart.typeName.lexeme ==
-                  componentsGetter.enclosingElement.name) {
-            for (final member in (decl.body as BlockClassBody).members) {
+          final String? declName;
+          final List<ClassMember> members;
+
+          if (decl is ClassDeclaration) {
+            declName = decl.namePart.typeName.lexeme;
+            members = (decl.body as BlockClassBody).members;
+          } else if (decl is MixinDeclaration) {
+            declName = decl.name.lexeme;
+            members = decl.body.members;
+          } else {
+            declName = null;
+            members = const [];
+          }
+
+          if (declName != null && declName == getterDefiningClass.name) {
+            for (final member in members) {
               if (member is MethodDeclaration &&
                   member.isGetter &&
                   member.name.lexeme == 'components') {
-                getterNode = member;
+                targetNode = member;
                 break;
+              } else if (member is FieldDeclaration) {
+                for (final field in member.fields.variables) {
+                  if (field.name.lexeme == 'components') {
+                    targetNode = field;
+                    break;
+                  }
+                }
               }
             }
           }
-          if (getterNode != null) break;
+          if (targetNode != null) break;
         }
-        if (getterNode != null) break;
+        if (targetNode != null) break;
       }
 
-      if (getterNode == null) continue;
+      if (targetNode != null) {
+        log.info('Found components definition in ${getterDefiningClass.name}');
+      } else {
+        log.warning(
+          'Could not find source for components definition in ${getterDefiningClass.name} (Library: ${targetLibrary.identifier})',
+        );
+      }
 
-      final body = getterNode.body;
-      if (body is! ExpressionFunctionBody) continue;
+      if (targetNode == null) continue;
 
-      final list = body.expression;
-      if (list is! ListLiteral) continue;
+      ListLiteral? list;
+
+      if (targetNode is MethodDeclaration) {
+        final body = targetNode.body;
+        if (body is ExpressionFunctionBody) {
+          if (body.expression is ListLiteral) {
+            list = body.expression as ListLiteral;
+          }
+        } else if (body is BlockFunctionBody) {
+          for (final statement in body.block.statements) {
+            if (statement is ReturnStatement &&
+                statement.expression is ListLiteral) {
+              list = statement.expression as ListLiteral;
+              break;
+            }
+          }
+        }
+      } else if (targetNode is VariableDeclaration) {
+        if (targetNode.initializer is ListLiteral) {
+          list = targetNode.initializer as ListLiteral;
+        }
+      }
+
+      if (list == null) continue;
 
       if (list.elements.isEmpty) continue;
 

@@ -65,8 +65,9 @@ class Element extends Node {
       }
     });
 
-    // Auto-inject nonce for style tags if available in Zone
-    if (tag == 'style' && !attributes.containsKey('nonce')) {
+    // Auto-inject nonce for style and script tags if available in Zone
+    if ((tag == 'style' || tag == 'script') &&
+        !attributes.containsKey('nonce')) {
       final nonce = Zone.current['spark.cspNonce'];
       if (nonce != null && nonce is String && nonce.isNotEmpty) {
         buffer.write(' nonce="$nonce"');
