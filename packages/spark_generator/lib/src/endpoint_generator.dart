@@ -412,7 +412,10 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
 
   String _generateTypeSerialization(DartType type, String varName) {
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      return '$varName == null ? null : ${_generateTypeSerializationImpl(type, varName)}';
+      if (type.isDartCoreMap) {
+        return _generateTypeSerializationImpl(type, '$varName?');
+      }
+      return '$varName == null ? null : ${_generateTypeSerializationImpl(type, "$varName!")}';
     }
     return _generateTypeSerializationImpl(type, varName);
   }
@@ -437,7 +440,11 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       final fields = element.fields
           .where((f) => !f.isStatic && f.isPublic)
           .map((f) {
-            return "'${f.name}': ${_generateTypeSerialization(f.type, '$varName.${f.name}')}";
+            final fieldExpr = '$varName.${f.name}';
+            if (f.type.nullabilitySuffix == NullabilitySuffix.question) {
+              return "if ($fieldExpr != null) '${f.name}': ${_generateTypeSerializationImpl(f.type, '$fieldExpr!')}";
+            }
+            return "'${f.name}': ${_generateTypeSerialization(f.type, fieldExpr)}";
           })
           .join(', ');
       return '{$fields}';
