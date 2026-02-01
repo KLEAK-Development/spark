@@ -15,6 +15,7 @@ import 'package:spark_framework/server.dart';
 import 'package:spark_framework/spark.dart';
 
 import 'package:spark_example/endpoints/endpoints.dart';
+import 'package:spark_example/endpoints/repro_endpoint.dart';
 import 'package:spark_example/pages/home_page.dart';
 import 'package:spark_example/pages/no_component/no_component_page.dart';
 import 'package:spark_example/pages/test/test_page.dart';
@@ -365,6 +366,54 @@ Future<Response> _$handleGetUserEndpoint(Request request, String id) async {
   return pipeline.addHandler(handler)(request);
 }
 
+Future<Response> _$handleReproEndpoint(Request request) async {
+  final endpoint = ReproEndpoint();
+
+  var pipeline = const Pipeline();
+  for (final middleware in endpoint.middleware) {
+    pipeline = pipeline.addMiddleware(middleware);
+  }
+
+  final handler = (Request req) async {
+    try {
+      final sparkRequest = SparkRequest(shelfRequest: req, pathParams: {});
+
+      final result = await endpoint.handler(sparkRequest);
+
+      return Response.ok(
+        jsonEncode({
+          'nextTier': result.nextTier == null
+              ? null
+              : result.nextTier.map((k, v) => MapEntry(k, v)),
+        }),
+        headers: {"content-type": "application/json"},
+      );
+    } on SparkValidationException catch (e) {
+      return ApiError(
+        message: e.message,
+        code: 'VALIDATION_ERROR',
+        details: e.errors,
+      ).toResponse(400);
+    } on ApiError catch (e) {
+      return e.toResponse();
+    } on SparkHttpException catch (e) {
+      return ApiError(
+        message: e.message,
+        code: e.code,
+        details: e.details,
+      ).toResponse(e.statusCode);
+    } catch (e, s) {
+      print(e);
+      return ApiError(
+        message: 'Internal Server Error',
+        code: 'INTERNAL_ERROR',
+      ).toResponse(500);
+    }
+  };
+
+  return pipeline.addHandler(handler)(request);
+}
+
 Future<Response> _$handleHomePage(Request request) async {
   final page = HomePage();
   var pipeline = const Pipeline();
@@ -589,6 +638,7 @@ Future<Response> _$handleTest2Page(Request request) async {
 /// - `/api/details` -> EchoDetailsEndpoint
 /// - `/api/check` -> CheckMwEndpoint
 /// - `/api/users/<id>` -> GetUserEndpoint
+/// - `/api/repro` -> ReproEndpoint
 /// - `/` -> HomePage
 /// - `/no-component` -> NoComponentPage
 /// - `/test` -> TestPage
@@ -604,6 +654,7 @@ Router createSparkRouter() {
     '/api/users/<id>',
     (Request request, String id) => _$handleGetUserEndpoint(request, id),
   );
+  router.get('/api/repro', _$handleReproEndpoint);
   router.get('/', _$handleHomePage);
   router.get('/no-component', _$handleNoComponentPage);
   router.get('/test', _$handleTestPage);

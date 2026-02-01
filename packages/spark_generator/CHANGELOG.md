@@ -1,3 +1,7 @@
+## 1.0.0-alpha.9
+
+- Fix nullable Map serialization in endpoint generator
+
 ## 1.0.0-alpha.8
 
 - add null-aware type parsing to endpoint generator

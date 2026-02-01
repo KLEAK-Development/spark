@@ -411,6 +411,13 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
   }
 
   String _generateTypeSerialization(DartType type, String varName) {
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return '$varName == null ? null : ${_generateTypeSerializationImpl(type, varName)}';
+    }
+    return _generateTypeSerializationImpl(type, varName);
+  }
+
+  String _generateTypeSerializationImpl(DartType type, String varName) {
     if (type.isDartCoreString ||
         type.isDartCoreInt ||
         type.isDartCoreDouble ||

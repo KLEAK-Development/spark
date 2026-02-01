@@ -1281,5 +1281,124 @@ void main() {
         },
       );
     });
+
+    test('generates correct serialization for nullable Map in DTO', () async {
+      await resolveSources(
+        {
+          'spark|lib/src/annotations/endpoint.dart': '''
+            class Endpoint {
+              final String path;
+              final String method;
+              final String? summary;
+              final String? description;
+              final List<String>? tags;
+              final Map<int, dynamic>? responses;
+              final bool? deprecated;
+              final List<Map<String, List<String>>>? security;
+              final String? operationId;
+              final dynamic externalDocs;
+              final List<dynamic>? parameters;
+              final dynamic requestBody;
+              final List<String>? contentTypes;
+
+            const Endpoint({required this.path, required this.method, this.summary, this.description, this.tags, this.responses, this.deprecated, this.security, this.operationId, this.externalDocs, this.parameters, this.requestBody, this.contentTypes});
+          }
+          ''',
+          'spark|lib/src/endpoint/spark_endpoint.dart': '''
+            abstract class SparkEndpoint {
+              Future<dynamic> handler(dynamic request);
+              List<dynamic> get middleware => [];
+            }
+          ''',
+          'spark|lib/spark.dart': '''
+             library spark;
+             export 'src/annotations/endpoint.dart';
+             export 'src/endpoint/spark_endpoint.dart';
+             export 'src/errors/errors.dart';
+          ''',
+          'spark|lib/src/errors/errors.dart': '''
+            class SparkHttpException implements Exception {
+              final int statusCode;
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              SparkHttpException(this.statusCode, this.message, {this.code = 'HTTP_ERROR', this.details});
+            }
+            class ApiError {
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              ApiError({required this.message, required this.code, this.details});
+              Response toResponse(int statusCode) => Response(statusCode);
+            }
+            class Response {
+               static Response ok(String body, {Map<String, dynamic>? headers}) => Response(200);
+               Response(int statusCode, {String? body, Map<String, dynamic>? headers});
+            }
+          ''',
+          'a|lib/test_lib.dart': '''
+            library a;
+            import 'package:spark/spark.dart';
+
+            class Request {
+               Future<String> readAsString() async => '';
+            }
+
+            class SparkRequest {
+              final Request shelfRequest;
+              final Map<String, String> pathParams;
+              SparkRequest({required this.shelfRequest, required this.pathParams});
+            }
+
+            class TestDto {
+               final Map<String, dynamic>? nextTier;
+               TestDto({this.nextTier});
+            }
+
+            @Endpoint(path: '/api/test', method: 'GET')
+            class TestEndpoint extends SparkEndpoint {
+              @override
+              Future<TestDto> handler(SparkRequest request) async {
+                return TestDto(nextTier: {'a': 1});
+              }
+            }
+          ''',
+        },
+        (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib.dart'),
+          );
+
+          final testClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'TestEndpoint');
+
+          final annotations = testClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Endpoint';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = EndpointGenerator();
+          final output = generator.generateForAnnotatedElement(
+            testClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib.dart')),
+          );
+
+          // Verify the fix: null check before map
+          expect(
+            output,
+            contains(
+              "'nextTier': result.nextTier == null ? null : result.nextTier.map((k, v) => MapEntry(k, v))",
+            ),
+          );
+        },
+      );
+    });
   });
 }
