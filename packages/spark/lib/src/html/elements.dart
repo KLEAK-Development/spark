@@ -62,8 +62,8 @@ Element h(
   bool selfClosing = false,
 }) {
   final attrs = <String, dynamic>{
-    if (id != null) 'id': id,
-    if (className != null) 'class': className,
+    'id': ?id,
+    'class': ?className,
     ...?attributes,
   };
 
@@ -292,10 +292,10 @@ Element div(
   className: className,
   attributes: attributes,
   events: {
-    if (onClick != null) 'click': onClick,
-    if (onDoubleClick != null) 'dblclick': onDoubleClick,
-    if (onMouseEnter != null) 'mouseenter': onMouseEnter,
-    if (onMouseLeave != null) 'mouseleave': onMouseLeave,
+    'click': ?onClick,
+    'dblclick': ?onDoubleClick,
+    'mouseenter': ?onMouseEnter,
+    'mouseleave': ?onMouseLeave,
   },
 );
 
@@ -372,7 +372,7 @@ Element a(
   id: id,
   className: className,
   attributes: {'href': href, 'target': target, ...?attributes},
-  events: {if (onClick != null) 'click': onClick},
+  events: {'click': ?onClick},
 );
 
 Element code(
@@ -416,7 +416,7 @@ Element span(
   id: id,
   className: className,
   attributes: attributes,
-  events: {if (onClick != null) 'click': onClick},
+  events: {'click': ?onClick},
 );
 
 Element small(
@@ -490,7 +490,7 @@ Element button(
   id: id,
   className: className,
   attributes: {'type': type, ...?attributes},
-  events: {if (onClick != null) 'click': onClick},
+  events: {'click': ?onClick},
 );
 
 Element form(
@@ -532,10 +532,10 @@ Element input<T>({
     ...?attributes,
   },
   events: {
-    if (onInput != null) 'input': onInput,
-    if (onChange != null) 'change': onChange,
-    if (onKeyDown != null) 'keydown': onKeyDown,
-    if (onKeyUp != null) 'keyup': onKeyUp,
+    'input': ?onInput,
+    'change': ?onChange,
+    'keydown': ?onKeyDown,
+    'keyup': ?onKeyUp,
   },
   selfClosing: true,
 );

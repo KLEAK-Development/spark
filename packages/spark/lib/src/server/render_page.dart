@@ -166,7 +166,7 @@ String renderPage({
           }
         }
       }
-    }, zoneValues: {if (nonce != null) 'spark.cspNonce': nonce});
+    }, zoneValues: {'spark.cspNonce': ?nonce});
   }
 
   // Main script (deferred to allow HTML to render first)
