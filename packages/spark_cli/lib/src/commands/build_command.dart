@@ -304,9 +304,6 @@ class BuildCommand extends Command<void> {
         // Skip Dart files (handled by compilation)
         if (relativePath.endsWith('.dart')) continue;
 
-        // Skip hidden files and directories (start with .)
-        if (p.split(relativePath).any((part) => part.startsWith('.'))) continue;
-
         final targetPath = p.join(targetDir.path, relativePath);
 
         await Directory(p.dirname(targetPath)).create(recursive: true);

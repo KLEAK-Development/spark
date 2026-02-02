@@ -1,3 +1,7 @@
+## 1.0.0-alpha.7
+
+- Fixed an issue where hidden files (starting with `.`) were not being copied from `web` to `build/web` during `spark build`.
+
 ## 1.0.0-alpha.6
 
 - Implement CSS minification logic and enable it during the build process for server and client compilation.
