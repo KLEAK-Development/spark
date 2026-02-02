@@ -3,6 +3,7 @@ import 'package:spark_framework/spark.dart';
 
 // ignore: uri_has_not_been_generated
 import 'package:spark_example/spark_router.g.dart';
+import 'package:spark_example/pages/not_found_page.dart';
 
 @OpenApi(
   title: 'Spark Example API',
@@ -25,9 +26,7 @@ void main() async {
     SparkServerConfig(
       port: 9004,
       middleware: [logRequests()],
-      notFoundHandler: (request) {
-        return Response.notFound('NOT FOUND');
-      },
+      notFoundPage: NotFoundPage(),
     ),
   );
   print('Server running at http://localhost:${server.port}');

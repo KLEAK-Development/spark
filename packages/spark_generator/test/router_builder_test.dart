@@ -133,5 +133,37 @@ Future<Response> _\$handleHomePage(Request request) async { return Response.ok('
         },
       );
     });
+
+    test('generates notFoundPage logic', () async {
+      final builder = RouterBuilder();
+
+      await testBuilder(
+        builder,
+        {
+          'a|lib/pages/home_page.dart': '',
+          'a|lib/pages/home_page.spark.g.part': '''
+const _\$HomePageRoute = (
+  path: '/',
+  methods: <String>['GET'],
+  pathParams: <String>[],
+);
+
+Future<Response> _\$handleHomePage(Request request) async { return Response.ok('ok'); }
+''',
+        },
+        outputs: {
+          'a|lib/spark_router.g.dart': decodedMatches(
+            allOf([
+              contains('final SparkPage<dynamic>? notFoundPage;'),
+              contains('if (config!.notFoundHandler != null) {'),
+              contains('} else if (config!.notFoundPage != null) {'),
+              contains('final page = config!.notFoundPage!;'),
+              contains('_\$renderPageResponse('),
+              contains("request.context['spark.nonce'] as String?,"),
+            ]),
+          ),
+        },
+      );
+    });
   });
 }

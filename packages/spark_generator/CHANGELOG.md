@@ -1,3 +1,7 @@
+## 1.0.0-alpha.12
+
+- Added `notFoundPage` support to `SparkServerConfig` to correct CSP nonce handling on 404 pages.
+
 ## 1.0.0-alpha.11
 
 - Fix issue where `staticHandler` was preventing `notFoundHandler` from being reached.

@@ -289,6 +289,8 @@ class RouterBuilder implements Builder {
     buffer.writeln();
     buffer.writeln('  /// Handler for 404 errors.');
     buffer.writeln('  final Handler? notFoundHandler;');
+    buffer.writeln('  /// Page for 404 errors.');
+    buffer.writeln('  final SparkPage<dynamic>? notFoundPage;');
     buffer.writeln();
     buffer.writeln('  /// Security context for HTTPS.');
     buffer.writeln('  final SecurityContext? securityContext;');
@@ -309,6 +311,7 @@ class RouterBuilder implements Builder {
     buffer.writeln('    this.middleware = const [],');
     buffer.writeln('    this.staticConfig,');
     buffer.writeln('    this.notFoundHandler,');
+    buffer.writeln('    this.notFoundPage,');
     buffer.writeln('    this.securityContext,');
     buffer.writeln('    this.shared = false,');
     buffer.writeln('    this.redirectToHttps = false,');
@@ -464,6 +467,58 @@ class RouterBuilder implements Builder {
     buffer.writeln('    // 3. 404 Handler (optional fallback)');
     buffer.writeln('    if (config!.notFoundHandler != null) {');
     buffer.writeln('      cascade = cascade.add(config!.notFoundHandler!);');
+    buffer.writeln('    } else if (config!.notFoundPage != null) {');
+    buffer.writeln('      cascade = cascade.add((request) async {');
+    buffer.writeln('        final page = config!.notFoundPage!;');
+    buffer.writeln(
+      '        final pageRequest = PageRequest(shelfRequest: request, pathParams: {});',
+    );
+    buffer.writeln('        final response = await page.loader(pageRequest);');
+    buffer.writeln();
+    buffer.writeln('        return switch (response) {');
+    buffer.writeln('          PageData(');
+    buffer.writeln('            :final data,');
+    buffer.writeln('            :final statusCode,');
+    buffer.writeln('            :final headers,');
+    buffer.writeln('            :final cookies,');
+    buffer.writeln('          ) =>');
+    buffer.writeln('            _\$renderPageResponse(');
+    buffer.writeln('              page,');
+    buffer.writeln('              data,');
+    buffer.writeln('              pageRequest,');
+    buffer.writeln('              statusCode,');
+    buffer.writeln('              headers,');
+    buffer.writeln('              cookies,');
+    buffer.writeln('              null,');
+    buffer.writeln(
+      '              request.context[\'spark.nonce\'] as String?,',
+    );
+    buffer.writeln('            ),');
+    buffer.writeln('          PageRedirect(');
+    buffer.writeln('            :final location,');
+    buffer.writeln('            :final statusCode,');
+    buffer.writeln('            :final headers,');
+    buffer.writeln('            :final cookies,');
+    buffer.writeln('          ) =>');
+    buffer.writeln('            Response(');
+    buffer.writeln('              statusCode,');
+    buffer.writeln('              headers: {');
+    buffer.writeln('                ...headers,');
+    buffer.writeln('                \'location\': location,');
+    buffer.writeln('                if (cookies.isNotEmpty)');
+    buffer.writeln('                  HttpHeaders.setCookieHeader: cookies');
+    buffer.writeln('                      .map((c) => c.toString())');
+    buffer.writeln('                      .toList(),');
+    buffer.writeln('              },');
+    buffer.writeln('            ),');
+    buffer.writeln(
+      '          PageError(:final message, :final statusCode, :final cookies) =>',
+    );
+    buffer.writeln(
+      '            _\$renderErrorResponse(message, statusCode, cookies),',
+    );
+    buffer.writeln('        };');
+    buffer.writeln('      });');
     buffer.writeln('    }');
     buffer.writeln();
     buffer.writeln('    return cascade.handler;');
