@@ -1,3 +1,7 @@
+## 1.0.0-alpha.11
+
+- Fix issue where `staticHandler` was preventing `notFoundHandler` from being reached.
+
 ## 1.0.0-alpha.10
 - Improve nullable Map in DTO serialization to omit null values using conditional entries.
 - Fixed nullable nested object serialization in DTOs.

@@ -382,9 +382,8 @@ Future<Response> _$handleReproEndpoint(Request request) async {
 
       return Response.ok(
         jsonEncode({
-          'nextTier': result.nextTier == null
-              ? null
-              : result.nextTier.map((k, v) => MapEntry(k, v)),
+          if (result.nextTier != null)
+            'nextTier': result.nextTier!.map((k, v) => MapEntry(k, v)),
         }),
         headers: {"content-type": "application/json"},
       );
@@ -825,16 +824,22 @@ Future<HttpServer> createSparkServer([SparkServerConfig? config]) async {
   Handler createHandler() {
     final router = createSparkRouter();
 
-    router.mount(
-      '/',
+    var cascade = Cascade();
+
+    // 1. Static Assets
+    cascade = cascade.add(
       createStaticHandler(staticPath, config: config!.staticConfig),
     );
 
+    // 2. Spark Pages & API
+    cascade = cascade.add(router.call);
+
+    // 3. 404 Handler (optional fallback)
     if (config!.notFoundHandler != null) {
-      router.all('/<path|.*>', config!.notFoundHandler!);
+      cascade = cascade.add(config!.notFoundHandler!);
     }
 
-    return router.call;
+    return cascade.handler;
   }
 
   Handler finalHandler;

@@ -98,5 +98,40 @@ Future<Response> _\$handleHomePage(Request request) async { return Response.ok('
         );
       },
     );
+
+    test('generates handler using Cascade for correct order', () async {
+      final builder = RouterBuilder();
+
+      await testBuilder(
+        builder,
+        {
+          'a|lib/pages/home_page.dart': '',
+          'a|lib/pages/home_page.spark.g.part': '''
+const _\$HomePageRoute = (
+  path: '/',
+  methods: <String>['GET'],
+  pathParams: <String>[],
+);
+
+Future<Response> _\$handleHomePage(Request request) async { return Response.ok('ok'); }
+''',
+        },
+        outputs: {
+          'a|lib/spark_router.g.dart': decodedMatches(
+            allOf([
+              contains('var cascade = Cascade();'),
+              contains(
+                'cascade = cascade.add(createStaticHandler(',
+              ), // Static assets first
+              contains('cascade = cascade.add(router.call);'), // Then router
+              contains(
+                'cascade = cascade.add(config!.notFoundHandler!);',
+              ), // Then 404
+              contains('return cascade.handler;'),
+            ]),
+          ),
+        },
+      );
+    });
   });
 }
