@@ -12,6 +12,12 @@ void mount(dynamic parent, Node vNode) {
   if ((parent as JSAny?).isA<web.Node>() != true) return;
   final node = parent as web.Node;
 
+  // Check if we are mounting into an SVG
+  bool isSvg = false;
+  if ((node as JSAny?).isA<web.Element>()) {
+    isSvg = (node as web.Element).namespaceURI == 'http://www.w3.org/2000/svg';
+  }
+
   // Find first significant child (ignore whitespace-only text caused by SSR formatting)
   web.Node? targetNode = node.firstChild;
   while (targetNode != null && _isWhitespace(targetNode)) {
@@ -20,9 +26,9 @@ void mount(dynamic parent, Node vNode) {
 
   if (targetNode == null) {
     // If we skipped everything or there was nothing, append.
-    node.appendChild(createNode(vNode) as web.Node);
+    node.appendChild(createNode(vNode, isSvg: isSvg) as web.Node);
   } else {
-    patch(targetNode, vNode);
+    patch(targetNode, vNode, isSvg: isSvg);
   }
 }
 
@@ -31,6 +37,12 @@ void mount(dynamic parent, Node vNode) {
 void mountList(dynamic parent, List<Node> vNodes) {
   if ((parent as JSAny?).isA<web.Node>() != true) return;
   final node = parent as web.Node;
+
+  // Check if we are mounting into an SVG
+  bool isSvg = false;
+  if ((node as JSAny?).isA<web.Element>()) {
+    isSvg = (node as web.Element).namespaceURI == 'http://www.w3.org/2000/svg';
+  }
 
   // Find all significant children
   final significantNodes = <web.Node>[];
@@ -54,10 +66,10 @@ void mountList(dynamic parent, List<Node> vNodes) {
       }
     } else if (i >= significantNodes.length) {
       // Append new nodes
-      node.appendChild(createNode(vNodes[i]) as web.Node);
+      node.appendChild(createNode(vNodes[i], isSvg: isSvg) as web.Node);
     } else {
       // Patch existing nodes
-      patch(significantNodes[i], vNodes[i]);
+      patch(significantNodes[i], vNodes[i], isSvg: isSvg);
     }
   }
 }
@@ -68,7 +80,7 @@ bool _isWhitespace(web.Node node) {
 
 /// Patches an existing DOM element to match a Virtual DOM node.
 /// Accepts dynamic [realNode] to support build_runner (VM) compilation where types are stubs.
-void patch(dynamic realNode, Node vNode) {
+void patch(dynamic realNode, Node vNode, {bool isSvg = false}) {
   if ((realNode as JSAny?).isA<web.Node>() != true) return;
 
   final node = realNode as web.Node;
@@ -79,24 +91,32 @@ void patch(dynamic realNode, Node vNode) {
         node.textContent = vNode.text;
       }
     } else {
-      final newScript = web.document.createTextNode(vNode.text);
+      final newText = web.document.createTextNode(vNode.text);
       if (node.parentNode != null) {
-        node.parentNode!.replaceChild(newScript, node);
+        node.parentNode!.replaceChild(newText, node);
       }
     }
   } else if (vNode is html.Element) {
+    // Determine the SVG context for this node
+    final currentIsSvg = isSvg || vNode.tag == 'svg';
+
     if (node.nodeType == 1) {
-      final el = node as web.HTMLElement;
+      final el = node as web.Element;
+
       if (el.tagName.toLowerCase() != vNode.tag.toLowerCase()) {
-        final newNode = createNode(vNode) as web.Node;
+        final newNode = createNode(vNode, isSvg: isSvg) as web.Node;
         if (node.parentNode != null) {
           node.parentNode!.replaceChild(newNode, node);
         }
       } else {
-        _patchElement(el, vNode);
+        // Same tag, update it.
+        // We pass currentIsSvg to children.
+        // Exception: foreignObject resets to HTML for its children.
+        final childrenIsSvg = currentIsSvg && vNode.tag != 'foreignObject';
+        _patchElement(el, vNode, isSvg: childrenIsSvg);
       }
     } else {
-      final newNode = createNode(vNode) as web.Node;
+      final newNode = createNode(vNode, isSvg: isSvg) as web.Node;
       if (node.parentNode != null) {
         node.parentNode!.replaceChild(newNode, node);
       }
@@ -106,15 +126,30 @@ void patch(dynamic realNode, Node vNode) {
 
 /// Creates a real DOM node from a VDOM node.
 /// Returns dynamic to support build_runner.
-dynamic createNode(Node vNode) {
+dynamic createNode(Node vNode, {bool isSvg = false}) {
   if (vNode is html.Text) {
     return web.document.createTextNode(vNode.text);
   } else if (vNode is html.Element) {
-    final el = web.document.createElement(vNode.tag) as web.HTMLElement;
+    final currentIsSvg = isSvg || vNode.tag == 'svg';
+    final web.Element el;
+
+    if (currentIsSvg) {
+      el = web.document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        vNode.tag,
+      );
+    } else {
+      el = web.document.createElement(vNode.tag);
+    }
+
     _updateAttributes(el, vNode.attributes);
     _updateEvents(el, vNode.events);
+
+    // foreignObject tag itself is SVG, but its children are HTML
+    final childrenIsSvg = currentIsSvg && vNode.tag != 'foreignObject';
+
     for (final child in vNode.children) {
-      el.appendChild(createNode(child) as web.Node);
+      el.appendChild(createNode(child, isSvg: childrenIsSvg) as web.Node);
     }
     return el;
   } else if (vNode is html.RawHtml) {
@@ -125,7 +160,7 @@ dynamic createNode(Node vNode) {
   return web.document.createComment('Unknown Node');
 }
 
-void _patchElement(web.HTMLElement el, html.Element vNode) {
+void _patchElement(web.Element el, html.Element vNode, {required bool isSvg}) {
   _updateAttributes(el, vNode.attributes);
   _updateEvents(el, vNode.events);
 
@@ -151,14 +186,14 @@ void _patchElement(web.HTMLElement el, html.Element vNode) {
         el.removeChild(significantNodes[i]);
       }
     } else if (i >= significantNodes.length) {
-      el.appendChild(createNode(vChildren[i]) as web.Node);
+      el.appendChild(createNode(vChildren[i], isSvg: isSvg) as web.Node);
     } else {
-      patch(significantNodes[i], vChildren[i]);
+      patch(significantNodes[i], vChildren[i], isSvg: isSvg);
     }
   }
 }
 
-void _updateAttributes(web.HTMLElement el, Map<String, dynamic> attrs) {
+void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
   attrs.forEach((key, value) {
     if (value == null) {
       el.removeAttribute(key);
@@ -180,7 +215,7 @@ void _updateAttributes(web.HTMLElement el, Map<String, dynamic> attrs) {
 int _nextListenerId = 0;
 final Map<String, Map<String, Function>> _listenersConfig = {};
 
-void _updateEvents(web.HTMLElement el, Map<String, Function> newEvents) {
+void _updateEvents(web.Element el, Map<String, Function> newEvents) {
   String? id = el.getAttribute('data-spark-id');
   if (id == null) {
     id = 's-${_nextId++}';
@@ -197,7 +232,7 @@ void _updateEvents(web.HTMLElement el, Map<String, Function> newEvents) {
     if (!oldEvents.containsKey(event)) {
       final proxy = js_callback.jsCallbackImpl((dynamic e) {
         if ((e as JSAny?).isA<web.Event>()) {
-          final target = (e as web.Event).currentTarget as web.HTMLElement;
+          final target = (e as web.Event).currentTarget as web.Element;
           final dbId = target.getAttribute('data-spark-id');
           if (dbId != null) {
             final handlers = _listenersConfig[dbId];

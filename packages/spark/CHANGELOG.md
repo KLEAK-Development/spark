@@ -1,3 +1,7 @@
+## 1.0.0-alpha.6
+
+- Fixed SVG element hydration by properly using `createElementNS` and ensuring context-aware element creation.
+
 ## 1.0.0-alpha.5
 
 - Implement CSS minification logic and enable it during the build process for server and client compilation.
