@@ -9,20 +9,22 @@ extension RequestClientIp on Request {
   /// address if present. Otherwise, it falls back to the connection info's
   /// remote address.
   String? get clientIp {
-    final forwardedFor = headers['x-forwarded-for'];
-    if (forwardedFor != null && forwardedFor.isNotEmpty) {
-      final parts = forwardedFor.split(',');
-      if (parts.isNotEmpty) {
-        return parts.first.trim();
-      }
+    // Check X-Forwarded-For header (may contain multiple IPs)
+    final forwarded = headers['x-forwarded-for'];
+    if (forwarded != null && forwarded.isNotEmpty) {
+      // Take the first IP (original client)
+      return forwarded.split(',').first.trim();
     }
 
-    final connectionInfo = context['shelf.io.connection_info'];
-    if (connectionInfo != null) {
-      final info = connectionInfo as HttpConnectionInfo;
-      return info.remoteAddress.address;
+    // Check X-Real-IP header
+    final realIp = headers['x-real-ip'];
+    if (realIp != null && realIp.isNotEmpty) {
+      return realIp.trim();
     }
 
-    return null;
+    // Fall back to connection info
+    final connectionInfo =
+        context['shelf.io.connection_info'] as HttpConnectionInfo?;
+    return connectionInfo?.remoteAddress.address;
   }
 }
