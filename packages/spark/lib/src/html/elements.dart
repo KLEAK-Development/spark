@@ -19,13 +19,13 @@ import 'dart:async';
 
 import 'node.dart';
 
-/// Helper to convert a dynamic list of children into [Node]s.
-List<Node> _normalizeChildren(List<dynamic>? children) {
+/// Helper to convert a dynamic list of children into [VNode]s.
+List<VNode> _normalizeChildren(List<dynamic>? children) {
   if (children == null) return [];
-  final nodes = <Node>[];
+  final nodes = <VNode>[];
   for (final child in children) {
     if (child == null) continue;
-    if (child is Node) {
+    if (child is VNode) {
       nodes.add(child);
     } else if (child is String) {
       nodes.add(Text(child));
@@ -46,7 +46,7 @@ List<Node> _normalizeChildren(List<dynamic>? children) {
 /// - [className]: The CSS class(es).
 /// - [attributes]: Additional HTML attributes.
 /// - [events]: Event listeners (e.g., `{'click': (e) {}}`).
-/// - [children]: The child nodes (can be [Node], [String], or list of them).
+/// - [children]: The child nodes (can be [VNode], [String], or list of them).
 /// - [selfClosing]: Whether this tag is self-closing (void element).
 ///
 /// Usually, you should use the specific tag helpers (like [div], [span]) instead

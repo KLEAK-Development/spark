@@ -284,6 +284,7 @@ class HTMLFormElement extends HTMLElement {
   set method(String value) {}
   void submit() {}
   void reset() {}
+  bool reportValidity() => true;
 }
 
 /// Stub for browser HTMLLabelElement class.
@@ -343,7 +344,7 @@ class Document extends Node {
 
 /// Stub for browser ShadowRoot class.
 class ShadowRoot extends DocumentFragment {
-  Element? get host => null;
+  Element get host => Element();
   String get mode => 'open';
   Element? get firstElementChild => null;
 

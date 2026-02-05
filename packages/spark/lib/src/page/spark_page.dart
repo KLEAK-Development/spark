@@ -124,7 +124,7 @@ abstract class SparkPage<T> {
   ///   ]);
   /// }
   /// ```
-  Node render(T data, PageRequest request);
+  VNode render(T data, PageRequest request);
 
   /// Returns the list of island component types used by this page.
   ///

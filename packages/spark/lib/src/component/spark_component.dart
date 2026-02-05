@@ -85,7 +85,7 @@ abstract class SparkComponent extends WebComponent {
   }
 
   /// Builds the component tree with styles automatically prepended.
-  List<html.Node> _buildWithStyles() {
+  List<html.VNode> _buildWithStyles() {
     final children = build();
     final styles = adoptedStyleSheets;
 
@@ -123,13 +123,13 @@ abstract class SparkComponent extends WebComponent {
   }
 
   /// Wraps events in a list of nodes.
-  void _wrapEventsInList(List<html.Node> nodes) {
+  void _wrapEventsInList(List<html.VNode> nodes) {
     for (final node in nodes) {
       _wrapEvents(node);
     }
   }
 
-  void _wrapEvents(html.Node node) {
+  void _wrapEvents(html.VNode node) {
     if (node is html.Element) {
       final keys = node.events.keys.toList();
       for (final key in keys) {

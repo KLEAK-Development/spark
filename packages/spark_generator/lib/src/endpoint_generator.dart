@@ -341,7 +341,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
           .map((param) {
             final paramName = param.name;
             final paramType = param.type;
-            final jsonKey = paramName;
+            final jsonKey = _camelToSnake(paramName ?? '');
             final valueExpr = '($varName as Map<String, dynamic>)["$jsonKey"]';
 
             if (param.isNamed) {
@@ -441,10 +441,11 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
           .where((f) => !f.isStatic && f.isPublic)
           .map((f) {
             final fieldExpr = '$varName.${f.name}';
+            final jsonKey = _camelToSnake(f.name ?? '');
             if (f.type.nullabilitySuffix == NullabilitySuffix.question) {
-              return "if ($fieldExpr != null) '${f.name}': ${_generateTypeSerializationImpl(f.type, '$fieldExpr!')}";
+              return "if ($fieldExpr != null) '$jsonKey': ${_generateTypeSerializationImpl(f.type, '$fieldExpr!')}";
             }
-            return "'${f.name}': ${_generateTypeSerialization(f.type, fieldExpr)}";
+            return "'$jsonKey': ${_generateTypeSerialization(f.type, fieldExpr)}";
           })
           .join(', ');
       return '{$fields}';
@@ -643,6 +644,23 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       buffer.writeln('      throw SparkValidationException(validationErrors);');
       buffer.writeln('    }');
     }
+  }
+
+  String _camelToSnake(String input) {
+    if (input.isEmpty) return input;
+    final buffer = StringBuffer();
+    for (var i = 0; i < input.length; i++) {
+      final char = input[i];
+      if (char.toUpperCase() == char && char.toLowerCase() != char) {
+        if (i > 0) {
+          buffer.write('_');
+        }
+        buffer.write(char.toLowerCase());
+      } else {
+        buffer.write(char);
+      }
+    }
+    return buffer.toString();
   }
 
   void _generateOpenApiValidation(

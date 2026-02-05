@@ -8,7 +8,7 @@ import 'js_callback_web.dart'
 
 /// Mounts a VDOM node into a parent element.
 /// Handles initial render (appendChild) vs update (patch) logic.
-void mount(dynamic parent, Node vNode) {
+void mount(dynamic parent, VNode vNode) {
   if ((parent as JSAny?).isA<web.Node>() != true) return;
   final node = parent as web.Node;
 
@@ -34,7 +34,7 @@ void mount(dynamic parent, Node vNode) {
 
 /// Mounts a list of VDOM nodes into a parent element.
 /// Each node is mounted sequentially.
-void mountList(dynamic parent, List<Node> vNodes) {
+void mountList(dynamic parent, List<VNode> vNodes) {
   if ((parent as JSAny?).isA<web.Node>() != true) return;
   final node = parent as web.Node;
 
@@ -80,7 +80,7 @@ bool _isWhitespace(web.Node node) {
 
 /// Patches an existing DOM element to match a Virtual DOM node.
 /// Accepts dynamic [realNode] to support build_runner (VM) compilation where types are stubs.
-void patch(dynamic realNode, Node vNode, {bool isSvg = false}) {
+void patch(dynamic realNode, VNode vNode, {bool isSvg = false}) {
   if ((realNode as JSAny?).isA<web.Node>() != true) return;
 
   final node = realNode as web.Node;
@@ -126,7 +126,7 @@ void patch(dynamic realNode, Node vNode, {bool isSvg = false}) {
 
 /// Creates a real DOM node from a VDOM node.
 /// Returns dynamic to support build_runner.
-dynamic createNode(Node vNode, {bool isSvg = false}) {
+dynamic createNode(VNode vNode, {bool isSvg = false}) {
   if (vNode is html.Text) {
     return web.document.createTextNode(vNode.text);
   } else if (vNode is html.Element) {

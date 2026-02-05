@@ -1,6 +1,7 @@
 ## 1.0.0-alpha.6
 
 - Fixed SVG element hydration by properly using `createElementNS` and ensuring context-aware element creation.
+- **Breaking Change**: Renamed `Node` to `VNode` to avoid conflict with `dart:html` Node.
 
 ## 1.0.0-alpha.5
 

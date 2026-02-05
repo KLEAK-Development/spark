@@ -31,7 +31,7 @@ class PageOptions {
 
   /// Additional content for the head section.
   ///
-  /// Can be a [String], [Node], or [List<dynamic>].
+  /// Can be a [String], [VNode], or [List<dynamic>].
   final Object? headContent;
 
   /// The language attribute for the HTML element.
@@ -155,11 +155,11 @@ String renderPage({
     runZoned(() {
       if (headContent is String && headContent.isNotEmpty) {
         buffer.writeln(headContent);
-      } else if (headContent is Node) {
+      } else if (headContent is VNode) {
         buffer.writeln(headContent.toHtml());
       } else if (headContent is List) {
         for (final item in headContent) {
-          if (item is Node) {
+          if (item is VNode) {
             buffer.writeln(item.toHtml());
           } else if (item != null) {
             buffer.writeln(item.toString());

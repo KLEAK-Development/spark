@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 /// Base class for all HTML nodes.
-abstract class Node {
+abstract class VNode {
   /// Renders the node to an HTML string.
   String toHtml();
 
@@ -12,7 +12,7 @@ abstract class Node {
 
 /// A text node containing a string value.
 /// The content is automatically escaped when rendered.
-class Text extends Node {
+class Text extends VNode {
   final String text;
 
   Text(this.text);
@@ -24,7 +24,7 @@ class Text extends Node {
 /// A raw HTML node.
 /// The content is rendered exactly as provided, without escaping.
 /// Use with caution.
-class RawHtml extends Node {
+class RawHtml extends VNode {
   final String html;
 
   RawHtml(this.html);
@@ -34,11 +34,11 @@ class RawHtml extends Node {
 }
 
 /// An HTML element with a tag, attributes, and children.
-class Element extends Node {
+class Element extends VNode {
   final String tag;
   final Map<String, dynamic> attributes;
   final Map<String, Function> events;
-  final List<Node> children;
+  final List<VNode> children;
   final bool selfClosing;
 
   Element(

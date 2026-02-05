@@ -10,7 +10,7 @@ class NotFoundPage extends SparkPage<void> {
   }
 
   @override
-  Node render(void data, PageRequest request) {
+  Element render(void data, PageRequest request) {
     return div(
       attributes: {'style': 'text-align: center; padding: 50px;'},
       [

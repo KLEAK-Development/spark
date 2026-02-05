@@ -13,7 +13,7 @@ class TestPage extends SparkPage<String> {
   }
 
   @override
-  Node render(String data, PageRequest request) {
+  VNode render(String data, PageRequest request) {
     return Text(data);
   }
 }
@@ -25,7 +25,7 @@ class CustomPage extends SparkPage<void> {
       PageData(null);
 
   @override
-  Node render(void data, PageRequest request) => Text('');
+  VNode render(void data, PageRequest request) => Text('');
 
   @override
   String title(void data, PageRequest request) => 'Custom Title';
