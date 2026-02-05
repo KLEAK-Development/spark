@@ -1,0 +1,373 @@
+00:00 +0: loading test/endpoint_generator_test.dart
+00:00 +0: test/endpoint_generator_test.dart: EndpointGenerator generates endpoint handler for SparkEndpoint (no body)
+00:01 +1: test/constructor_binding_test.dart: EndpointGenerator Constructor Binding binds request body to DTO constructor and serializes fields
+00:01 +2: test/constructor_binding_test.dart: EndpointGenerator Constructor Binding binds request body to DTO constructor and serializes fields
+00:01 +3: test/optimized_parsing_test.dart: generates optimized body parsing for specific content types
+00:01 +4: test/optimized_parsing_test.dart: generates optimized body parsing for specific content types
+00:01 +5: test/web_entry_builder_test.dart: WebEntryBuilder generates web entry for page with @Component classes
+00:01 +6: test/web_entry_builder_test.dart: WebEntryBuilder generates web entry for page with @Component classes
+00:01 +7: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +8: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +9: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +10: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +11: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +12: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +13: test/component_generator_test.dart: ComponentGenerator generates complete reactive class with private fields and setters
+00:01 +14: test/endpoint_generator_test.dart: EndpointGenerator generates validation logic
+00:01 +15: test/endpoint_generator_test.dart: EndpointGenerator generates validation logic
+00:01 +16: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:01 +17: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +18: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +19: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +20: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +21: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +22: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +23: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +24: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +25: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +26: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +27: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +28: test/router_builder_test.dart: RouterBuilder generates router and server config with new fields
+00:02 +29: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:02 +30: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:02 +31: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:02 +32: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:02 +33: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:02 +33 -1: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:02 +33 -1: test/endpoint_generator_test.dart: EndpointGenerator generates correct serialization for nullable Map in DTO [E]
+  Expected: contains 'if (result.nextTier != null) \'nextTier\': result.nextTier!.map((k, v) => MapEntry(k, v))'
+    Actual: '// Route: /api/test (GET)\n'
+              'const _$TestEndpointRoute = (\n'
+              '  path: \'/api/test\',\n'
+              '  methods: <String>[\'GET\'],\n'
+              '  pathParams: <String>[],\n'
+              '  className: \'TestEndpoint\',\n'
+              ');\n'
+              '\n'
+              'Future<Response> _$handleTestEndpoint(\n'
+              '  Request request,\n'
+              ') async {\n'
+              '  final endpoint = TestEndpoint();\n'
+              '\n'
+              '  var pipeline = const Pipeline();\n'
+              '  for (final middleware in endpoint.middleware) {\n'
+              '    pipeline = pipeline.addMiddleware(middleware);\n'
+              '  }\n'
+              '\n'
+              '  final handler = (Request req) async {\n'
+              '    try {\n'
+              '    final sparkRequest = SparkRequest(\n'
+              '      shelfRequest: req,\n'
+              '      pathParams: {\n'
+              '      },\n'
+              '    );\n'
+              '\n'
+              '    final result = await endpoint.handler(sparkRequest);\n'
+              '\n'
+              '    return Response.ok(jsonEncode({if (result.nextTier != null) \'next_tier\': result.nextTier!.map((k, v) => MapEntry(k, v))}), headers: {"content-type": "application/json"});\n'
+              '    } on SparkValidationException catch (e) {\n'
+              '      return ApiError(\n'
+              '        message: e.message,\n'
+              '        code: \'VALIDATION_ERROR\',\n'
+              '        details: e.errors,\n'
+              '      ).toResponse(400);\n'
+              '    } on ApiError catch (e) {\n'
+              '      return e.toResponse();\n'
+              '    } on SparkHttpException catch (e) {\n'
+              '      return ApiError(\n'
+              '        message: e.message,\n'
+              '        code: e.code,\n'
+              '        details: e.details,\n'
+              '      ).toResponse(e.statusCode);\n'
+              '    } catch (e, s) {\n'
+              '      print(e);\n'
+              '      return ApiError(\n'
+              '        message: \'Internal Server Error\',\n'
+              '        code: \'INTERNAL_ERROR\',\n'
+              '      ).toResponse(500);\n'
+              '    }\n'
+              '  };\n'
+              '\n'
+              '  return pipeline.addHandler(handler)(request);\n'
+              '}\n'
+              ''
+     Which: does not contain 'if (result.nextTier != null) \'nextTier\': result.nextTier!.map((k, v) => MapEntry(k, v))'
+  
+  package:matcher                                               expect
+  test/endpoint_generator_test.dart 1394:11                     main.<fn>.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  package:build_test/src/resolve_source.dart 243:16             _ResolveSourceBuilder.build
+  ===== asynchronous gap ===========================
+  package:build_runner/src/build/run_builder.dart 85:7          runBuilder.buildForInput
+  ===== asynchronous gap ===========================
+  package:build_runner/src/logging/build_log_logger.dart 58:13  BuildLogLogger.scopeLogAsync.<fn>
+  
+0s _ResolveSourceBuilder<Null> on 10 inputs; spent 1s analyzing; a|lib/$lib$
+
+0s _ResolveSourceBuilder<Null> on 10 inputs: 10 no-op; spent 1s analyzing
+
+Built with build_runner/jit in 0s; wrote 0 outputs.
+00:03 +33 -2: test/nested_web_entry_test.dart: WebEntryBuilder Nested & Imports generates web entry for nested page with correct imports
+00:03 +33 -2: test/list_parsing_test.dart: EndpointGenerator List Parsing generates correct parsing for List<String>, List<int>? and List<NestedDto> [E]
+  Expected: contains 'nullableTags: (rawBody as Map<String, dynamic>)["nullableTags"] == null ? null : ((rawBody as Map<String, dynamic>)["nullableTags"] as List).map((e) => e.toString()).toList()'
+    Actual: '// Route: /api/lists (POST)\n'
+              'const _$ListEndpointRoute = (\n'
+              '  path: \'/api/lists\',\n'
+              '  methods: <String>[\'POST\'],\n'
+              '  pathParams: <String>[],\n'
+              '  className: \'ListEndpoint\',\n'
+              ');\n'
+              '\n'
+              'Future<Response> _$handleListEndpoint(\n'
+              '  Request request,\n'
+              ') async {\n'
+              '  final endpoint = ListEndpoint();\n'
+              '\n'
+              '  var pipeline = const Pipeline();\n'
+              '  for (final middleware in endpoint.middleware) {\n'
+              '    pipeline = pipeline.addMiddleware(middleware);\n'
+              '  }\n'
+              '\n'
+              '  final handler = (Request req) async {\n'
+              '    try {\n'
+              '    final sparkRequest = SparkRequest(\n'
+              '      shelfRequest: req,\n'
+              '      pathParams: {\n'
+              '      },\n'
+              '    );\n'
+              '\n'
+              '    dynamic rawBody;\n'
+              '    final contentTypeHeader = req.headers["content-type"];\n'
+              '    final contentType = ContentType.from(contentTypeHeader);\n'
+              '    if (contentType == ContentType.multipart) {\n'
+              '      final formData = <String, dynamic>{};\n'
+              '      await for (final part in sparkRequest.multipart) {\n'
+              '        if (part.filename == null) {\n'
+              '          final value = await part.readString();\n'
+              '          formData[part.name ?? ""] = value;\n'
+              '        }\n'
+              '      }\n'
+              '      rawBody = formData;\n'
+              '    }\n'
+              '    else if (contentType == ContentType.formUrlEncoded) {\n'
+              '      final bodyString = await req.readAsString();\n'
+              '      rawBody = Uri.splitQueryString(bodyString);\n'
+              '    }\n'
+              '    else if (contentType == ContentType.json) {\n'
+              '      final bodyString = await req.readAsString();\n'
+              '      rawBody = jsonDecode(bodyString);\n'
+              '    }\n'
+              '    else {\n'
+              '      rawBody = await req.readAsString();\n'
+              '    }\n'
+              '    final body = ListDto(tags: ((rawBody as Map<String, dynamic>)["tags"] as List).map((e) => e.toString()).toList(), scores: (rawBody as Map<String, dynamic>)["scores"] == null ? null : ((rawBody as Map<String, dynamic>)["scores"] as List).map((e) => int.parse(e.toString())).toList(), nullableTags: (rawBody as Map<String, dynamic>)["nullable_tags"] == null ? null : ((rawBody as Map<String, dynamic>)["nullable_tags"] as List).map((e) => e.toString()).toList(), users: ((rawBody as Map<String, dynamic>)["users"] as List).map((e) => NestedDto(name: (e as Map<String, dynamic>)["name"].toString())).toList());\n'
+              '    final result = await endpoint.handler(sparkRequest, body);\n'
+              '\n'
+              '    return Response.ok(result, headers: {"content-type": "text/plain"});\n'
+              '    } on SparkValidationException catch (e) {\n'
+              '      return ApiError(\n'
+              '        message: e.message,\n'
+              '        code: \'VALIDATION_ERROR\',\n'
+              '        details: e.errors,\n'
+              '      ).toResponse(400);\n'
+              '    } on ApiError catch (e) {\n'
+              '      return e.toResponse();\n'
+              '    } on SparkHttpException catch (e) {\n'
+              '      return ApiError(\n'
+              '        message: e.message,\n'
+              '        code: e.code,\n'
+              '        details: e.details,\n'
+              '      ).toResponse(e.statusCode);\n'
+              '    } catch (e, s) {\n'
+              '      print(e);\n'
+              '      return ApiError(\n'
+              '        message: \'Internal Server Error\',\n'
+              '        code: \'INTERNAL_ERROR\',\n'
+              '      ).toResponse(500);\n'
+              '    }\n'
+              '  };\n'
+              '\n'
+              '  return pipeline.addHandler(handler)(request);\n'
+              '}\n'
+              ''
+     Which: does not contain 'nullableTags: (rawBody as Map<String, dynamic>)["nullableTags"] == null ? null : ((rawBody as Map<String, dynamic>)["nullableTags"] as List).map((e) => e.toString()).toList()'
+  
+  package:matcher                                               expect
+  test/list_parsing_test.dart 167:13                            main.<fn>.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  package:build_test/src/resolve_source.dart 243:16             _ResolveSourceBuilder.build
+  ===== asynchronous gap ===========================
+  package:build_runner/src/build/run_builder.dart 85:7          runBuilder.buildForInput
+  ===== asynchronous gap ===========================
+  package:build_runner/src/logging/build_log_logger.dart 58:13  BuildLogLogger.scopeLogAsync.<fn>
+  
+0s _ResolveSourceBuilder<Null> on 10 inputs; a|lib/$lib$
+
+W _ResolveSourceBuilder<Null> on lib/src/annotations/endpoint.dart:
+// Route: /api/lists (POST)
+const _$ListEndpointRoute = (
+  path: '/api/lists',
+  methods: <String>['POST'],
+  pathParams: <String>[],
+  className: 'ListEndpoint',
+);
+
+Future<Response> _$handleListEndpoint(
+  Request request,
+) async {
+  final endpoint = ListEndpoint();
+
+  var pipeline = const Pipeline();
+  for (final middleware in endpoint.middleware) {
+    pipeline = pipeline.addMiddleware(middleware);
+  }
+
+  final handler = (Request req) async {
+    try {
+    final sparkRequest = SparkRequest(
+      shelfRequest: req,
+      pathParams: {
+      },
+    );
+
+    dynamic rawBody;
+    final contentTypeHeader = req.headers["content-type"];
+    final contentType = ContentType.from(contentTypeHeader);
+    if (contentType == ContentType.multipart) {
+      final formData = <String, dynamic>{};
+      await for (final part in sparkRequest.multipart) {
+        if (part.filename == null) {
+          final value = await part.readString();
+          formData[part.name ?? ""] = value;
+        }
+      }
+      rawBody = formData;
+    }
+    else if (contentType == ContentType.formUrlEncoded) {
+      final bodyString = await req.readAsString();
+      rawBody = Uri.splitQueryString(bodyString);
+    }
+    else if (contentType == ContentType.json) {
+      final bodyString = await req.readAsString();
+      rawBody = jsonDecode(bodyString);
+    }
+    else {
+      rawBody = await req.readAsString();
+    }
+    final body = ListDto(tags: ((rawBody as Map<String, dynamic>)["tags"] as List).map((e) => e.toString()).toList(), scores: (rawBody as Map<String, dynamic>)["scores"] == null ? null : ((rawBody as Map<String, dynamic>)["scores"] as List).map((e) => int.parse(e.toString())).toList(), nullableTags: (rawBody as Map<String, dynamic>)["nullable_tags"] == null ? null : ((rawBody as Map<String, dynamic>)["nullable_tags"] as List).map((e) => e.toString()).toList(), users: ((rawBody as Map<String, dynamic>)["users"] as List).map((e) => NestedDto(name: (e as Map<String, dynamic>)["name"].toString())).toList());
+    final result = await endpoint.handler(sparkRequest, body);
+
+    return Response.ok(result, headers: {"content-type": "text/plain"});
+    } on SparkValidationException catch (e) {
+      return ApiError(
+        message: e.message,
+        code: 'VALIDATION_ERROR',
+        details: e.errors,
+      ).toResponse(400);
+    } on ApiError catch (e) {
+      return e.toResponse();
+    } on SparkHttpException catch (e) {
+      return ApiError(
+        message: e.message,
+        code: e.code,
+        details: e.details,
+      ).toResponse(e.statusCode);
+    } catch (e, s) {
+      print(e);
+      return ApiError(
+        message: 'Internal Server Error',
+        code: 'INTERNAL_ERROR',
+      ).toResponse(500);
+    }
+  };
+
+  return pipeline.addHandler(handler)(request);
+}
+
+1s _ResolveSourceBuilder<Null> on 10 inputs: 6 no-op; lib/src/endpoint/spark_endpoint.dart
+
+1s _ResolveSourceBuilder<Null> on 10 inputs: 10 no-op
+
+Built with build_runner/jit in 1s; wrote 0 outputs.
+00:03 +34 -2: test/reproduction_map_test.dart: EndpointGenerator correctly serializes nullable Map in DTO
+00:03 +34 -3: test/nested_nullable_test.dart: EndpointGenerator correctly serializes nested nullable objects
+00:03 +34 -3: test/reproduction_map_test.dart: EndpointGenerator correctly serializes nullable Map in DTO [E]
+  Expected: contains 'if (result.nextTier != null) \'nextTier\': result.nextTier!.map((k, v) => MapEntry(k, v))'
+    Actual: '// Route: /api/tier (GET)\n'
+              'const _$GetTierEndpointRoute = (\n'
+              '  path: \'/api/tier\',\n'
+              '  methods: <String>[\'GET\'],\n'
+              '  pathParams: <String>[],\n'
+              '  className: \'GetTierEndpoint\',\n'
+              ');\n'
+              '\n'
+              'Future<Response> _$handleGetTierEndpoint(\n'
+              '  Request request,\n'
+              ') async {\n'
+              '  final endpoint = GetTierEndpoint();\n'
+              '\n'
+              '  var pipeline = const Pipeline();\n'
+              '  for (final middleware in endpoint.middleware) {\n'
+              '    pipeline = pipeline.addMiddleware(middleware);\n'
+              '  }\n'
+              '\n'
+              '  final handler = (Request req) async {\n'
+              '    try {\n'
+              '    final sparkRequest = SparkRequest(\n'
+              '      shelfRequest: req,\n'
+              '      pathParams: {\n'
+              '      },\n'
+              '    );\n'
+              '\n'
+              '    final result = await endpoint.handler(sparkRequest);\n'
+              '\n'
+              '    return Response.ok(jsonEncode({if (result.nextTier != null) \'next_tier\': result.nextTier!.map((k, v) => MapEntry(k, v)), if (result.name != null) \'name\': result.name!}), headers: {"content-type": "application/json"});\n'
+              '    } on SparkValidationException catch (e) {\n'
+              '      return ApiError(\n'
+              '        message: e.message,\n'
+              '        code: \'VALIDATION_ERROR\',\n'
+              '        details: e.errors,\n'
+              '      ).toResponse(400);\n'
+              '    } on ApiError catch (e) {\n'
+              '      return e.toResponse();\n'
+              '    } on SparkHttpException catch (e) {\n'
+              '      return ApiError(\n'
+              '        message: e.message,\n'
+              '        code: e.code,\n'
+              '        details: e.details,\n'
+              '      ).toResponse(e.statusCode);\n'
+              '    } catch (e, s) {\n'
+              '      print(e);\n'
+              '      return ApiError(\n'
+              '        message: \'Internal Server Error\',\n'
+              '        code: \'INTERNAL_ERROR\',\n'
+              '      ).toResponse(500);\n'
+              '    }\n'
+              '  };\n'
+              '\n'
+              '  return pipeline.addHandler(handler)(request);\n'
+              '}\n'
+              ''
+     Which: does not contain 'if (result.nextTier != null) \'nextTier\': result.nextTier!.map((k, v) => MapEntry(k, v))'
+  
+  package:matcher                                               expect
+  test/reproduction_map_test.dart 130:9                         main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  package:build_test/src/resolve_source.dart 243:16             _ResolveSourceBuilder.build
+  ===== asynchronous gap ===========================
+  package:build_runner/src/build/run_builder.dart 85:7          runBuilder.buildForInput
+  ===== asynchronous gap ===========================
+  package:build_runner/src/logging/build_log_logger.dart 58:13  BuildLogLogger.scopeLogAsync.<fn>
+  
+0s _ResolveSourceBuilder<Null> on 10 inputs; a|lib/$lib$
+
+1s _ResolveSourceBuilder<Null> on 10 inputs: 6 no-op; lib/src/endpoint/spark_endpoint.dart
+
+1s _ResolveSourceBuilder<Null> on 10 inputs: 10 no-op
+
+Built with build_runner/jit in 1s; wrote 0 outputs.
+00:03 +35 -3: test/nested_nullable_test.dart: EndpointGenerator correctly serializes nested nullable objects
+00:03 +36 -3: Some tests failed.
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

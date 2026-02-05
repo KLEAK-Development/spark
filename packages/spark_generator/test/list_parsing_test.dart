@@ -167,7 +167,7 @@ void main() {
             expect(
               output,
               contains(
-                'nullableTags: (rawBody as Map<String, dynamic>)["nullableTags"] == null ? null : ((rawBody as Map<String, dynamic>)["nullableTags"] as List).map((e) => e.toString()).toList()',
+                'nullableTags: (rawBody as Map<String, dynamic>)["nullable_tags"] == null ? null : ((rawBody as Map<String, dynamic>)["nullable_tags"] as List).map((e) => e.toString()).toList()',
               ),
             );
 

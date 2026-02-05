@@ -1394,7 +1394,7 @@ void main() {
           expect(
             output,
             contains(
-              "if (result.nextTier != null) 'nextTier': result.nextTier!.map((k, v) => MapEntry(k, v))",
+              "if (result.nextTier != null) 'next_tier': result.nextTier!.map((k, v) => MapEntry(k, v))",
             ),
           );
         },
