@@ -103,7 +103,12 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
           !info.fieldType.isDartCoreNum &&
           !info.fieldType.isDartCoreBool,
     );
-    if (needsJson) {
+    // Almost always need it for List/Map support now
+    if ((needsJson ||
+            attributes.values.any(
+              (i) => i.fieldType.isDartCoreList || i.fieldType.isDartCoreMap,
+            )) &&
+        !baseFileImports.any((import) => import.contains('dart:convert'))) {
       buffer.writeln("import 'dart:convert';");
     }
 
@@ -318,6 +323,52 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
         );
       } else if (type.isDartCoreString) {
         buffer.writeln("        $targetAccess = newValue ?? '';");
+      } else if (type.isDartCoreList) {
+        if (type is ParameterizedType && type.typeArguments.isNotEmpty) {
+          final genericType = type.typeArguments.first;
+          if (genericType.isDartCoreString ||
+              genericType.isDartCoreInt ||
+              genericType.isDartCoreDouble ||
+              genericType.isDartCoreNum ||
+              genericType.isDartCoreBool ||
+              genericType is DynamicType) {
+            buffer.writeln(
+              "        $targetAccess = (jsonDecode(newValue ?? '[]') as List).cast<${genericType.getDisplayString()}>();",
+            );
+          } else {
+            buffer.writeln(
+              "        $targetAccess = (jsonDecode(newValue ?? '[]') as List).map((e) => ${genericType.getDisplayString()}.fromJson(e)).toList();",
+            );
+          }
+        } else {
+          buffer.writeln(
+            "        $targetAccess = (jsonDecode(newValue ?? '[]') as List);",
+          );
+        }
+      } else if (type.isDartCoreMap) {
+        if (type is ParameterizedType && type.typeArguments.length == 2) {
+          final keyType = type.typeArguments[0];
+          final valueType = type.typeArguments[1];
+
+          if (valueType.isDartCoreString ||
+              valueType.isDartCoreInt ||
+              valueType.isDartCoreDouble ||
+              valueType.isDartCoreNum ||
+              valueType.isDartCoreBool ||
+              valueType is DynamicType) {
+            buffer.writeln(
+              "        $targetAccess = (jsonDecode(newValue ?? '{}') as Map).cast<${keyType.getDisplayString()}, ${valueType.getDisplayString()}>();",
+            );
+          } else {
+            buffer.writeln(
+              "        $targetAccess = (jsonDecode(newValue ?? '{}') as Map).map((k, v) => MapEntry(k as ${keyType.getDisplayString()}, ${valueType.getDisplayString()}.fromJson(v)));",
+            );
+          }
+        } else {
+          buffer.writeln(
+            "        $targetAccess = (jsonDecode(newValue ?? '{}') as Map);",
+          );
+        }
       } else {
         // Check for fromJson factory
         final typeElement = type.element;
@@ -360,6 +411,8 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
         type.isDartCoreNum ||
         type.isDartCoreBool) {
       return '$fieldName.toString()';
+    } else if (type.isDartCoreList || type.isDartCoreMap) {
+      return 'jsonEncode($fieldName)';
     } else {
       return 'jsonEncode($fieldName.toJson())';
     }
