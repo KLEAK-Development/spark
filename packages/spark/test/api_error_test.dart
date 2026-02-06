@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 import 'dart:convert';
 import 'package:spark_framework/src/errors/errors.dart';
 import 'package:test/test.dart';

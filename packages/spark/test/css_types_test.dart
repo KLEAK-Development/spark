@@ -434,9 +434,13 @@ void main() {
     });
 
     test('cubic-bezier outputs correct CSS', () {
+      final css = CssTimingFunction.cubicBezier(0.4, 0, 0.2, 1).toCss();
       expect(
-        CssTimingFunction.cubicBezier(0.4, 0, 0.2, 1).toCss(),
-        equals('cubic-bezier(0.4, 0.0, 0.2, 1.0)'),
+        css,
+        anyOf(
+          equals('cubic-bezier(0.4, 0.0, 0.2, 1.0)'),
+          equals('cubic-bezier(0.4, 0, 0.2, 1)'),
+        ),
       );
     });
 

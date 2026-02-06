@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 import 'package:test/test.dart';
 import 'package:spark_framework/src/server/render_page.dart';
 import 'package:spark_framework/src/server/static_handler.dart';

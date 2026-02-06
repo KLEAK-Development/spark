@@ -194,6 +194,23 @@ void _patchElement(web.Element el, html.Element vNode, {required bool isSvg}) {
 }
 
 void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
+  // Remove attributes that are no longer present
+  final currentAttrNames = <String>[];
+  final attributes = el.attributes;
+  for (var i = 0; i < attributes.length; i++) {
+    final item = attributes.item(i);
+    if (item != null) {
+      currentAttrNames.add(item.name);
+    }
+  }
+
+  for (final name in currentAttrNames) {
+    if (!attrs.containsKey(name) && name != 'data-spark-id') {
+      el.removeAttribute(name);
+    }
+  }
+
+  // Set or update new attributes
   attrs.forEach((key, value) {
     if (value == null) {
       el.removeAttribute(key);

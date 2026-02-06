@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 import 'dart:convert';
 import 'package:spark_framework/spark.dart';
 import 'package:shelf/shelf.dart';

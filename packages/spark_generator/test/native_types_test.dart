@@ -132,14 +132,18 @@ void main() {
           expect(output, contains("case 'tags':"));
           expect(
             output,
-            contains("(jsonDecode(newValue ?? '[]') as List).cast<String>()"),
+            contains(
+              "(jsonDecode(newValue ?? '[]') as List).cast<String>().toList()",
+            ),
           );
 
           // List<int>
           expect(output, contains("case 'numbers':"));
           expect(
             output,
-            contains("(jsonDecode(newValue ?? '[]') as List).cast<int>()"),
+            contains(
+              "(jsonDecode(newValue ?? '[]') as List).cast<int>().toList()",
+            ),
           );
 
           // Map<String, int>

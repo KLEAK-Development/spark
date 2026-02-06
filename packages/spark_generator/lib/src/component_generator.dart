@@ -333,7 +333,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
               genericType.isDartCoreBool ||
               genericType is DynamicType) {
             buffer.writeln(
-              "        $targetAccess = (jsonDecode(newValue ?? '[]') as List).cast<${genericType.getDisplayString()}>();",
+              "        $targetAccess = (jsonDecode(newValue ?? '[]') as List).cast<${genericType.getDisplayString()}>().toList();",
             );
           } else {
             buffer.writeln(

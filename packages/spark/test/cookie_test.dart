@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 import 'package:spark_framework/spark.dart';
 import 'package:test/test.dart';
 
