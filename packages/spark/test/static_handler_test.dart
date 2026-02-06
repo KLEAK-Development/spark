@@ -117,8 +117,12 @@ void main() {
     });
 
     group('directory traversal prevention', () {
-      test('blocks path traversal with ../', () async {
-        // Create a file outside the served directory
+      test('does not serve files outside base directory via ../', () async {
+        // Dart's Uri.parse normalizes "../" segments before the handler
+        // sees them, so the path collapses and the file isn't found.
+        // The handler's normalizedPath check is defense-in-depth for
+        // servers that don't normalize URIs. Either way, the secret
+        // content must never be leaked.
         final parentFile = File('${tempDir.parent.path}/secret.txt');
         await parentFile.writeAsString('secret');
         addTearDown(() async {
@@ -129,8 +133,30 @@ void main() {
         final handler = createStaticHandler(tempDir.path);
         final response = await handler(_request('../secret.txt'));
 
-        expect(response.statusCode, 403);
-        expect(await response.readAsString(), 'Access denied');
+        expect(response.statusCode, isNot(200));
+        final body = await response.readAsString();
+        expect(body, isNot(contains('secret')));
+      });
+
+      test('does not serve file from parent when base is a subdirectory',
+          () async {
+        // Use a subdirectory as the base path. A file at the temp root
+        // is outside that base and must not be served.
+        final subDir = Directory('${tempDir.path}/www');
+        await subDir.create();
+        await _writeFile('www/safe.txt', 'safe content');
+        await _writeFile('outside.txt', 'outside content');
+
+        final handler = createStaticHandler(subDir.path);
+
+        // File inside base dir is served normally
+        final safeResponse = await handler(_request('safe.txt'));
+        expect(safeResponse.statusCode, 200);
+        expect(await safeResponse.readAsString(), 'safe content');
+
+        // File at parent level is not accessible
+        final outsideResponse = await handler(_request('outside.txt'));
+        expect(outsideResponse.statusCode, isNot(200));
       });
     });
 
