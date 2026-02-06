@@ -16,7 +16,7 @@ void main() {
       });
 
       test('errors list is unmodifiable', () {
-        expect(() => parser.errors.add(throw ''), throwsUnsupportedError);
+        expect(() => (parser.errors as List).add(null), throwsUnsupportedError);
       });
     });
 
