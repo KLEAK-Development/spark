@@ -2,6 +2,7 @@
 
 - Added `notFoundPage` support to `SparkServerConfig` to correct CSP nonce handling on 404 pages.
 - Added automatic conversion of camelCase fields to snake_case JSON keys in endpoint generator.
+- Improve component generator Attribute type handling
 
 
 ## 1.0.0-alpha.11
