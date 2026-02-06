@@ -38,11 +38,14 @@ jobs:
         with:
           sdk: "3.10.7"
 
+      - uses: browser-actions/setup-chrome@v1
+
       - name: Install dependencies
         run: dart pub get
 
       - name: Run tests
         run: |
           cd packages/spark && dart test
+          dart test -p chrome
           cd ../spark_cli && dart test
           cd ../spark_generator && dart test
