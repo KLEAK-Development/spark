@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 import 'dart:io';
 import 'dart:async';
 import 'package:path/path.dart' as p;
@@ -39,7 +42,7 @@ void main() {
 
       // Check counter.dart
       final counterFile = File(
-        p.join(projectPath, 'lib/components/counter/counter.dart'),
+        p.join(projectPath, 'lib/components/counter.dart'),
       );
       expect(counterFile.existsSync(), isTrue);
       final counterContent = counterFile.readAsStringSync();
