@@ -1,3 +1,8 @@
+## 1.0.0-alpha.8
+
+- Updated dependencies.
+- Spark init command create a working project
+
 ## 1.0.0-alpha.7
 
 - Fixed an issue where hidden files (starting with `.`) were not being copied from `web` to `build/web` during `spark build`.

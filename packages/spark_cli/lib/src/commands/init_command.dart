@@ -49,6 +49,12 @@ class InitCommand extends Command<void> {
       'lib/components/counter.dart',
       _counterContent,
     );
+
+    await _createFile(
+      projectDir,
+      'lib/components/counter_base.dart',
+      _counterBaseContent,
+    );
     await _createFile(projectDir, 'lib/pages/home_page.dart', _homePageContent);
     await _createFile(projectDir, '.gitignore', _gitignoreContent);
 
@@ -80,14 +86,15 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  spark_framework: ^1.0.0-alpha.1
+  spark_framework: ^1.0.0-alpha.5
   shelf: ^1.4.1
 
 dev_dependencies:
-  build_runner: ^2.4.6
-  lints: ^3.0.0
+  build_runner: ^2.11.0
+  build_web_compilers: ^4.4.7
+  lints: ^6.0.0
   test: ^1.24.0
-  spark_generator: ^1.0.0-alpha.2
+  spark_generator: ^1.0.0-alpha.11
 ''';
 
   final _analysisOptionsContent = '''
@@ -114,30 +121,39 @@ void main() async {
 import 'package:spark_framework/spark.dart';
 
 @Endpoint(path: '/api/hello', method: 'GET')
-Future<String> hello() async => 'Hello from Spark!';
+class HealthEndpoint extends SparkEndpoint {
+  @override
+  Future<String> handler(SparkRequest request) async {
+    return 'Hello from Spark!';
+  }
+}
 ''';
 
   final _counterContent = '''
+export 'counter_base.dart'
+    if (dart.library.html) 'counter_base.impl.dart'
+    if (dart.library.io) 'counter_base.impl.dart';
+''';
+
+  final _counterBaseContent = '''
 import 'package:spark_framework/spark.dart';
 
-part 'counter.g.dart';
 
 @Component(tag: Counter.tag)
-class Counter extends SparkComponent with _\$CounterSync {
+class Counter {
   Counter({this.count = 0, this.label = 'Count'});
 
   static const tag = 'my-counter';
 
-  @override
   String get tagName => tag;
 
-  @Attribute(observable: true)
+  @Attribute()
   int count;
 
+  @Attribute()
   String label;
 
-  @override
-  Element build() {
+  Element render() {
     return div([
       style([
         css({
@@ -154,8 +170,8 @@ class Counter extends SparkComponent with _\$CounterSync {
           ),
           'button': .typed(
             cursor: .pointer,
-            padding: .symmetric(vertical: .px(4), horizontal: .px(8)),
-            margin: .symmetric(horizontal: .px(4)),
+            padding: .symmetric(.px(4), .px(8)),
+            margin: .symmetric(.px(4), .px(0)),
           ),
         }).toCss(),
       ]),
@@ -197,13 +213,13 @@ class HomePage extends SparkPage<HomePageState> {
   }
 
   @override
-  Element build(HomePageState state) {
+  Element render(HomePageState state, PageRequest request) {
     return div(
       className: 'container',
       [
         h1(state.message),
         p('You have successfully created a new Spark project.'),
-        Counter(count: 10, label: 'My Counter'),
+        Counter(count: 10, label: 'My Counter').render(),
       ],
     );
   }
@@ -218,8 +234,8 @@ class HomePage extends SparkPage<HomePageState> {
       });
 
   @override
-  List<ComponentInfo> get components => [
-        ComponentInfo(Counter.tag, Counter.new),
+  List<Type> get components => [
+        Counter,
       ];
 }
 ''';
