@@ -1,3 +1,4 @@
+import 'package:spark_cli/src/errors/dev_error.dart';
 import 'package:spark_cli/src/errors/dev_error_type.dart';
 import 'package:spark_cli/src/parsers/build_runner_parser.dart';
 import 'package:test/test.dart';
@@ -16,7 +17,8 @@ void main() {
       });
 
       test('errors list is unmodifiable', () {
-        expect(() => (parser.errors as List).add(null), throwsUnsupportedError);
+        final dummy = DevError.build(message: 'x');
+        expect(() => parser.errors.add(dummy), throwsUnsupportedError);
       });
     });
 
