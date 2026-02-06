@@ -39,17 +39,13 @@ void main() {
 
       // Check counter.dart
       final counterFile = File(
-        p.join(projectPath, 'lib/components/counter.dart'),
+        p.join(projectPath, 'lib/components/counter/counter.dart'),
       );
       expect(counterFile.existsSync(), isTrue);
       final counterContent = counterFile.readAsStringSync();
 
-      expect(counterContent, contains("part 'counter.g.dart';"));
-      expect(
-        counterContent,
-        contains('class Counter extends SparkComponent with _\$CounterSync'),
-      );
-      expect(counterContent, contains('@Attribute(observable: true)'));
+      expect(counterContent, contains('class Counter'));
+      expect(counterContent, contains('@Attribute()'));
       expect(counterContent, contains('css({'));
       expect(counterContent, contains('.typed('));
       expect(counterContent, contains('onClick: (_) {'));
@@ -62,10 +58,13 @@ void main() {
       final homePageContent = homePageFile.readAsStringSync();
 
       expect(homePageContent, contains("import '../components/counter.dart';"));
-      expect(homePageContent, contains('Element build(HomePageState state)'));
       expect(
         homePageContent,
-        contains("Counter(count: 10, label: 'My Counter')"),
+        contains('Element render(HomePageState state, PageRequest request)'),
+      );
+      expect(
+        homePageContent,
+        contains("Counter(count: 10, label: 'My Counter').render()"),
       );
       expect(
         homePageContent,

@@ -53,6 +53,7 @@ void main() {
         'bin/server.dart',
         'lib/endpoints/endpoints.dart',
         'lib/components/counter.dart',
+        'lib/components/counter_base.dart',
         'lib/pages/home_page.dart',
         '.gitignore',
       ];
