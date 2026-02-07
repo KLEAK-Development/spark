@@ -54,7 +54,9 @@ Future<String> _generateForPage({
       );
 
       // Find the annotated class (last concrete class in the file)
-      final classes = libraryElement.children.whereType<ClassElement>().toList();
+      final classes = libraryElement.children
+          .whereType<ClassElement>()
+          .toList();
       final annotatedClass = classes.lastWhere(
         (e) => e.metadata.annotations.any((a) {
           final enclosing = a.element?.enclosingElement;
@@ -191,7 +193,9 @@ void main() {
       // Handler should only take Request, no extra String params
       expect(
         output,
-        contains('Future<Response> _\$handleAboutPage(\n  Request request,\n) async {'),
+        contains(
+          'Future<Response> _\$handleAboutPage(\n  Request request,\n) async {',
+        ),
       );
     });
 
@@ -281,7 +285,9 @@ void main() {
       // Verify the redirect branch includes cookie-setting logic
       expect(
         output,
-        contains('HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList()'),
+        contains(
+          'HttpHeaders.setCookieHeader: cookies.map((c) => c.toString()).toList()',
+        ),
       );
     });
   });

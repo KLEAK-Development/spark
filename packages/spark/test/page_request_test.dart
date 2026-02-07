@@ -351,10 +351,7 @@ void main() {
       });
 
       test('preserves path params', () {
-        final req = _makeRequest(
-          'http://localhost/',
-          pathParams: {'id': '1'},
-        );
+        final req = _makeRequest('http://localhost/', pathParams: {'id': '1'});
         final updated = req.withContext({'key': 'val' as Object});
         expect(updated.pathParams['id'], '1');
       });
@@ -362,20 +359,14 @@ void main() {
 
     group('withPathParams', () {
       test('merges new path params', () {
-        final req = _makeRequest(
-          'http://localhost/',
-          pathParams: {'id': '1'},
-        );
+        final req = _makeRequest('http://localhost/', pathParams: {'id': '1'});
         final updated = req.withPathParams({'slug': 'hello'});
         expect(updated.pathParams['id'], '1');
         expect(updated.pathParams['slug'], 'hello');
       });
 
       test('overrides existing path params', () {
-        final req = _makeRequest(
-          'http://localhost/',
-          pathParams: {'id': '1'},
-        );
+        final req = _makeRequest('http://localhost/', pathParams: {'id': '1'});
         final updated = req.withPathParams({'id': '2'});
         expect(updated.pathParams['id'], '2');
       });

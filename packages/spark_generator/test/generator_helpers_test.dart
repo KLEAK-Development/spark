@@ -12,17 +12,17 @@ void main() {
     });
 
     test('parses multiple colon-style parameters', () {
-      expect(
-        parsePathParams('/users/:userId/posts/:postId'),
-        ['userId', 'postId'],
-      );
+      expect(parsePathParams('/users/:userId/posts/:postId'), [
+        'userId',
+        'postId',
+      ]);
     });
 
     test('parses multiple bracket-style parameters', () {
-      expect(
-        parsePathParams('/users/{userId}/posts/{postId}'),
-        ['userId', 'postId'],
-      );
+      expect(parsePathParams('/users/{userId}/posts/{postId}'), [
+        'userId',
+        'postId',
+      ]);
     });
 
     test('parses mixed colon and bracket parameters', () {
@@ -92,10 +92,7 @@ void main() {
     });
 
     test('handles trailing slash', () {
-      expect(
-        convertToShelfPath('/users/:id/'),
-        '/users/<id>/',
-      );
+      expect(convertToShelfPath('/users/:id/'), '/users/<id>/');
     });
   });
 }

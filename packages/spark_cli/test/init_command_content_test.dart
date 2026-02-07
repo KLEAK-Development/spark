@@ -40,12 +40,18 @@ void main() {
 
       final projectPath = p.join(tempDir.path, projectName);
 
-      // Check counter.dart
+      // Check counter.dart (conditional export)
       final counterFile = File(
         p.join(projectPath, 'lib/components/counter.dart'),
       );
       expect(counterFile.existsSync(), isTrue);
-      final counterContent = counterFile.readAsStringSync();
+
+      // Check counter_base.dart (actual class definition)
+      final counterBaseFile = File(
+        p.join(projectPath, 'lib/components/counter_base.dart'),
+      );
+      expect(counterBaseFile.existsSync(), isTrue);
+      final counterContent = counterBaseFile.readAsStringSync();
 
       expect(counterContent, contains('class Counter'));
       expect(counterContent, contains('@Attribute()'));

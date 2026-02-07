@@ -1,5 +1,4 @@
 import 'package:spark_framework/spark.dart';
-import 'package:spark_framework/src/annotations/openapi.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -64,18 +63,14 @@ void main() {
         tags: ['users'],
         deprecated: false,
         security: [
-          {
-            'bearerAuth': <String>[],
-          },
+          {'bearerAuth': <String>[]},
         ],
         operationId: 'createUser',
         externalDocs: ExternalDocumentation(
           url: 'https://docs.example.com',
           description: 'More info',
         ),
-        parameters: [
-          Parameter(name: 'limit', inLocation: 'query'),
-        ],
+        parameters: [Parameter(name: 'limit', inLocation: 'query')],
         contentTypes: ['application/json'],
         statusCode: 201,
       );
@@ -266,15 +261,16 @@ void main() {
         scheme.flows!['authorizationCode']!.authorizationUrl,
         'https://auth.example.com/authorize',
       );
-      expect(
-        scheme.flows!['authorizationCode']!.scopes,
-        {'read': 'Read access', 'write': 'Write access'},
-      );
+      expect(scheme.flows!['authorizationCode']!.scopes, {
+        'read': 'Read access',
+        'write': 'Write access',
+      });
     });
 
     test('openIdConnect sets correct type and url', () {
       const scheme = SecurityScheme.openIdConnect(
-        openIdConnectUrl: 'https://auth.example.com/.well-known/openid-configuration',
+        openIdConnectUrl:
+            'https://auth.example.com/.well-known/openid-configuration',
       );
       expect(scheme.type, 'openIdConnect');
       expect(
