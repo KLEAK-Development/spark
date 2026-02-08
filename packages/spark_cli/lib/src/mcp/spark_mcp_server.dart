@@ -334,7 +334,7 @@ McpTool _createPageTool() {
       final filePath = p.join(workDir, 'lib', 'pages', fileName);
 
       final file = File(filePath);
-      if (file.existsSync()) {
+      if (await file.exists()) {
         return McpToolResult(
           content: [McpContent.text('Error: File $filePath already exists.')],
           isError: true,
@@ -394,7 +394,7 @@ McpTool _createEndpointTool() {
       final filePath = p.join(workDir, 'lib', 'endpoints', fileName);
 
       final file = File(filePath);
-      if (file.existsSync()) {
+      if (await file.exists()) {
         return McpToolResult(
           content: [McpContent.text('Error: File $filePath already exists.')],
           isError: true,
@@ -475,7 +475,7 @@ McpTool _createComponentTool() {
       final baseFile = p.join(componentDir, '${snakeName}_base.dart');
 
       final dir = Directory(componentDir);
-      if (dir.existsSync()) {
+      if (await dir.exists()) {
         return McpToolResult(
           content: [
             McpContent.text('Error: Directory $componentDir already exists.'),
