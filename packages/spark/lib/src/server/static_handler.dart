@@ -246,27 +246,3 @@ bool _shouldCompress(String mimeType) {
       mimeType == 'application/wasm';
 }
 
-/// Simple static handler without configuration (backwards compatible).
-///
-/// Use [createStaticHandler] for more control.
-///
-/// ## Example
-///
-/// ```dart
-/// app.mount('/', simpleStaticHandler('build/web'));
-/// ```
-Handler simpleStaticHandler(String path) {
-  return (Request request) async {
-    final filePath = request.url.path;
-    final file = File('$path/$filePath');
-
-    if (await file.exists()) {
-      final extension = _getExtension(filePath);
-      final mimeType = _mimeTypes[extension] ?? 'application/octet-stream';
-
-      return Response.ok(file.openRead(), headers: {'content-type': mimeType});
-    }
-
-    return Response.notFound('File not found');
-  };
-}
