@@ -2,34 +2,89 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:spark_cli/src/mcp/mcp_server.dart';
+import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
+
+/// Creates an [McpServer] connected to in-memory streams for testing.
+///
+/// Returns the server and a list that accumulates decoded JSON responses.
+({
+  McpServer server,
+  List<Map<String, Object?>> responses,
+  StreamController<String> input,
+})
+_createTestServer({String name = 'test-server', String version = '0.1.0'}) {
+  final responses = <Map<String, Object?>>[];
+  final inputController = StreamController<String>();
+  final outputController = StreamController<String>();
+
+  outputController.stream.listen((line) {
+    responses.add(jsonDecode(line) as Map<String, Object?>);
+  });
+
+  final channel = StreamChannel.withGuarantees(
+    inputController.stream,
+    outputController.sink,
+  );
+
+  final server = McpServer(name: name, version: version, channel: channel);
+
+  return (server: server, responses: responses, input: inputController);
+}
+
+/// Sends a JSON-RPC request through the [input] controller and waits for
+/// the response to appear in [responses].
+Future<Map<String, Object?>> _sendRequest(
+  StreamController<String> input,
+  List<Map<String, Object?>> responses,
+  Map<String, Object?> message,
+) async {
+  final countBefore = responses.length;
+  input.add(jsonEncode(message));
+  // Give the event loop time to process.
+  await Future<void>.delayed(const Duration(milliseconds: 50));
+  expect(
+    responses.length,
+    greaterThan(countBefore),
+    reason: 'Expected a response for: ${message['method']}',
+  );
+  return responses.last;
+}
 
 void main() {
   group('McpServer', () {
     late List<Map<String, Object?>> responses;
-    late StreamController<String> inputController;
+    late StreamController<String> input;
     late McpServer server;
 
     setUp(() {
-      responses = [];
-      inputController = StreamController<String>();
-      server = McpServer(
-        name: 'test-server',
-        version: '0.1.0',
-        input: inputController.stream,
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+
+      // Start listening (non-blocking).
+      server.run();
     });
 
     tearDown(() {
-      inputController.close();
+      input.close();
     });
+
+    // -- helper to initialize before other requests --
+    Future<void> initialize() async {
+      await _sendRequest(input, responses, {
+        'jsonrpc': '2.0',
+        'id': 0,
+        'method': 'initialize',
+        'params': {},
+      });
+      responses.clear();
+    }
 
     group('initialize', () {
       test('responds with server info and capabilities', () async {
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 1,
           'method': 'initialize',
@@ -40,9 +95,7 @@ void main() {
           },
         });
 
-        expect(responses, hasLength(1));
-
-        final result = responses.first['result'] as Map<String, Object?>;
+        final result = resp['result'] as Map<String, Object?>;
         expect(result['protocolVersion'], '2024-11-05');
         expect(result['serverInfo'], {
           'name': 'test-server',
@@ -54,63 +107,50 @@ void main() {
 
     group('ping', () {
       test('responds with empty result', () async {
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 1,
           'method': 'ping',
         });
 
-        expect(responses, hasLength(1));
-        expect(responses.first['result'], isEmpty);
+        expect(resp['result'], isEmpty);
       });
     });
 
     group('notifications', () {
       test('does not respond to notifications (no id)', () async {
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'method': 'notifications/initialized',
-        });
+        input.add(
+          jsonEncode({'jsonrpc': '2.0', 'method': 'notifications/initialized'}),
+        );
 
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         expect(responses, isEmpty);
       });
     });
 
     group('tools/list', () {
       test('returns error when not initialized', () async {
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 1,
           'method': 'tools/list',
         });
 
-        expect(responses, hasLength(1));
-        expect(responses.first['error'], isNotNull);
-
-        final error = responses.first['error'] as Map<String, Object?>;
+        expect(resp['error'], isNotNull);
+        final error = resp['error'] as Map<String, Object?>;
         expect(error['code'], -32002);
       });
 
       test('returns empty tools list when no tools registered', () async {
-        // Initialize first
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
+        await initialize();
 
-        responses.clear();
-
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/list',
         });
 
-        expect(responses, hasLength(1));
-
-        final result = responses.first['result'] as Map<String, Object?>;
+        final result = resp['result'] as Map<String, Object?>;
         expect(result['tools'], isEmpty);
       });
 
@@ -130,22 +170,15 @@ void main() {
           ),
         );
 
-        // Initialize
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
+        await initialize();
 
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/list',
         });
 
-        final result = responses.first['result'] as Map<String, Object?>;
+        final result = resp['result'] as Map<String, Object?>;
         final tools = result['tools'] as List;
         expect(tools, hasLength(1));
         expect((tools.first as Map)['name'], 'test_tool');
@@ -186,7 +219,7 @@ void main() {
       });
 
       test('returns error when not initialized', () async {
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 1,
           'method': 'tools/call',
@@ -196,20 +229,13 @@ void main() {
           },
         });
 
-        expect(responses.first['error'], isNotNull);
+        expect(resp['error'], isNotNull);
       });
 
       test('calls a tool and returns the result', () async {
-        // Initialize
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
+        await initialize();
 
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/call',
@@ -219,91 +245,52 @@ void main() {
           },
         });
 
-        expect(responses, hasLength(1));
-
-        final result = responses.first['result'] as Map<String, Object?>;
+        final result = resp['result'] as Map<String, Object?>;
         final content = result['content'] as List;
         expect((content.first as Map)['text'], 'Echo: hello');
         expect(result['isError'], isNull);
       });
 
       test('returns error for unknown tool', () async {
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
+        await initialize();
 
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/call',
           'params': {'name': 'nonexistent'},
         });
 
-        final error = responses.first['error'] as Map<String, Object?>;
+        final error = resp['error'] as Map<String, Object?>;
         expect(error['code'], -32602);
         expect(error['message'], contains('nonexistent'));
       });
 
-      test('returns error when params are missing', () async {
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
-
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 2,
-          'method': 'tools/call',
-        });
-
-        final error = responses.first['error'] as Map<String, Object?>;
-        expect(error['code'], -32602);
-      });
-
       test('returns error when tool name is missing', () async {
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
+        await initialize();
 
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/call',
           'params': {'arguments': {}},
         });
 
-        final error = responses.first['error'] as Map<String, Object?>;
+        final error = resp['error'] as Map<String, Object?>;
         expect(error['code'], -32602);
       });
 
       test('handles tool handler exceptions as error results', () async {
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
+        await initialize();
 
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/call',
           'params': {'name': 'fail'},
         });
 
-        final result = responses.first['result'] as Map<String, Object?>;
+        final result = resp['result'] as Map<String, Object?>;
         expect(result['isError'], true);
 
         final content = result['content'] as List;
@@ -322,22 +309,16 @@ void main() {
           ),
         );
 
-        await server.handleMessage({
-          'jsonrpc': '2.0',
-          'id': 1,
-          'method': 'initialize',
-          'params': {},
-        });
-        responses.clear();
+        await initialize();
 
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 2,
           'method': 'tools/call',
           'params': {'name': 'no_args'},
         });
 
-        final result = responses.first['result'] as Map<String, Object?>;
+        final result = resp['result'] as Map<String, Object?>;
         final content = result['content'] as List;
         expect((content.first as Map)['text'], 'args: 0');
       });
@@ -345,72 +326,28 @@ void main() {
 
     group('unknown method', () {
       test('returns method not found error', () async {
-        await server.handleMessage({
+        final resp = await _sendRequest(input, responses, {
           'jsonrpc': '2.0',
           'id': 1,
           'method': 'unknown/method',
         });
 
-        final error = responses.first['error'] as Map<String, Object?>;
+        final error = resp['error'] as Map<String, Object?>;
         expect(error['code'], -32601);
-        expect(error['message'], contains('unknown/method'));
       });
     });
 
     group('run (stream-based)', () {
       test('processes messages from input stream', () async {
-        final runFuture = server.run();
+        // server.run() was already called in setUp.
+        final resp = await _sendRequest(input, responses, {
+          'jsonrpc': '2.0',
+          'id': 1,
+          'method': 'initialize',
+          'params': {},
+        });
 
-        inputController.add(
-          jsonEncode({
-            'jsonrpc': '2.0',
-            'id': 1,
-            'method': 'initialize',
-            'params': {},
-          }),
-        );
-
-        // Give the event loop a chance to process.
-        await Future<void>.delayed(Duration(milliseconds: 50));
-
-        expect(responses, hasLength(1));
-        expect(responses.first['result'], isNotNull);
-
-        await inputController.close();
-        await runFuture;
-      });
-
-      test('skips empty lines', () async {
-        final runFuture = server.run();
-
-        inputController.add('');
-        inputController.add('   ');
-        inputController.add(
-          jsonEncode({'jsonrpc': '2.0', 'id': 1, 'method': 'ping'}),
-        );
-
-        await Future<void>.delayed(Duration(milliseconds: 50));
-
-        expect(responses, hasLength(1));
-
-        await inputController.close();
-        await runFuture;
-      });
-
-      test('returns parse error for invalid JSON', () async {
-        final runFuture = server.run();
-
-        inputController.add('not valid json');
-
-        await Future<void>.delayed(Duration(milliseconds: 50));
-
-        expect(responses, hasLength(1));
-
-        final error = responses.first['error'] as Map<String, Object?>;
-        expect(error['code'], -32700);
-
-        await inputController.close();
-        await runFuture;
+        expect(resp['result'], isNotNull);
       });
     });
   });

@@ -5,27 +5,93 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:spark_cli/src/mcp/mcp_server.dart';
 import 'package:spark_cli/src/mcp/spark_mcp_server.dart';
+import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
+
+/// Creates a Spark MCP server wired to in-memory streams for testing.
+({
+  McpServer server,
+  List<Map<String, Object?>> responses,
+  StreamController<String> input,
+})
+_createTestServer() {
+  final responses = <Map<String, Object?>>[];
+  final inputController = StreamController<String>();
+  final outputController = StreamController<String>();
+
+  outputController.stream.listen((line) {
+    responses.add(jsonDecode(line) as Map<String, Object?>);
+  });
+
+  final channel = StreamChannel.withGuarantees(
+    inputController.stream,
+    outputController.sink,
+  );
+
+  final server = createSparkMcpServer(channel: channel);
+
+  return (server: server, responses: responses, input: inputController);
+}
+
+/// Sends a JSON-RPC request and waits for the response.
+Future<Map<String, Object?>> _sendRequest(
+  StreamController<String> input,
+  List<Map<String, Object?>> responses,
+  Map<String, Object?> message,
+) async {
+  final countBefore = responses.length;
+  input.add(jsonEncode(message));
+  await Future<void>.delayed(const Duration(milliseconds: 50));
+  expect(
+    responses.length,
+    greaterThan(countBefore),
+    reason: 'Expected a response for: ${message['method']}',
+  );
+  return responses.last;
+}
+
+/// Helper: sends initialize then clears responses and calls a tool.
+Future<Map<String, Object?>> _callTool(
+  StreamController<String> input,
+  List<Map<String, Object?>> responses,
+  String toolName,
+  Map<String, Object?> arguments,
+) async {
+  // Initialize
+  await _sendRequest(input, responses, {
+    'jsonrpc': '2.0',
+    'id': 0,
+    'method': 'initialize',
+    'params': {},
+  });
+  responses.clear();
+
+  // Call the tool
+  final resp = await _sendRequest(input, responses, {
+    'jsonrpc': '2.0',
+    'id': 1,
+    'method': 'tools/call',
+    'params': {'name': toolName, 'arguments': arguments},
+  });
+  return resp['result'] as Map<String, Object?>;
+}
 
 void main() {
   group('createSparkMcpServer', () {
     late List<Map<String, Object?>> responses;
-    late StreamController<String> inputController;
+    late StreamController<String> input;
     late McpServer server;
 
     setUp(() {
-      responses = [];
-      inputController = StreamController<String>();
-      server = createSparkMcpServer(
-        input: inputController.stream,
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
     tearDown(() {
-      inputController.close();
+      input.close();
     });
 
     test('registers all six tools', () {
@@ -46,14 +112,14 @@ void main() {
     });
 
     test('server name and version are set', () async {
-      await server.handleMessage({
+      final resp = await _sendRequest(input, responses, {
         'jsonrpc': '2.0',
         'id': 1,
         'method': 'initialize',
         'params': {},
       });
 
-      final result = responses.first['result'] as Map<String, Object?>;
+      final result = resp['result'] as Map<String, Object?>;
       final serverInfo = result['serverInfo'] as Map<String, Object?>;
       expect(serverInfo['name'], 'spark-cli');
       expect(serverInfo['version'], '1.0.0-alpha.8');
@@ -63,53 +129,32 @@ void main() {
   group('spark_init tool', () {
     late Directory tempDir;
     late Directory originalCwd;
-    late McpServer server;
     late List<Map<String, Object?>> responses;
+    late StreamController<String> input;
+    late McpServer server;
 
     setUp(() {
       originalCwd = Directory.current;
       tempDir = Directory.systemTemp.createTempSync('spark_mcp_test_');
       Directory.current = tempDir;
 
-      responses = [];
-      server = createSparkMcpServer(
-        input: const Stream.empty(),
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
     tearDown(() {
+      input.close();
       Directory.current = originalCwd;
       tempDir.deleteSync(recursive: true);
     });
 
-    Future<Map<String, Object?>> callTool(
-      String name,
-      Map<String, Object?> arguments,
-    ) async {
-      // Initialize first
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': 'initialize',
-        'params': {},
-      });
-      responses.clear();
-
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 2,
-        'method': 'tools/call',
-        'params': {'name': name, 'arguments': arguments},
-      });
-
-      return responses.first['result'] as Map<String, Object?>;
-    }
-
     test('creates a new project with all files', () async {
-      final result = await callTool('spark_init', {'project_name': 'my_app'});
+      final result = await _callTool(input, responses, 'spark_init', {
+        'project_name': 'my_app',
+      });
 
       expect(result['isError'], isNull);
 
@@ -145,15 +190,18 @@ void main() {
     });
 
     test('returns error for empty project name', () async {
-      final result = await callTool('spark_init', {'project_name': ''});
-
+      final result = await _callTool(input, responses, 'spark_init', {
+        'project_name': '',
+      });
       expect(result['isError'], true);
     });
 
     test('returns error when directory already exists', () async {
       Directory(p.join(tempDir.path, 'existing')).createSync();
 
-      final result = await callTool('spark_init', {'project_name': 'existing'});
+      final result = await _callTool(input, responses, 'spark_init', {
+        'project_name': 'existing',
+      });
 
       expect(result['isError'], true);
       final text = ((result['content'] as List).first as Map)['text'] as String;
@@ -161,7 +209,9 @@ void main() {
     });
 
     test('generated pubspec contains project name', () async {
-      await callTool('spark_init', {'project_name': 'test_proj'});
+      await _callTool(input, responses, 'spark_init', {
+        'project_name': 'test_proj',
+      });
 
       final pubspec = File(p.join(tempDir.path, 'test_proj', 'pubspec.yaml'));
       final content = pubspec.readAsStringSync();
@@ -173,52 +223,32 @@ void main() {
   group('spark_create_page tool', () {
     late Directory tempDir;
     late Directory originalCwd;
-    late McpServer server;
     late List<Map<String, Object?>> responses;
+    late StreamController<String> input;
+    late McpServer server;
 
     setUp(() {
       originalCwd = Directory.current;
       tempDir = Directory.systemTemp.createTempSync('spark_mcp_test_');
       Directory.current = tempDir;
 
-      responses = [];
-      server = createSparkMcpServer(
-        input: const Stream.empty(),
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
     tearDown(() {
+      input.close();
       Directory.current = originalCwd;
       tempDir.deleteSync(recursive: true);
     });
 
-    Future<Map<String, Object?>> callTool(
-      String name,
-      Map<String, Object?> arguments,
-    ) async {
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': 'initialize',
-        'params': {},
-      });
-      responses.clear();
-
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 2,
-        'method': 'tools/call',
-        'params': {'name': name, 'arguments': arguments},
-      });
-
-      return responses.first['result'] as Map<String, Object?>;
-    }
-
     test('creates a page with correct content', () async {
-      final result = await callTool('spark_create_page', {'name': 'dashboard'});
+      final result = await _callTool(input, responses, 'spark_create_page', {
+        'name': 'dashboard',
+      });
 
       expect(result['isError'], isNull);
 
@@ -236,7 +266,7 @@ void main() {
     });
 
     test('creates a page from PascalCase input', () async {
-      final result = await callTool('spark_create_page', {
+      final result = await _callTool(input, responses, 'spark_create_page', {
         'name': 'UserProfile',
       });
 
@@ -262,7 +292,7 @@ void main() {
       final subDir = Directory(p.join(tempDir.path, 'subproject'));
       subDir.createSync();
 
-      final result = await callTool('spark_create_page', {
+      final result = await _callTool(input, responses, 'spark_create_page', {
         'name': 'home',
         'working_directory': subDir.path,
       });
@@ -280,13 +310,17 @@ void main() {
         p.join(dir.path, 'dashboard_page.dart'),
       ).writeAsStringSync('existing');
 
-      final result = await callTool('spark_create_page', {'name': 'dashboard'});
+      final result = await _callTool(input, responses, 'spark_create_page', {
+        'name': 'dashboard',
+      });
 
       expect(result['isError'], true);
     });
 
     test('returns error for empty name', () async {
-      final result = await callTool('spark_create_page', {'name': ''});
+      final result = await _callTool(input, responses, 'spark_create_page', {
+        'name': '',
+      });
       expect(result['isError'], true);
     });
   });
@@ -294,52 +328,35 @@ void main() {
   group('spark_create_endpoint tool', () {
     late Directory tempDir;
     late Directory originalCwd;
-    late McpServer server;
     late List<Map<String, Object?>> responses;
+    late StreamController<String> input;
+    late McpServer server;
 
     setUp(() {
       originalCwd = Directory.current;
       tempDir = Directory.systemTemp.createTempSync('spark_mcp_test_');
       Directory.current = tempDir;
 
-      responses = [];
-      server = createSparkMcpServer(
-        input: const Stream.empty(),
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
     tearDown(() {
+      input.close();
       Directory.current = originalCwd;
       tempDir.deleteSync(recursive: true);
     });
 
-    Future<Map<String, Object?>> callTool(
-      String name,
-      Map<String, Object?> arguments,
-    ) async {
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': 'initialize',
-        'params': {},
-      });
-      responses.clear();
-
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 2,
-        'method': 'tools/call',
-        'params': {'name': name, 'arguments': arguments},
-      });
-
-      return responses.first['result'] as Map<String, Object?>;
-    }
-
     test('creates an endpoint with correct content', () async {
-      final result = await callTool('spark_create_endpoint', {'name': 'users'});
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_endpoint',
+        {'name': 'users'},
+      );
 
       expect(result['isError'], isNull);
 
@@ -357,9 +374,12 @@ void main() {
     });
 
     test('creates an endpoint from PascalCase input', () async {
-      final result = await callTool('spark_create_endpoint', {
-        'name': 'HealthCheck',
-      });
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_endpoint',
+        {'name': 'HealthCheck'},
+      );
 
       expect(result['isError'], isNull);
 
@@ -389,13 +409,23 @@ void main() {
         p.join(dir.path, 'users_endpoint.dart'),
       ).writeAsStringSync('existing');
 
-      final result = await callTool('spark_create_endpoint', {'name': 'users'});
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_endpoint',
+        {'name': 'users'},
+      );
 
       expect(result['isError'], true);
     });
 
     test('returns error for empty name', () async {
-      final result = await callTool('spark_create_endpoint', {'name': ''});
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_endpoint',
+        {'name': ''},
+      );
       expect(result['isError'], true);
     });
   });
@@ -403,54 +433,35 @@ void main() {
   group('spark_create_component tool', () {
     late Directory tempDir;
     late Directory originalCwd;
-    late McpServer server;
     late List<Map<String, Object?>> responses;
+    late StreamController<String> input;
+    late McpServer server;
 
     setUp(() {
       originalCwd = Directory.current;
       tempDir = Directory.systemTemp.createTempSync('spark_mcp_test_');
       Directory.current = tempDir;
 
-      responses = [];
-      server = createSparkMcpServer(
-        input: const Stream.empty(),
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
     tearDown(() {
+      input.close();
       Directory.current = originalCwd;
       tempDir.deleteSync(recursive: true);
     });
 
-    Future<Map<String, Object?>> callTool(
-      String name,
-      Map<String, Object?> arguments,
-    ) async {
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': 'initialize',
-        'params': {},
-      });
-      responses.clear();
-
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 2,
-        'method': 'tools/call',
-        'params': {'name': name, 'arguments': arguments},
-      });
-
-      return responses.first['result'] as Map<String, Object?>;
-    }
-
     test('creates a component with export and base files', () async {
-      final result = await callTool('spark_create_component', {
-        'name': 'my_counter',
-      });
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_component',
+        {'name': 'my_counter'},
+      );
 
       expect(result['isError'], isNull);
 
@@ -481,9 +492,12 @@ void main() {
     });
 
     test('creates a component from PascalCase input', () async {
-      final result = await callTool('spark_create_component', {
-        'name': 'NavBar',
-      });
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_component',
+        {'name': 'NavBar'},
+      );
 
       expect(result['isError'], isNull);
 
@@ -502,9 +516,12 @@ void main() {
     });
 
     test('returns error for single-word name (invalid tag)', () async {
-      final result = await callTool('spark_create_component', {
-        'name': 'counter',
-      });
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_component',
+        {'name': 'counter'},
+      );
 
       expect(result['isError'], true);
 
@@ -517,15 +534,23 @@ void main() {
         p.join(tempDir.path, 'lib', 'components', 'my_counter'),
       ).createSync(recursive: true);
 
-      final result = await callTool('spark_create_component', {
-        'name': 'my_counter',
-      });
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_component',
+        {'name': 'my_counter'},
+      );
 
       expect(result['isError'], true);
     });
 
     test('returns error for empty name', () async {
-      final result = await callTool('spark_create_component', {'name': ''});
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_component',
+        {'name': ''},
+      );
       expect(result['isError'], true);
     });
 
@@ -533,10 +558,12 @@ void main() {
       final subDir = Directory(p.join(tempDir.path, 'subproject'));
       subDir.createSync();
 
-      final result = await callTool('spark_create_component', {
-        'name': 'my_widget',
-        'working_directory': subDir.path,
-      });
+      final result = await _callTool(
+        input,
+        responses,
+        'spark_create_component',
+        {'name': 'my_widget', 'working_directory': subDir.path},
+      );
 
       expect(result['isError'], isNull);
 
@@ -552,43 +579,24 @@ void main() {
   });
 
   group('spark_dev tool', () {
-    late McpServer server;
     late List<Map<String, Object?>> responses;
+    late StreamController<String> input;
+    late McpServer server;
 
     setUp(() {
-      responses = [];
-      server = createSparkMcpServer(
-        input: const Stream.empty(),
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
-    Future<Map<String, Object?>> callTool(
-      String name,
-      Map<String, Object?> arguments,
-    ) async {
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': 'initialize',
-        'params': {},
-      });
-      responses.clear();
-
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 2,
-        'method': 'tools/call',
-        'params': {'name': name, 'arguments': arguments},
-      });
-
-      return responses.first['result'] as Map<String, Object?>;
-    }
+    tearDown(() {
+      input.close();
+    });
 
     test('returns error for nonexistent directory', () async {
-      final result = await callTool('spark_dev', {
+      final result = await _callTool(input, responses, 'spark_dev', {
         'working_directory': '/nonexistent/path',
       });
 
@@ -601,7 +609,7 @@ void main() {
     test('returns error when no pubspec.yaml exists', () async {
       final tempDir = Directory.systemTemp.createTempSync('spark_mcp_dev_');
       try {
-        final result = await callTool('spark_dev', {
+        final result = await _callTool(input, responses, 'spark_dev', {
           'working_directory': tempDir.path,
         });
 
@@ -617,43 +625,24 @@ void main() {
   });
 
   group('spark_build tool', () {
-    late McpServer server;
     late List<Map<String, Object?>> responses;
+    late StreamController<String> input;
+    late McpServer server;
 
     setUp(() {
-      responses = [];
-      server = createSparkMcpServer(
-        input: const Stream.empty(),
-        output: (line) {
-          responses.add(jsonDecode(line) as Map<String, Object?>);
-        },
-      );
+      final t = _createTestServer();
+      server = t.server;
+      responses = t.responses;
+      input = t.input;
+      server.run();
     });
 
-    Future<Map<String, Object?>> callTool(
-      String name,
-      Map<String, Object?> arguments,
-    ) async {
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': 'initialize',
-        'params': {},
-      });
-      responses.clear();
-
-      await server.handleMessage({
-        'jsonrpc': '2.0',
-        'id': 2,
-        'method': 'tools/call',
-        'params': {'name': name, 'arguments': arguments},
-      });
-
-      return responses.first['result'] as Map<String, Object?>;
-    }
+    tearDown(() {
+      input.close();
+    });
 
     test('returns error for nonexistent directory', () async {
-      final result = await callTool('spark_build', {
+      final result = await _callTool(input, responses, 'spark_build', {
         'working_directory': '/nonexistent/path',
       });
 
