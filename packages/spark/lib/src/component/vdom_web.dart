@@ -2,6 +2,7 @@ import 'dart:js_interop';
 import 'package:spark_framework/src/component/web_component.dart' as web;
 import '../html/node.dart';
 import '../html/dsl.dart' as html;
+import 'package:meta/meta.dart';
 import 'js_callback_web.dart'
     if (dart.library.io) 'js_callback_stub.dart'
     as js_callback;
@@ -62,6 +63,7 @@ void mountList(dynamic parent, List<VNode> vNodes) {
     if (i >= vNodes.length) {
       // Remove extra DOM nodes
       if (i < significantNodes.length) {
+        _cleanupNode(significantNodes[i]);
         node.removeChild(significantNodes[i]);
       }
     } else if (i >= significantNodes.length) {
@@ -93,6 +95,7 @@ void patch(dynamic realNode, VNode vNode, {bool isSvg = false}) {
     } else {
       final newText = web.document.createTextNode(vNode.text);
       if (node.parentNode != null) {
+        _cleanupNode(node);
         node.parentNode!.replaceChild(newText, node);
       }
     }
@@ -106,6 +109,7 @@ void patch(dynamic realNode, VNode vNode, {bool isSvg = false}) {
       if (el.tagName.toLowerCase() != vNode.tag.toLowerCase()) {
         final newNode = createNode(vNode, isSvg: isSvg) as web.Node;
         if (node.parentNode != null) {
+          _cleanupNode(node);
           node.parentNode!.replaceChild(newNode, node);
         }
       } else {
@@ -118,6 +122,7 @@ void patch(dynamic realNode, VNode vNode, {bool isSvg = false}) {
     } else {
       final newNode = createNode(vNode, isSvg: isSvg) as web.Node;
       if (node.parentNode != null) {
+        _cleanupNode(node);
         node.parentNode!.replaceChild(newNode, node);
       }
     }
@@ -183,6 +188,7 @@ void _patchElement(web.Element el, html.Element vNode, {required bool isSvg}) {
   for (var i = 0; i < len; i++) {
     if (i >= vChildren.length) {
       if (i < significantNodes.length) {
+        _cleanupNode(significantNodes[i]);
         el.removeChild(significantNodes[i]);
       }
     } else if (i >= significantNodes.length) {
@@ -227,6 +233,24 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
       }
     }
   });
+}
+
+void _cleanupNode(web.Node node) {
+  if ((node as JSAny?).isA<web.Element>()) {
+    final el = node as web.Element;
+    final id = el.getAttribute('data-spark-id');
+    if (id != null) {
+      _listenersConfig.remove(id);
+    }
+  }
+
+  final children = node.childNodes;
+  for (var i = 0; i < children.length; i++) {
+    final child = children.item(i);
+    if (child != null) {
+      _cleanupNode(child);
+    }
+  }
 }
 
 int _nextListenerId = 0;
@@ -286,3 +310,6 @@ void _updateEvents(web.Element el, Map<String, Function> newEvents) {
 
 int get _nextId => _nextListenerId;
 set _nextId(int val) => _nextListenerId = val;
+
+@visibleForTesting
+int get listenersConfigSize => _listenersConfig.length;
