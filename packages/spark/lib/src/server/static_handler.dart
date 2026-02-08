@@ -245,4 +245,3 @@ bool _shouldCompress(String mimeType) {
       mimeType == 'image/svg+xml' ||
       mimeType == 'application/wasm';
 }
-
