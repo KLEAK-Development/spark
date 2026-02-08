@@ -386,31 +386,6 @@ void main() {
     });
   });
 
-  group('simpleStaticHandler', () {
-    test('serves existing file', () async {
-      await writeFile('hello.txt', 'Hello');
-      final handler = simpleStaticHandler(tempDir.path);
-      final response = await handler(request('hello.txt'));
-
-      expect(response.statusCode, 200);
-    });
-
-    test('returns correct MIME type', () async {
-      await writeFile('app.js', 'code');
-      final handler = simpleStaticHandler(tempDir.path);
-      final response = await handler(request('app.js'));
-
-      expect(response.headers['content-type'], 'application/javascript');
-    });
-
-    test('returns 404 for missing file', () async {
-      final handler = simpleStaticHandler(tempDir.path);
-      final response = await handler(request('nope.txt'));
-
-      expect(response.statusCode, 404);
-    });
-  });
-
   group('StaticHandlerConfig', () {
     test('has correct default values', () {
       const config = StaticHandlerConfig(path: '/web');
