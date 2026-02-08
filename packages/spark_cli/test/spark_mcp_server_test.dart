@@ -41,7 +41,15 @@ Future<Map<String, Object?>> _sendRequest(
 ) async {
   final countBefore = responses.length;
   input.add(jsonEncode(message));
-  await Future<void>.delayed(const Duration(milliseconds: 50));
+
+  // Wait up to 2 seconds for a response
+  for (var i = 0; i < 40; i++) {
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    if (responses.length > countBefore) {
+      break;
+    }
+  }
+
   expect(
     responses.length,
     greaterThan(countBefore),
