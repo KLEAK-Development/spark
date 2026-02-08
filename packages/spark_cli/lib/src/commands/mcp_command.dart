@@ -12,8 +12,6 @@ import '../mcp/spark_mcp_server.dart';
 /// Usage: `spark mcp`
 ///
 /// The server communicates via JSON-RPC 2.0 over stdin/stdout.
-/// All diagnostic output is redirected to stderr so that only valid
-/// JSON-RPC messages appear on stdout.
 class McpCommand extends Command<void> {
   @override
   String get name => 'mcp';
@@ -24,35 +22,14 @@ class McpCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    // Redirect stdout to stderr so any stray print() calls from
-    // dependencies or the Dart runtime don't corrupt the JSON-RPC
-    // protocol on stdout.
-    final realStdout = stdout;
-    final stdoutOverride = stderr;
+    final input = stdin.transform(utf8.decoder).transform(const LineSplitter());
 
-    await runZoned(
-      () async {
-        final input = stdin
-            .transform(utf8.decoder)
-            .transform(const LineSplitter());
+    final outputController = StreamController<String>();
+    outputController.stream.listen((line) => stdout.writeln(line));
 
-        final outputController = StreamController<String>();
-        outputController.stream.listen((line) => realStdout.writeln(line));
+    final channel = StreamChannel.withGuarantees(input, outputController.sink);
 
-        final channel = StreamChannel.withGuarantees(
-          input,
-          outputController.sink,
-        );
-
-        final server = createSparkMcpServer(channel: channel);
-        await server.run();
-      },
-      zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) {
-          // Redirect all print() calls to stderr.
-          stdoutOverride.writeln(line);
-        },
-      ),
-    );
+    final server = createSparkMcpServer(channel: channel);
+    await server.run();
   }
 }
