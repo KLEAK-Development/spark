@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:stream_channel/stream_channel.dart';
 
 /// A tool definition for the MCP server.
 class McpTool {
@@ -46,29 +47,86 @@ class McpContent {
   Map<String, Object?> toJson() => {'type': type, 'text': text};
 }
 
-/// Callback for sending a JSON-RPC message line.
-typedef McpOutputCallback = void Function(String line);
-
-/// MCP protocol server that communicates over a stream-based transport.
+/// MCP protocol server backed by [json_rpc.Server].
 ///
-/// Implements the Model Context Protocol (MCP) JSON-RPC 2.0 interface
+/// Implements the Model Context Protocol (MCP) on top of JSON-RPC 2.0
 /// for exposing tools to LLM clients.
 class McpServer {
   final String name;
   final String version;
   final List<McpTool> _tools = [];
-  final McpOutputCallback _output;
-  final Stream<String> _input;
+  final json_rpc.Server _rpc;
 
   bool _initialized = false;
 
+  /// Creates an MCP server that communicates over [channel].
   McpServer({
     required this.name,
     required this.version,
-    required Stream<String> input,
-    required McpOutputCallback output,
-  }) : _input = input,
-       _output = output;
+    required StreamChannel<String> channel,
+  }) : _rpc = json_rpc.Server(channel) {
+    _registerMethods();
+  }
+
+  void _registerMethods() {
+    _rpc.registerMethod('initialize', (_) {
+      _initialized = true;
+      return {
+        'protocolVersion': '2024-11-05',
+        'capabilities': {
+          'tools': {'listChanged': false},
+        },
+        'serverInfo': {'name': name, 'version': version},
+      };
+    });
+
+    _rpc.registerMethod('notifications/initialized', (_) {
+      // Client acknowledged initialization – nothing to do.
+    });
+
+    _rpc.registerMethod('ping', (_) => <String, Object?>{});
+
+    _rpc.registerMethod('tools/list', (_) {
+      _requireInitialized();
+      return {'tools': _tools.map((t) => t.toJson()).toList()};
+    });
+
+    _rpc.registerMethod('tools/call', (json_rpc.Parameters params) async {
+      _requireInitialized();
+
+      final paramsMap = params.value as Map<String, Object?>;
+
+      final toolName = paramsMap['name'] as String?;
+      if (toolName == null) {
+        throw json_rpc.RpcException.invalidParams('Missing tool name');
+      }
+
+      final tool = _tools.where((t) => t.name == toolName).firstOrNull;
+      if (tool == null) {
+        throw json_rpc.RpcException.invalidParams('Unknown tool: $toolName');
+      }
+
+      final arguments =
+          (paramsMap['arguments'] as Map<String, Object?>?) ??
+          <String, Object?>{};
+
+      try {
+        final result = await tool.handler(arguments);
+        return result.toJson();
+      } catch (e) {
+        return McpToolResult(
+          content: [McpContent.text('Error: $e')],
+          isError: true,
+        ).toJson();
+      }
+    });
+  }
+
+  void _requireInitialized() {
+    if (!_initialized) {
+      throw json_rpc.RpcException(-32002, 'Server not initialized');
+    }
+  }
 
   /// Registers a tool with the MCP server.
   void addTool(McpTool tool) {
@@ -78,124 +136,6 @@ class McpServer {
   /// Returns the list of registered tools.
   List<McpTool> get tools => List.unmodifiable(_tools);
 
-  /// Starts listening for JSON-RPC messages on the input stream.
-  Future<void> run() async {
-    await for (final line in _input) {
-      if (line.trim().isEmpty) continue;
-
-      try {
-        final message = jsonDecode(line) as Map<String, Object?>;
-        await _handleMessage(message);
-      } on FormatException {
-        _sendError(null, -32700, 'Parse error');
-      }
-    }
-  }
-
-  /// Handles a single JSON-RPC message.
-  ///
-  /// Exposed for testing so callers can send messages directly
-  /// without going through the input stream.
-  Future<void> handleMessage(Map<String, Object?> message) =>
-      _handleMessage(message);
-
-  Future<void> _handleMessage(Map<String, Object?> message) async {
-    final method = message['method'] as String?;
-    final id = message['id'];
-
-    // Notifications have no id
-    if (id == null) {
-      // Handle notifications silently
-      return;
-    }
-
-    switch (method) {
-      case 'initialize':
-        _handleInitialize(id);
-      case 'tools/list':
-        _handleToolsList(id);
-      case 'tools/call':
-        await _handleToolsCall(id, message['params'] as Map<String, Object?>?);
-      case 'ping':
-        _sendResult(id, {});
-      default:
-        _sendError(id, -32601, 'Method not found: $method');
-    }
-  }
-
-  void _handleInitialize(Object id) {
-    _initialized = true;
-    _sendResult(id, {
-      'protocolVersion': '2024-11-05',
-      'capabilities': {
-        'tools': {'listChanged': false},
-      },
-      'serverInfo': {'name': name, 'version': version},
-    });
-  }
-
-  void _handleToolsList(Object id) {
-    if (!_initialized) {
-      _sendError(id, -32002, 'Server not initialized');
-      return;
-    }
-
-    _sendResult(id, {'tools': _tools.map((t) => t.toJson()).toList()});
-  }
-
-  Future<void> _handleToolsCall(Object id, Map<String, Object?>? params) async {
-    if (!_initialized) {
-      _sendError(id, -32002, 'Server not initialized');
-      return;
-    }
-
-    if (params == null) {
-      _sendError(id, -32602, 'Missing params');
-      return;
-    }
-
-    final toolName = params['name'] as String?;
-    if (toolName == null) {
-      _sendError(id, -32602, 'Missing tool name');
-      return;
-    }
-
-    final tool = _tools.where((t) => t.name == toolName).firstOrNull;
-    if (tool == null) {
-      _sendError(id, -32602, 'Unknown tool: $toolName');
-      return;
-    }
-
-    final arguments =
-        (params['arguments'] as Map<String, Object?>?) ?? <String, Object?>{};
-
-    try {
-      final result = await tool.handler(arguments);
-      _sendResult(id, result.toJson());
-    } catch (e) {
-      _sendResult(
-        id,
-        McpToolResult(
-          content: [McpContent.text('Error: $e')],
-          isError: true,
-        ).toJson(),
-      );
-    }
-  }
-
-  void _sendResult(Object? id, Map<String, Object?> result) {
-    _send({'jsonrpc': '2.0', 'id': id, 'result': result});
-  }
-
-  void _sendError(Object? id, int code, String message) {
-    _send({
-      'jsonrpc': '2.0',
-      'id': id,
-      'error': {'code': code, 'message': message},
-    });
-  }
-
-  void _send(Map<String, Object?> message) {
-    _output(jsonEncode(message));
-  }
+  /// Starts listening for JSON-RPC messages on the channel.
+  Future<void> run() => _rpc.listen();
 }

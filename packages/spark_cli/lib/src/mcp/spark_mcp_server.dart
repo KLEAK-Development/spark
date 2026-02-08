@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:stream_channel/stream_channel.dart';
 
 import '../io/process_runner.dart';
 import '../utils/naming_utils.dart';
@@ -8,15 +9,13 @@ import 'mcp_server.dart';
 
 /// Creates and configures an MCP server with all Spark CLI tools registered.
 McpServer createSparkMcpServer({
-  required Stream<String> input,
-  required McpOutputCallback output,
+  required StreamChannel<String> channel,
   ProcessRunner processRunner = const ProcessRunnerImpl(),
 }) {
   final server = McpServer(
     name: 'spark-cli',
     version: '1.0.0-alpha.8',
-    input: input,
-    output: output,
+    channel: channel,
   );
 
   server.addTool(_initTool(processRunner));
