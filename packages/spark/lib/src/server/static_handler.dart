@@ -202,10 +202,7 @@ Future<Response> _serveFile(
 
   final length = stat?.size ?? await file.length();
   headers['content-length'] = length.toString();
-  return Response.ok(
-    file.openRead(),
-    headers: headers.cast<String, String>(),
-  );
+  return Response.ok(file.openRead(), headers: headers.cast<String, String>());
 }
 
 /// Lists directory contents as HTML.
