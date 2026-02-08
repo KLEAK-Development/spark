@@ -51,6 +51,11 @@ class DevCommand extends Command<void> {
       console: _console,
       workingDirectory: _workingDirectory,
     );
+    argParser.addFlag(
+      'verbose',
+      abbr: 'v',
+      help: 'Show verbose log output.',
+    );
   }
 
   late final BuildRunnerUtils _buildUtils;
@@ -65,6 +70,9 @@ class DevCommand extends Command<void> {
   String get _routerFilePath =>
       p.join(_workingDirectory.path, 'lib', 'spark_router.g.dart');
 
+  // Verbose logging flag
+  bool _verbose = false;
+
   // Error handling components
   final ConsoleOutput _console = ConsoleOutput();
   final DevErrorCollector _errorCollector = DevErrorCollector();
@@ -75,6 +83,7 @@ class DevCommand extends Command<void> {
 
   @override
   Future<void> run() async {
+    _verbose = argResults!['verbose'] as bool;
     _console.printInfo('Starting development environment...');
 
     await DirectoryUtils.cleanDirectory(
@@ -133,6 +142,7 @@ class DevCommand extends Command<void> {
     var hasCompleted = false;
 
     _buildRunnerProcess = await _buildUtils.startWatch(
+      verbose: _verbose,
       extraArgs: ['--output', 'web:build/web'],
       onLog: (line) {
         if (line.contains('Succeeded after') ||
@@ -171,8 +181,8 @@ class DevCommand extends Command<void> {
             hasCompleted = true;
             completer.completeError(StateError('Initial build failed'));
           }
-        } else if (line.contains('[INFO]')) {
-          // Suppress INFO logs
+        } else if (line.contains('[INFO]') && !_verbose) {
+          // Suppress INFO logs unless verbose
         } else if (line.contains('Building...')) {
           _console.clear();
           _buildUtils.parser.clear();
@@ -308,9 +318,10 @@ class DevCommand extends Command<void> {
             }
           } else if (line.contains('Server running at')) {
             _console.printSuccess(line);
-          } else if (line.contains('The Dart DevTools') ||
-              line.contains('Connecting to VM Service')) {
-            // Suppress noise
+          } else if ((line.contains('The Dart DevTools') ||
+                  line.contains('Connecting to VM Service')) &&
+              !_verbose) {
+            // Suppress noise unless verbose
           } else {
             _console.printGray('[Server] $line');
           }
@@ -429,6 +440,9 @@ class DevCommand extends Command<void> {
     _console.printGray('Watching for file changes...');
     final watcher = _watcherFactory(_workingDirectory.path);
     _fileWatcherSubscription = watcher.events.listen((event) {
+      if (_verbose) {
+        _console.printGray('[Watcher] ${event.type}: ${event.path}');
+      }
       if (event.path.endsWith('.dart') &&
           !event.path.endsWith('.g.dart') &&
           !event.path.contains('${p.separator}.dart_tool') &&

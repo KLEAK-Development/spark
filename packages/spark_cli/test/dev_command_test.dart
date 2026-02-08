@@ -141,6 +141,84 @@ void main() {
       },
     );
 
+    test('accepts --verbose flag and shows INFO logs', () async {
+      File(
+        p.join(tempDir.path, 'main.dart'),
+      ).writeAsStringSync('void main() {}');
+
+      final printedLines = <String>[];
+
+      runZoned(
+        () {
+          return runner.run(['dev', '--verbose']);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) {
+            printedLines.add(line);
+          },
+        ),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Simulate an [INFO] log line from build_runner
+      buildRunnerProcess.stdoutController.add(
+        utf8.encode('[INFO] Running build...\n'),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // In verbose mode, [INFO] lines should NOT be suppressed and should
+      // appear in output via BuildRunnerUtils._pipeStream (printed as gray).
+      // The onLog callback also receives the line but since it doesn't match
+      // any known pattern it falls through without being suppressed.
+      expect(
+        printedLines.any((line) => line.contains('[INFO] Running build...')),
+        isTrue,
+        reason: 'INFO logs should be visible in verbose mode',
+      );
+
+      processRunner.processes.clear();
+    });
+
+    test('suppresses INFO logs without --verbose', () async {
+      File(
+        p.join(tempDir.path, 'main.dart'),
+      ).writeAsStringSync('void main() {}');
+
+      final printedLines = <String>[];
+
+      runZoned(
+        () {
+          return runner.run(['dev']);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) {
+            printedLines.add(line);
+          },
+        ),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Simulate an [INFO] log line from build_runner
+      buildRunnerProcess.stdoutController.add(
+        utf8.encode('[INFO] Running build...\n'),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Without verbose, [INFO] lines from onLog should be suppressed.
+      // BuildRunnerUtils._pipeStream also won't print because verbose=false.
+      expect(
+        printedLines.any((line) => line.contains('[INFO] Running build...')),
+        isFalse,
+        reason: 'INFO logs should be suppressed without --verbose',
+      );
+
+      processRunner.processes.clear();
+    });
+
     test('deletes existing build folder on startup', () async {
       // Setup using shared tempDir
       final buildDir = Directory(p.join(tempDir.path, 'build'));
