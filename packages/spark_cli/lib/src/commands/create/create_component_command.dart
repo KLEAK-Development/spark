@@ -42,15 +42,17 @@ class CreateComponentCommand extends Command<void> {
     final pascalName = toPascalCase(input);
     final kebabName = toKebabCase(input);
 
-    final exportFile = p.join('lib', 'components', '$snakeName.dart');
-    final baseFile = p.join('lib', 'components', '${snakeName}_base.dart');
+    final componentDir = p.join('lib', 'components', snakeName);
+    final exportFile = p.join(componentDir, '$snakeName.dart');
+    final baseFile = p.join(componentDir, '${snakeName}_base.dart');
 
-    final export = File(exportFile);
-    if (export.existsSync()) {
-      print('File $exportFile already exists.');
+    final dir = Directory(componentDir);
+    if (dir.existsSync()) {
+      print('Directory $componentDir already exists.');
       return;
     }
 
+    final export = File(exportFile);
     await export.create(recursive: true);
     await export.writeAsString(_exportTemplate(snakeName));
 

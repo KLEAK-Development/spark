@@ -25,33 +25,29 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('creates component files from snake_case input', () async {
+    test('creates component files inside a snake_case folder', () async {
       await _suppressOutput(
         () => runner.run(['create', 'component', 'my_counter']),
       );
 
-      final exportPath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'my_counter.dart',
-      );
-      final basePath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'my_counter_base.dart',
-      );
+      final dirPath = p.join(tempDir.path, 'lib', 'components', 'my_counter');
+      final exportPath = p.join(dirPath, 'my_counter.dart');
+      final basePath = p.join(dirPath, 'my_counter_base.dart');
 
+      expect(
+        Directory(dirPath).existsSync(),
+        isTrue,
+        reason: 'my_counter/ directory should exist',
+      );
       expect(
         File(exportPath).existsSync(),
         isTrue,
-        reason: 'my_counter.dart should exist',
+        reason: 'my_counter/my_counter.dart should exist',
       );
       expect(
         File(basePath).existsSync(),
         isTrue,
-        reason: 'my_counter_base.dart should exist',
+        reason: 'my_counter/my_counter_base.dart should exist',
       );
 
       final exportContent = File(exportPath).readAsStringSync();
@@ -64,24 +60,16 @@ void main() {
       expect(baseContent, contains("@Component(tag: MyCounter.tag)"));
     });
 
-    test('creates component files from PascalCase input', () async {
+    test('creates component folder from PascalCase input', () async {
       await _suppressOutput(
         () => runner.run(['create', 'component', 'MyCounter']),
       );
 
-      final exportPath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'my_counter.dart',
-      );
-      final basePath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'my_counter_base.dart',
-      );
+      final dirPath = p.join(tempDir.path, 'lib', 'components', 'my_counter');
+      final exportPath = p.join(dirPath, 'my_counter.dart');
+      final basePath = p.join(dirPath, 'my_counter_base.dart');
 
+      expect(Directory(dirPath).existsSync(), isTrue);
       expect(File(exportPath).existsSync(), isTrue);
       expect(File(basePath).existsSync(), isTrue);
 
@@ -100,10 +88,22 @@ void main() {
         () => runner.run(['create', 'component', 'MyCounter']),
       );
       final pascalExport = File(
-        p.join(tempDir1.path, 'lib', 'components', 'my_counter.dart'),
+        p.join(
+          tempDir1.path,
+          'lib',
+          'components',
+          'my_counter',
+          'my_counter.dart',
+        ),
       ).readAsStringSync();
       final pascalBase = File(
-        p.join(tempDir1.path, 'lib', 'components', 'my_counter_base.dart'),
+        p.join(
+          tempDir1.path,
+          'lib',
+          'components',
+          'my_counter',
+          'my_counter_base.dart',
+        ),
       ).readAsStringSync();
 
       // Create with snake_case
@@ -113,10 +113,22 @@ void main() {
         () => runner.run(['create', 'component', 'my_counter']),
       );
       final snakeExport = File(
-        p.join(tempDir2.path, 'lib', 'components', 'my_counter.dart'),
+        p.join(
+          tempDir2.path,
+          'lib',
+          'components',
+          'my_counter',
+          'my_counter.dart',
+        ),
       ).readAsStringSync();
       final snakeBase = File(
-        p.join(tempDir2.path, 'lib', 'components', 'my_counter_base.dart'),
+        p.join(
+          tempDir2.path,
+          'lib',
+          'components',
+          'my_counter',
+          'my_counter_base.dart',
+        ),
       ).readAsStringSync();
 
       expect(pascalExport, equals(snakeExport));
@@ -145,14 +157,9 @@ void main() {
         isTrue,
       );
 
-      // Ensure no files were created
-      final exportPath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'counter.dart',
-      );
-      expect(File(exportPath).existsSync(), isFalse);
+      // Ensure no directory was created
+      final dirPath = p.join(tempDir.path, 'lib', 'components', 'counter');
+      expect(Directory(dirPath).existsSync(), isFalse);
     });
 
     test('rejects other single word names', () async {
@@ -171,25 +178,16 @@ void main() {
       }
     });
 
-    test('file naming follows snake_case pattern', () async {
+    test('folder and file naming follows snake_case pattern', () async {
       await _suppressOutput(
         () => runner.run(['create', 'component', 'NavBar']),
       );
 
-      // Files should be snake_case
-      final exportPath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'nav_bar.dart',
-      );
-      final basePath = p.join(
-        tempDir.path,
-        'lib',
-        'components',
-        'nav_bar_base.dart',
-      );
+      final dirPath = p.join(tempDir.path, 'lib', 'components', 'nav_bar');
+      final exportPath = p.join(dirPath, 'nav_bar.dart');
+      final basePath = p.join(dirPath, 'nav_bar_base.dart');
 
+      expect(Directory(dirPath).existsSync(), isTrue);
       expect(File(exportPath).existsSync(), isTrue);
       expect(File(basePath).existsSync(), isTrue);
     });
@@ -203,6 +201,7 @@ void main() {
         tempDir.path,
         'lib',
         'components',
+        'nav_bar',
         'nav_bar_base.dart',
       );
       final content = File(basePath).readAsStringSync();
@@ -219,6 +218,7 @@ void main() {
         tempDir.path,
         'lib',
         'components',
+        'nav_bar',
         'nav_bar_base.dart',
       );
       final content = File(basePath).readAsStringSync();
@@ -226,16 +226,22 @@ void main() {
       expect(content, contains("static const tag = 'nav-bar'"));
     });
 
-    test('does not overwrite existing files', () async {
-      final dir = Directory(p.join(tempDir.path, 'lib', 'components'));
+    test('does not overwrite existing directory', () async {
+      final dir = Directory(
+        p.join(tempDir.path, 'lib', 'components', 'my_counter'),
+      );
       dir.createSync(recursive: true);
-      final file = File(p.join(dir.path, 'my_counter.dart'));
+      final file = File(p.join(dir.path, 'existing.dart'));
       file.writeAsStringSync('existing content');
 
-      await _suppressOutput(
+      final output = <String>[];
+      await _captureOutput(
         () => runner.run(['create', 'component', 'my_counter']),
+        output,
       );
 
+      expect(output.any((line) => line.contains('already exists')), isTrue);
+      // Existing file should be untouched
       expect(file.readAsStringSync(), equals('existing content'));
     });
 
@@ -254,12 +260,15 @@ void main() {
         () => runner.run(['create', 'component', 'MyBigComponent']),
       );
 
-      final basePath = p.join(
+      final dirPath = p.join(
         tempDir.path,
         'lib',
         'components',
-        'my_big_component_base.dart',
+        'my_big_component',
       );
+      final basePath = p.join(dirPath, 'my_big_component_base.dart');
+
+      expect(Directory(dirPath).existsSync(), isTrue);
       final content = File(basePath).readAsStringSync();
 
       expect(content, contains('class MyBigComponent'));
