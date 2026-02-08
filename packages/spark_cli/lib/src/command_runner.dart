@@ -4,6 +4,7 @@ import 'commands/dev_command.dart';
 import 'commands/build_command.dart';
 import 'commands/openapi_command.dart';
 import 'commands/create/create_command.dart';
+import 'commands/mcp_command.dart';
 
 class SparkCommandRunner extends CommandRunner<void> {
   SparkCommandRunner() : super('spark', 'A CLI tool for the Spark Framework.') {
@@ -18,6 +19,7 @@ class SparkCommandRunner extends CommandRunner<void> {
     addCommand(BuildCommand());
     addCommand(OpenApiCommand());
     addCommand(CreateCommand());
+    addCommand(McpCommand());
   }
 
   @override
