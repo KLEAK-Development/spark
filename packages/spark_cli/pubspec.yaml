@@ -13,6 +13,7 @@ environment:
 
 executables:
   spark: spark
+  spark_mcp: spark_mcp
 
 dependencies:
   args: ^2.7.0
