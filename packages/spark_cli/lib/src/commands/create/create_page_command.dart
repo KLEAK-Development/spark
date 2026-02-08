@@ -10,7 +10,8 @@ class CreatePageCommand extends Command<void> {
   String get name => 'page';
 
   @override
-  String get description => 'Create a new page.\n\n'
+  String get description =>
+      'Create a new page.\n\n'
       'Usage: spark create page <name>\n'
       'Example: spark create page dashboard';
 
@@ -43,7 +44,8 @@ class CreatePageCommand extends Command<void> {
     print('Created page ${pascalName}Page at $filePath');
   }
 
-  String _pageTemplate(String pascalName, String kebabName) => '''
+  String _pageTemplate(String pascalName, String kebabName) =>
+      '''
 import 'package:spark_framework/spark.dart';
 
 @Page(path: '/$kebabName')

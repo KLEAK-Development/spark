@@ -28,10 +28,19 @@ void main() {
     test('creates a page file with correct name and content', () async {
       await _suppressOutput(() => runner.run(['create', 'page', 'dashboard']));
 
-      final filePath = p.join(tempDir.path, 'lib', 'pages', 'dashboard_page.dart');
+      final filePath = p.join(
+        tempDir.path,
+        'lib',
+        'pages',
+        'dashboard_page.dart',
+      );
       final file = File(filePath);
 
-      expect(file.existsSync(), isTrue, reason: 'dashboard_page.dart should exist');
+      expect(
+        file.existsSync(),
+        isTrue,
+        reason: 'dashboard_page.dart should exist',
+      );
 
       final content = file.readAsStringSync();
       expect(content, contains("class DashboardPage extends SparkPage<void>"));
@@ -55,7 +64,10 @@ void main() {
       expect(file.existsSync(), isTrue);
 
       final content = file.readAsStringSync();
-      expect(content, contains("class UserProfilePage extends SparkPage<void>"));
+      expect(
+        content,
+        contains("class UserProfilePage extends SparkPage<void>"),
+      );
       expect(content, contains("@Page(path: '/user-profile')"));
     });
 
@@ -75,7 +87,10 @@ void main() {
       expect(file.existsSync(), isTrue);
 
       final content = file.readAsStringSync();
-      expect(content, contains("class UserProfilePage extends SparkPage<void>"));
+      expect(
+        content,
+        contains("class UserProfilePage extends SparkPage<void>"),
+      );
       expect(content, contains("@Page(path: '/user-profile')"));
     });
 
@@ -93,12 +108,12 @@ void main() {
 
     test('prints error when no name provided', () async {
       final output = <String>[];
-      await _captureOutput(
-        () => runner.run(['create', 'page']),
-        output,
-      );
+      await _captureOutput(() => runner.run(['create', 'page']), output);
 
-      expect(output.any((line) => line.contains('Please provide a page name')), isTrue);
+      expect(
+        output.any((line) => line.contains('Please provide a page name')),
+        isTrue,
+      );
     });
   });
 }
@@ -106,9 +121,7 @@ void main() {
 Future<void> _suppressOutput(Future<void> Function() fn) async {
   await runZoned(
     fn,
-    zoneSpecification: ZoneSpecification(
-      print: (self, parent, zone, line) {},
-    ),
+    zoneSpecification: ZoneSpecification(print: (self, parent, zone, line) {}),
   );
 }
 

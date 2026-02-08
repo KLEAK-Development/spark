@@ -43,8 +43,16 @@ void main() {
         'my_counter_base.dart',
       );
 
-      expect(File(exportPath).existsSync(), isTrue, reason: 'my_counter.dart should exist');
-      expect(File(basePath).existsSync(), isTrue, reason: 'my_counter_base.dart should exist');
+      expect(
+        File(exportPath).existsSync(),
+        isTrue,
+        reason: 'my_counter.dart should exist',
+      );
+      expect(
+        File(basePath).existsSync(),
+        isTrue,
+        reason: 'my_counter_base.dart should exist',
+      );
 
       final exportContent = File(exportPath).readAsStringSync();
       expect(exportContent, contains("export 'my_counter_base.dart'"));
@@ -84,7 +92,9 @@ void main() {
 
     test('MyCounter and my_counter produce identical output', () async {
       // Create with PascalCase
-      final tempDir1 = Directory.systemTemp.createTempSync('spark_test_pascal_');
+      final tempDir1 = Directory.systemTemp.createTempSync(
+        'spark_test_pascal_',
+      );
       Directory.current = tempDir1;
       await _suppressOutput(
         () => runner.run(['create', 'component', 'MyCounter']),
@@ -231,10 +241,7 @@ void main() {
 
     test('prints error when no name provided', () async {
       final output = <String>[];
-      await _captureOutput(
-        () => runner.run(['create', 'component']),
-        output,
-      );
+      await _captureOutput(() => runner.run(['create', 'component']), output);
 
       expect(
         output.any((line) => line.contains('Please provide a component name')),
@@ -264,9 +271,7 @@ void main() {
 Future<void> _suppressOutput(Future<void> Function() fn) async {
   await runZoned(
     fn,
-    zoneSpecification: ZoneSpecification(
-      print: (self, parent, zone, line) {},
-    ),
+    zoneSpecification: ZoneSpecification(print: (self, parent, zone, line) {}),
   );
 }
 
