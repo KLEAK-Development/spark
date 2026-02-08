@@ -159,11 +159,10 @@ Future<Response> _serveFile(
   final extension = _getExtension(file.path);
   final mimeType = _mimeTypes[extension] ?? 'application/octet-stream';
 
-  // Read file
-  final bytes = await file.readAsBytes();
-
   // Build headers
   final headers = <String, Object>{'content-type': mimeType};
+
+  FileStat? stat;
 
   // Add caching headers
   if (config.enableCaching) {
@@ -178,7 +177,7 @@ Future<Response> _serveFile(
     }
 
     // Add ETag based on file modification time
-    final stat = await file.stat();
+    stat = await file.stat();
     final etag = '"${stat.modified.millisecondsSinceEpoch}"';
     headers['etag'] = etag;
 
@@ -193,15 +192,20 @@ Future<Response> _serveFile(
   if (config.enableCompression && _shouldCompress(mimeType)) {
     final acceptEncoding = request.headers['accept-encoding'] ?? '';
     if (acceptEncoding.contains('gzip')) {
-      final compressed = gzip.encode(bytes);
       headers['content-encoding'] = 'gzip';
-      headers['content-length'] = compressed.length.toString();
-      return Response.ok(compressed, headers: headers.cast<String, String>());
+      return Response.ok(
+        file.openRead().transform(gzip.encoder),
+        headers: headers.cast<String, String>(),
+      );
     }
   }
 
-  headers['content-length'] = bytes.length.toString();
-  return Response.ok(bytes, headers: headers.cast<String, String>());
+  final length = stat?.size ?? await file.length();
+  headers['content-length'] = length.toString();
+  return Response.ok(
+    file.openRead(),
+    headers: headers.cast<String, String>(),
+  );
 }
 
 /// Lists directory contents as HTML.
