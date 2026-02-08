@@ -10,7 +10,8 @@ class CreateComponentCommand extends Command<void> {
   String get name => 'component';
 
   @override
-  String get description => 'Create a new web component.\n\n'
+  String get description =>
+      'Create a new web component.\n\n'
       'Usage: spark create component <name>\n'
       'Example: spark create component my_counter\n\n'
       'The name must produce a valid custom element tag (requires a hyphen).\n'
@@ -62,13 +63,15 @@ class CreateComponentCommand extends Command<void> {
     print('  $baseFile');
   }
 
-  String _exportTemplate(String snakeName) => '''
+  String _exportTemplate(String snakeName) =>
+      '''
 export '${snakeName}_base.dart'
     if (dart.library.html) '${snakeName}_base.impl.dart'
     if (dart.library.io) '${snakeName}_base.impl.dart';
 ''';
 
-  String _baseTemplate(String pascalName, String kebabName) => '''
+  String _baseTemplate(String pascalName, String kebabName) =>
+      '''
 import 'package:spark_framework/spark.dart';
 
 @Component(tag: $pascalName.tag)

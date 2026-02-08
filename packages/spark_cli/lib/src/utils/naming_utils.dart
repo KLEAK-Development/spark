@@ -11,9 +11,7 @@ String toSnakeCase(String input) {
   final buffer = StringBuffer();
   for (var i = 0; i < input.length; i++) {
     final char = input[i];
-    if (i > 0 &&
-        char.toUpperCase() == char &&
-        char.toLowerCase() != char) {
+    if (i > 0 && char.toUpperCase() == char && char.toLowerCase() != char) {
       buffer.write('_');
     }
     buffer.write(char.toLowerCase());

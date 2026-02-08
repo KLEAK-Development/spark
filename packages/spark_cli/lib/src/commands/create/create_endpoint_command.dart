@@ -10,7 +10,8 @@ class CreateEndpointCommand extends Command<void> {
   String get name => 'endpoint';
 
   @override
-  String get description => 'Create a new endpoint.\n\n'
+  String get description =>
+      'Create a new endpoint.\n\n'
       'Usage: spark create endpoint <name>\n'
       'Example: spark create endpoint dashboard';
 
@@ -43,7 +44,8 @@ class CreateEndpointCommand extends Command<void> {
     print('Created endpoint ${pascalName}Endpoint at $filePath');
   }
 
-  String _endpointTemplate(String pascalName, String kebabName) => '''
+  String _endpointTemplate(String pascalName, String kebabName) =>
+      '''
 import 'package:spark_framework/spark.dart';
 
 @Endpoint(path: '/api/$kebabName', method: 'GET')
