@@ -28,8 +28,36 @@ jobs:
       - name: Analyze
         run: dart analyze --fatal-infos
 
-  test:
-    name: Test
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      spark: ${{ steps.filter.outputs.spark }}
+      spark_cli: ${{ steps.filter.outputs.spark_cli }}
+      spark_generator: ${{ steps.filter.outputs.spark_generator }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            spark:
+              - 'packages/spark/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
+            spark_cli:
+              - 'packages/spark_cli/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
+            spark_generator:
+              - 'packages/spark_generator/**'
+              - 'packages/spark/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
+
+  test_spark:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark == 'true' }}
+    name: Test Spark
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +73,46 @@ jobs:
 
       - name: Run tests
         run: |
-          cd packages/spark && dart test
+          cd packages/spark
+          dart test
           dart test -p chrome
-          cd ../spark_cli && dart test
-          cd ../spark_generator && dart test
+
+  test_spark_cli:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark_cli == 'true' }}
+    name: Test Spark CLI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.7"
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: |
+          cd packages/spark_cli
+          dart test
+
+  test_spark_generator:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark_generator == 'true' }}
+    name: Test Spark Generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.7"
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: |
+          cd packages/spark_generator
+          dart test
