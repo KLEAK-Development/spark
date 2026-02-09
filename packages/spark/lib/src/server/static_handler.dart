@@ -1,7 +1,9 @@
 /// Static file handler for serving compiled assets.
 library;
 
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:shelf/shelf.dart';
 
 /// MIME type mappings for common file extensions.
@@ -205,10 +207,15 @@ Future<Response> _serveFile(
 
 /// Lists directory contents as HTML.
 Response _listDirectory(Directory dir, String requestPath) {
+  const htmlEscape = HtmlEscape();
+  final safeRequestPath = htmlEscape.convert(requestPath);
+
   final buffer = StringBuffer();
   buffer.writeln('<!DOCTYPE html>');
-  buffer.writeln('<html><head><title>Index of /$requestPath</title></head>');
-  buffer.writeln('<body><h1>Index of /$requestPath</h1><ul>');
+  buffer.writeln(
+    '<html><head><title>Index of /$safeRequestPath</title></head>',
+  );
+  buffer.writeln('<body><h1>Index of /$safeRequestPath</h1><ul>');
 
   if (requestPath.isNotEmpty) {
     buffer.writeln('<li><a href="../">..</a></li>');
@@ -217,8 +224,11 @@ Response _listDirectory(Directory dir, String requestPath) {
   for (final entity in dir.listSync()) {
     final name = entity.path.split('/').last;
     final isDir = entity is Directory;
+    final safeName = htmlEscape.convert(name);
+    final url = Uri.encodeComponent(name);
+
     buffer.writeln(
-      '<li><a href="$name${isDir ? '/' : ''}">$name${isDir ? '/' : ''}</a></li>',
+      '<li><a href="$url${isDir ? '/' : ''}">$safeName${isDir ? '/' : ''}</a></li>',
     );
   }
 
