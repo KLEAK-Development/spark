@@ -20,7 +20,9 @@ void main() {
       expect(html, contains('<meta charset="UTF-8">'));
       expect(
         html,
-        contains('<meta name="viewport" content="width=device-width, initial-scale=1">'),
+        contains(
+          '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        ),
       );
       expect(html, contains('<title>Basic Page</title>'));
       expect(html, contains('<body>'));
@@ -131,10 +133,11 @@ void main() {
     });
 
     test('renders headContent as VNode', () {
-      final vNode = Element('meta', attributes: {
-        'name': 'author',
-        'content': 'Me',
-      }, selfClosing: true);
+      final vNode = Element(
+        'meta',
+        attributes: {'name': 'author', 'content': 'Me'},
+        selfClosing: true,
+      );
 
       final html = renderPage(
         title: 'VNode Head Page',
@@ -151,7 +154,11 @@ void main() {
         content: '<div>Content</div>',
         headContent: [
           '<meta name="test1" content="1">',
-          Element('meta', attributes: {'name': 'test2', 'content': '2'}, selfClosing: true),
+          Element(
+            'meta',
+            attributes: {'name': 'test2', 'content': '2'},
+            selfClosing: true,
+          ),
         ],
       );
 
@@ -162,7 +169,10 @@ void main() {
     test('renders headContent with CSP nonce injection in VNode', () {
       // Create a style element without nonce
       // It should pick up the nonce from the zone set by renderPage
-      final styleNode = Element('style', children: [Text('body { color: blue; }')]);
+      final styleNode = Element(
+        'style',
+        children: [Text('body { color: blue; }')],
+      );
 
       final html = renderPage(
         title: 'Nonce Page',
@@ -212,8 +222,14 @@ void main() {
       expect(html, contains('<html lang="es">'));
       expect(html, contains('<meta charset="UTF-16">'));
       expect(html, contains('<meta name="viewport" content="width=100">'));
-      expect(html, contains('<script defer src="/main.js" nonce="nonce-abc"></script>'));
-      expect(html, contains('<script defer src="extra.js" nonce="nonce-abc"></script>'));
+      expect(
+        html,
+        contains('<script defer src="/main.js" nonce="nonce-abc"></script>'),
+      );
+      expect(
+        html,
+        contains('<script defer src="extra.js" nonce="nonce-abc"></script>'),
+      );
       expect(html, contains('<link rel="stylesheet" href="style.css">'));
       expect(html, contains('<meta name="test" content="value">'));
       expect(html, contains('<div>Content</div>'));
