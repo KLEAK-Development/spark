@@ -52,6 +52,11 @@ class DevCommand extends Command<void> {
       workingDirectory: _workingDirectory,
     );
     argParser.addFlag('verbose', abbr: 'v', help: 'Show verbose log output.');
+    argParser.addFlag(
+      'poll',
+      help: 'Use polling watcher (useful for WSL/Docker).',
+      negatable: false,
+    );
   }
 
   late final BuildRunnerUtils _buildUtils;
@@ -68,6 +73,8 @@ class DevCommand extends Command<void> {
 
   // Verbose logging flag
   bool _verbose = false;
+  // Polling watcher flag
+  bool _usePolling = false;
 
   // Error handling components
   final ConsoleOutput _console = ConsoleOutput();
@@ -80,6 +87,7 @@ class DevCommand extends Command<void> {
   @override
   Future<void> run() async {
     _verbose = argResults!['verbose'] as bool;
+    _usePolling = argResults!['poll'] as bool;
     _console.printInfo('Starting development environment...');
 
     await DirectoryUtils.cleanDirectory(
@@ -434,7 +442,9 @@ class DevCommand extends Command<void> {
 
   void _startFileWatcher() {
     _console.printGray('Watching for file changes...');
-    final watcher = _watcherFactory(_workingDirectory.path);
+    final watcher = _usePolling
+        ? PollingDirectoryWatcher(_workingDirectory.path)
+        : _watcherFactory(_workingDirectory.path);
     _fileWatcherSubscription = watcher.events.listen((event) {
       if (_verbose) {
         _console.printGray('[Watcher] ${event.type}: ${event.path}');

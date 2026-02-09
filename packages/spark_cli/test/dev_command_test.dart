@@ -237,6 +237,34 @@ void main() {
       await Future.delayed(Duration(milliseconds: 50));
       expect(buildDir.existsSync(), isFalse);
     });
+
+    test('uses polling watcher when --poll flag is passed', () async {
+      File(
+        p.join(tempDir.path, 'main.dart'),
+      ).writeAsStringSync('void main() {}');
+
+      // Run with --poll flag
+      runZoned(
+        () {
+          return runner.run(['dev', '--poll']);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) {},
+        ),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // The watcherFactory should NOT have been called, so activeWatcher should be null
+      expect(
+        activeWatcher,
+        isNull,
+        reason:
+            'Should use PollingDirectoryWatcher instead of injected factory',
+      );
+
+      processRunner.processes.clear();
+    });
   });
 }
 
