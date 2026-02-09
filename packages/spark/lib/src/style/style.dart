@@ -10,12 +10,14 @@ abstract class CssStyle {
 /// A map of CSS selectors to their styles.
 class Stylesheet implements CssStyle {
   final Map<String, Style> rules;
+  String? _cssCache;
 
-  const Stylesheet(this.rules);
+  Stylesheet(this.rules);
 
   /// Converts the stylesheet to a CSS string.
   @override
   String toCss() {
+    if (_cssCache != null) return _cssCache!;
     final buffer = StringBuffer();
     final sortedKeys = rules.keys.toList()..sort();
 
@@ -33,7 +35,8 @@ class Stylesheet implements CssStyle {
         buffer.writeln('}');
       }
     }
-    return buffer.toString();
+    _cssCache = buffer.toString();
+    return _cssCache!;
   }
 
   @override
@@ -57,6 +60,7 @@ class Stylesheet implements CssStyle {
 class Style implements CssStyle {
   final Map<String, String> _properties = {};
   final Stylesheet? stylesheet;
+  String? _cssCache;
 
   /// Creates a style with raw string values.
   ///
@@ -410,11 +414,13 @@ class Style implements CssStyle {
   /// Adds a custom property not covered by the named arguments.
   void add(String property, String value) {
     _properties[property] = value;
+    _cssCache = null;
   }
 
   /// Converts the style to a CSS string.
   @override
   String toCss() {
+    if (_cssCache != null) return _cssCache!;
     final buffer = StringBuffer();
     final sortedKeys = _properties.keys.toList()..sort();
 
@@ -434,7 +440,8 @@ class Style implements CssStyle {
         buffer.write(stylesheet!.toCss());
       }
     }
-    return buffer.toString();
+    _cssCache = buffer.toString();
+    return _cssCache!;
   }
 
   @override
