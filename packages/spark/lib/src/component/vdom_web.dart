@@ -21,7 +21,7 @@ void mount(dynamic parent, VNode vNode) {
 
   // Find first significant child (ignore whitespace-only text caused by SSR formatting)
   web.Node? targetNode = node.firstChild;
-  while (targetNode != null && _isWhitespace(targetNode)) {
+  while (targetNode != null && _isIgnorable(targetNode)) {
     targetNode = targetNode.nextSibling;
   }
 
@@ -49,7 +49,7 @@ void mountList(dynamic parent, List<VNode> vNodes) {
   final significantNodes = <web.Node>[];
   web.Node? child = node.firstChild;
   while (child != null) {
-    if (!_isWhitespace(child)) {
+    if (!_isIgnorable(child)) {
       significantNodes.add(child);
     }
     child = child.nextSibling;
@@ -76,8 +76,9 @@ void mountList(dynamic parent, List<VNode> vNodes) {
   }
 }
 
-bool _isWhitespace(web.Node node) {
-  return node.nodeType == 3 && (node.textContent ?? '').trim().isEmpty;
+bool _isIgnorable(web.Node node) {
+  return (node.nodeType == 3 && (node.textContent ?? '').trim().isEmpty) ||
+      node.nodeType == 8;
 }
 
 /// Patches an existing DOM element to match a Virtual DOM node.
@@ -176,7 +177,7 @@ void _patchElement(web.Element el, html.Element vNode, {required bool isSvg}) {
   final significantNodes = <web.Node>[];
   for (var i = 0; i < childNodes.length; i++) {
     final node = childNodes.item(i);
-    if (node != null && !_isWhitespace(node)) {
+    if (node != null && !_isIgnorable(node)) {
       significantNodes.add(node);
     }
   }
@@ -230,6 +231,13 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
       final strVal = value.toString();
       if (el.getAttribute(key) != strVal) {
         el.setAttribute(key, strVal);
+      }
+      // Also set the property for input value to ensure sync
+      if (key == 'value' && (el as JSAny).isA<web.HTMLInputElement>()) {
+        final input = el as web.HTMLInputElement;
+        if (input.value != strVal) {
+          input.value = strVal;
+        }
       }
     }
   });
@@ -285,7 +293,12 @@ void _updateEvents(web.Element el, Map<String, Function> newEvents) {
                   data = num.tryParse(t.value);
                 } else if (target.type == 'checkbox') {
                   data = t.checked;
-                } else if (target.type == 'text' || target.type == 'password') {
+                } else if (target.type == 'text' ||
+                    target.type == 'password' ||
+                    target.type == 'email' ||
+                    target.type == 'search' ||
+                    target.type == 'url' ||
+                    target.type == 'tel') {
                   data = t.value;
                 } else {
                   data = {'value': t.value, 'checked': t.checked};

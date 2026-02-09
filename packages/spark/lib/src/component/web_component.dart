@@ -152,11 +152,21 @@ abstract class WebComponent {
     // Set up attribute observation if needed
     _setupAttributeObserver();
 
+    // Hook for subclasses to perform actions before initial update (e.g. style cleanup)
+    onHydrating();
+
     // Notify initial attribute values (before onMount)
     _notifyInitialAttributes();
 
     onMount();
   }
+
+  /// Called during hydration, before initial attributes are notified.
+  ///
+  /// Override this to perform setup steps that must happen before the first
+  /// [attributeChangedCallback] (and subsequent [update]) occurs.
+  /// Common use case: removing SSR artifacts like <style> tags to avoid VDOM mismatch.
+  void onHydrating() {}
 
   /// Sets up a MutationObserver to watch for attribute changes.
   void _setupAttributeObserver() {

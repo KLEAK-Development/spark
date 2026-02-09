@@ -190,9 +190,7 @@ abstract class SparkComponent extends WebComponent {
   Stylesheet? get adoptedStyleSheets => null;
 
   @override
-  void onMount() {
-    super.onMount();
-
+  void onHydrating() {
     // Apply adopted stylesheets if defined (for browser efficiency)
     final styles = adoptedStyleSheets;
     if (styles != null) {
@@ -209,7 +207,11 @@ abstract class SparkComponent extends WebComponent {
         }
       }
     }
+  }
 
+  @override
+  void onMount() {
+    super.onMount();
     update();
   }
 
