@@ -220,6 +220,8 @@ String renderPageWithOptions(PageOptions options) {
     inlineStyles: options.inlineStyles,
     headContent: options.headContent,
     lang: options.lang,
+    charset: options.charset,
+    viewport: options.viewport,
     metaTags: options.metaTags,
     nonce: options.nonce,
   );
