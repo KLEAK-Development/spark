@@ -51,11 +51,7 @@ class DevCommand extends Command<void> {
       console: _console,
       workingDirectory: _workingDirectory,
     );
-    argParser.addFlag(
-      'verbose',
-      abbr: 'v',
-      help: 'Show verbose log output.',
-    );
+    argParser.addFlag('verbose', abbr: 'v', help: 'Show verbose log output.');
   }
 
   late final BuildRunnerUtils _buildUtils;
