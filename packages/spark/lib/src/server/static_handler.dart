@@ -137,7 +137,7 @@ Handler createStaticHandler(String path, {StaticHandlerConfig? config}) {
       }
 
       if (config.listDirectories) {
-        return _listDirectory(dir, filePath);
+        return await _listDirectory(dir, filePath);
       }
 
       return Response.notFound('Not found');
@@ -206,7 +206,7 @@ Future<Response> _serveFile(
 }
 
 /// Lists directory contents as HTML.
-Response _listDirectory(Directory dir, String requestPath) {
+Future<Response> _listDirectory(Directory dir, String requestPath) async {
   const htmlEscape = HtmlEscape();
   final safeRequestPath = htmlEscape.convert(requestPath);
 
@@ -221,7 +221,7 @@ Response _listDirectory(Directory dir, String requestPath) {
     buffer.writeln('<li><a href="../">..</a></li>');
   }
 
-  for (final entity in dir.listSync()) {
+  await for (final entity in dir.list()) {
     final name = entity.path.split('/').last;
     final isDir = entity is Directory;
     final safeName = htmlEscape.convert(name);
