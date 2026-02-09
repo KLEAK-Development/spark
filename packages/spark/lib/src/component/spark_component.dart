@@ -91,11 +91,12 @@ abstract class SparkComponent extends WebComponent {
 
     // Register styles for deduplication
     if (styles != null) {
-      componentStyles.register(tagName, styles.toCss());
+      final css = styles.toCss();
+      componentStyles.register(tagName, css);
 
       return [
         // Use inline style instead of link tag
-        html.style([styles.toCss()]),
+        html.style([css]),
         children,
       ];
     }
