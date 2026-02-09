@@ -27,14 +27,16 @@ enum ContentType {
     if (mimeType == null) return unknown;
 
     final lower = mimeType.toLowerCase();
+    // Handle parameters (e.g. application/json; charset=utf-8) by taking only the first part
+    final baseType = lower.split(';').first.trim();
 
-    if (lower.contains('application/json')) return json;
-    if (lower.contains('application/x-www-form-urlencoded')) {
+    if (baseType == 'application/json') return json;
+    if (baseType == 'application/x-www-form-urlencoded') {
       return formUrlEncoded;
     }
-    if (lower.contains('multipart/form-data')) return multipart;
-    if (lower.contains('text/')) return text;
-    if (lower.contains('application/octet-stream')) return binary;
+    if (baseType == 'multipart/form-data') return multipart;
+    if (baseType.startsWith('text/')) return text;
+    if (baseType == 'application/octet-stream') return binary;
 
     return unknown;
   }
