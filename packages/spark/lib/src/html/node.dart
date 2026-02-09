@@ -35,6 +35,10 @@ class RawHtml extends VNode {
 
 /// An HTML element with a tag, attributes, and children.
 class Element extends VNode {
+  /// A global hook to wrap event handlers during element creation.
+  /// This is used by SparkComponent to inject reactivity without traversing the VDOM.
+  static Function(Function)? eventWrapper;
+
   final String tag;
   final Map<String, dynamic> attributes;
   final Map<String, Function> events;
@@ -44,10 +48,17 @@ class Element extends VNode {
   Element(
     this.tag, {
     this.attributes = const {},
-    this.events = const {},
+    Map<String, Function> events = const {},
     this.children = const [],
     this.selfClosing = false,
-  });
+  }) : events = _wrapEvents(events);
+
+  static Map<String, Function> _wrapEvents(Map<String, Function> events) {
+    if (eventWrapper != null && events.isNotEmpty) {
+      return events.map((key, value) => MapEntry(key, eventWrapper!(value)));
+    }
+    return events;
+  }
 
   @override
   String toHtml() {

@@ -111,9 +111,18 @@ abstract class SparkComponent extends WebComponent {
     // On the browser, styles are already applied via adoptedStyleSheets in onMount().
     // We only need the build() result, not the style element, to avoid CSP issues
     // with dynamically created <style> tags that wouldn't have a nonce.
-    final newVdom = [build()];
 
-    _wrapEventsInList(newVdom);
+    // Set the event wrapper hook so events are wrapped during VDOM construction
+    // instead of traversing the tree afterwards.
+    final prevWrapper = html.Element.eventWrapper;
+    html.Element.eventWrapper = _wrapHandler;
+
+    List<html.VNode> newVdom;
+    try {
+      newVdom = [build()];
+    } finally {
+      html.Element.eventWrapper = prevWrapper;
+    }
 
     final root = shadowRoot;
     if (root != null) {
@@ -123,31 +132,15 @@ abstract class SparkComponent extends WebComponent {
     }
   }
 
-  /// Wraps events in a list of nodes.
-  void _wrapEventsInList(List<html.VNode> nodes) {
-    for (final node in nodes) {
-      _wrapEvents(node);
-    }
-  }
-
-  void _wrapEvents(html.VNode node) {
-    if (node is html.Element) {
-      final keys = node.events.keys.toList();
-      for (final key in keys) {
-        final original = node.events[key]!;
-        node.events[key] = (arg) async {
-          final result = original(arg);
-          // Await if the handler returns a Future
-          if (result is Future) {
-            await result;
-          }
-          syncAttributes();
-        };
+  Function _wrapHandler(Function original) {
+    return (arg) async {
+      final result = original(arg);
+      // Await if the handler returns a Future
+      if (result is Future) {
+        await result;
       }
-      for (final child in node.children) {
-        _wrapEvents(child);
-      }
-    }
+      syncAttributes();
+    };
   }
 
   /// Called by generated code to sync fields to attributes.

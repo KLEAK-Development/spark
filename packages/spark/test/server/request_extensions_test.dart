@@ -45,7 +45,9 @@ void main() {
           isA<StateError>().having(
             (e) => e.message,
             'message',
-            contains('request.get<String>() called with a request context that does not contain a String'),
+            contains(
+              'request.get<String>() called with a request context that does not contain a String',
+            ),
           ),
         ),
       );
@@ -68,9 +70,7 @@ void main() {
       final request = Request(
         'GET',
         Uri.parse('http://localhost/'),
-        context: {
-          'shelf_router/params': <String, String>{},
-        },
+        context: {'shelf_router/params': <String, String>{}},
       );
       expect(
         () => request.getPathParameter('missing_id'),
@@ -78,13 +78,15 @@ void main() {
           isA<StateError>().having(
             (e) => e.message,
             'message',
-            contains('request.getPathParameter(missing_id) called with a request context that does not contain a value'),
+            contains(
+              'request.getPathParameter(missing_id) called with a request context that does not contain a value',
+            ),
           ),
         ),
       );
     });
 
-     test('throws StateError when shelf_router/params context is missing', () {
+    test('throws StateError when shelf_router/params context is missing', () {
       final request = Request('GET', Uri.parse('http://localhost/'));
       expect(
         () => request.getPathParameter('missing_id'),
@@ -92,7 +94,9 @@ void main() {
           isA<StateError>().having(
             (e) => e.message,
             'message',
-            contains('request.getPathParameter(missing_id) called with a request context that does not contain a value'),
+            contains(
+              'request.getPathParameter(missing_id) called with a request context that does not contain a value',
+            ),
           ),
         ),
       );
