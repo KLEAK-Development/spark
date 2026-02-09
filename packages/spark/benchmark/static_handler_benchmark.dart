@@ -28,7 +28,9 @@ void main() async {
   // Perform multiple iterations to get average
   const iterations = 10;
   for (var i = 0; i < iterations; i++) {
-    final response = await handler(Request('GET', Uri.parse('http://localhost/')));
+    final response = await handler(
+      Request('GET', Uri.parse('http://localhost/')),
+    );
     if (response.statusCode != 200) {
       print('Error: ${response.statusCode}');
       exit(1);
@@ -38,8 +40,12 @@ void main() async {
   }
   stopwatch.stop();
 
-  print('Total time for $iterations iterations: ${stopwatch.elapsedMilliseconds}ms');
-  print('Average time per request: ${stopwatch.elapsedMilliseconds / iterations}ms');
+  print(
+    'Total time for $iterations iterations: ${stopwatch.elapsedMilliseconds}ms',
+  );
+  print(
+    'Average time per request: ${stopwatch.elapsedMilliseconds / iterations}ms',
+  );
 
   // Clean up
   if (tempDir.existsSync()) {
