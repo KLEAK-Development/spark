@@ -162,7 +162,7 @@ Future<Response> _serveFile(
   // Build headers
   final headers = <String, Object>{'content-type': mimeType};
 
-  FileStat? stat;
+  final stat = config.enableCaching ? await file.stat() : null;
 
   // Add caching headers
   if (config.enableCaching) {
@@ -177,8 +177,7 @@ Future<Response> _serveFile(
     }
 
     // Add ETag based on file modification time
-    stat = await file.stat();
-    final etag = '"${stat.modified.millisecondsSinceEpoch}"';
+    final etag = '"${stat!.modified.millisecondsSinceEpoch}"';
     headers['etag'] = etag;
 
     // Check if client has cached version
