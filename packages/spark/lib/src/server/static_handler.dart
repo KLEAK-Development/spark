@@ -199,8 +199,7 @@ Future<Response> _serveFile(
     }
   }
 
-  final length = stat?.size ?? await file.length();
-  headers['content-length'] = length.toString();
+  headers['content-length'] = stat.size.toString();
   return Response.ok(file.openRead(), headers: headers.cast<String, String>());
 }
 
