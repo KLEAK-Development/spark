@@ -1,3 +1,25 @@
+## 1.0.0-alpha.7
+
+### Features
+
+- Improved VDOM hydration by ignoring comment nodes and preserving input state.
+- Added `onHydrating` lifecycle hook.
+- Refactored `ContentType.from` to use strict MIME type matching.
+
+### Bug Fixes
+
+- Fixed Stored XSS in static file handler directory listing.
+- Fixed memory leak in `vdom_web.dart` by cleaning up listeners on node removal.
+- Removed redundant `simpleStaticHandler`.
+
+### Performance
+
+- Optimized static file serving with streaming and non-blocking Gzip.
+- Optimized static handler directory listing.
+- Optimized `Style.toCss` with caching.
+- Optimized CSS serialization in `SparkComponent`.
+- Removed repeated VDOM traversal in `SparkComponent.update`.
+
 ## 1.0.0-alpha.6
 
 - Fixed SVG element hydration by properly using `createElementNS` and ensuring context-aware element creation.
