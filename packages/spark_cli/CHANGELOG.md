@@ -1,3 +1,18 @@
+## 1.0.0-alpha.9
+
+### Features
+
+- Added `spark create` command for scaffolding pages, endpoints, and components.
+- Added `spark mcp` subcommand for AI-assisted development via MCP server.
+- Added `--poll` flag to `spark dev` command for enabling polling file watcher.
+- Added `--verbose`/`-v` flag to `spark dev` command.
+- Generated components are now placed inside their own snake_case folder.
+
+### Improvements
+
+- Refactored MCP server to use `json_rpc_2` package.
+- Replaced synchronous file existence checks with asynchronous ones in MCP server.
+
 ## 1.0.0-alpha.8
 
 - Updated dependencies.
