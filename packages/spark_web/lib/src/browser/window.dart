@@ -143,13 +143,13 @@ class BrowserHistory implements iface.History {
   @override
   int get length => _native.length;
   @override
-  dynamic get state => _native.state;
+  Object? get state => _native.state.dartify();
   @override
-  void pushState(dynamic data, String title, [String? url]) =>
-      _native.pushState(data?.toJS, title, url);
+  void pushState(Object? data, String title, [String? url]) =>
+      _native.pushState(data.jsify(), title, url);
   @override
-  void replaceState(dynamic data, String title, [String? url]) =>
-      _native.replaceState(data?.toJS, title, url);
+  void replaceState(Object? data, String title, [String? url]) =>
+      _native.replaceState(data.jsify(), title, url);
   @override
   void back() => _native.back();
   @override
@@ -187,19 +187,19 @@ class BrowserConsole implements iface.Console {
   BrowserConsole(this._native);
 
   @override
-  void log(dynamic message, [List<dynamic>? args]) =>
+  void log(Object? message, [List<Object?>? args]) =>
       _native.log(message.toString().toJS);
   @override
-  void warn(dynamic message, [List<dynamic>? args]) =>
+  void warn(Object? message, [List<Object?>? args]) =>
       _native.warn(message.toString().toJS);
   @override
-  void error(dynamic message, [List<dynamic>? args]) =>
+  void error(Object? message, [List<Object?>? args]) =>
       _native.error(message.toString().toJS);
   @override
-  void info(dynamic message, [List<dynamic>? args]) =>
+  void info(Object? message, [List<Object?>? args]) =>
       _native.info(message.toString().toJS);
   @override
-  void debug(dynamic message, [List<dynamic>? args]) =>
+  void debug(Object? message, [List<Object?>? args]) =>
       _native.debug(message.toString().toJS);
 }
 
@@ -257,10 +257,10 @@ class BrowserCustomElementRegistry implements iface.CustomElementRegistry {
   BrowserCustomElementRegistry(this._native);
 
   @override
-  void define(String name, dynamic constructor, [dynamic options]) =>
+  void define(String name, Object constructor, [Object? options]) =>
       _native.define(name, constructor as JSFunction);
   @override
-  dynamic get(String name) => _native.get(name);
+  Object? get(String name) => _native.get(name);
   @override
   void upgrade(Node root) => _native.upgrade(root.raw as web.Node);
   @override

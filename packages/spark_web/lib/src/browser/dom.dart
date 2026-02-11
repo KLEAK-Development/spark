@@ -349,11 +349,12 @@ class BrowserTouchEvent extends BrowserEvent implements TouchEvent {
   BrowserTouchEvent(this._nativeTouch) : super(_nativeTouch);
 
   @override
-  dynamic get touches => _nativeTouch.touches;
+  TouchList get touches => BrowserTouchList(_nativeTouch.touches);
   @override
-  dynamic get targetTouches => _nativeTouch.targetTouches;
+  TouchList get targetTouches => BrowserTouchList(_nativeTouch.targetTouches);
   @override
-  dynamic get changedTouches => _nativeTouch.changedTouches;
+  TouchList get changedTouches =>
+      BrowserTouchList(_nativeTouch.changedTouches);
   @override
   bool get altKey => _nativeTouch.altKey;
   @override
@@ -369,7 +370,10 @@ class BrowserDragEvent extends BrowserMouseEvent implements DragEvent {
   BrowserDragEvent(this._nativeDrag) : super(_nativeDrag);
 
   @override
-  dynamic get dataTransfer => _nativeDrag.dataTransfer;
+  DataTransfer? get dataTransfer {
+    final dt = _nativeDrag.dataTransfer;
+    return dt != null ? BrowserDataTransfer(dt) : null;
+  }
 }
 
 class BrowserAnimationEvent extends BrowserEvent implements AnimationEvent {
@@ -401,7 +405,7 @@ class BrowserCustomEvent extends BrowserEvent implements CustomEvent {
   BrowserCustomEvent(this._nativeCustom) : super(_nativeCustom);
 
   @override
-  dynamic get detail => _nativeCustom.detail;
+  Object? get detail => _nativeCustom.detail.dartify();
 }
 
 // ---------------------------------------------------------------------------
@@ -833,11 +837,11 @@ class BrowserHTMLCanvasElement extends BrowserHTMLElement
   @override
   set height(int val) => _nativeCanvas.height = val;
   @override
-  dynamic getContext(String contextId, [dynamic options]) =>
+  Object? getContext(String contextId, [Map<String, Object?>? options]) =>
       _nativeCanvas.getContext(contextId);
   @override
-  String toDataURL([String type = 'image/png', dynamic quality]) =>
-      _nativeCanvas.toDataURL(type);
+  String toDataURL([String type = 'image/png', num? quality]) =>
+      _nativeCanvas.toDataURL(type, quality?.toJS);
 }
 
 class BrowserHTMLMediaElement extends BrowserHTMLElement
@@ -1470,4 +1474,79 @@ class BrowserMutationRecord implements MutationRecord {
   String? get attributeName => _native.attributeName;
   @override
   String? get oldValue => _native.oldValue;
+}
+
+// ---------------------------------------------------------------------------
+// Touch & TouchList
+// ---------------------------------------------------------------------------
+
+class BrowserTouch implements Touch {
+  final web.Touch _native;
+  BrowserTouch(this._native);
+
+  @override
+  int get identifier => _native.identifier;
+  @override
+  EventTarget get target => BrowserEventTarget(_native.target);
+  @override
+  double get screenX => _native.screenX;
+  @override
+  double get screenY => _native.screenY;
+  @override
+  double get clientX => _native.clientX;
+  @override
+  double get clientY => _native.clientY;
+  @override
+  double get pageX => _native.pageX;
+  @override
+  double get pageY => _native.pageY;
+  @override
+  double get radiusX => _native.radiusX;
+  @override
+  double get radiusY => _native.radiusY;
+  @override
+  double get rotationAngle => _native.rotationAngle;
+  @override
+  double get force => _native.force;
+}
+
+class BrowserTouchList implements TouchList {
+  final web.TouchList _native;
+  BrowserTouchList(this._native);
+
+  @override
+  int get length => _native.length;
+  @override
+  Touch? item(int index) {
+    final t = _native.item(index);
+    return t != null ? BrowserTouch(t) : null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DataTransfer
+// ---------------------------------------------------------------------------
+
+class BrowserDataTransfer implements DataTransfer {
+  final web.DataTransfer _native;
+  BrowserDataTransfer(this._native);
+
+  @override
+  String get dropEffect => _native.dropEffect;
+  @override
+  set dropEffect(String value) => _native.dropEffect = value;
+  @override
+  String get effectAllowed => _native.effectAllowed;
+  @override
+  set effectAllowed(String value) => _native.effectAllowed = value;
+  @override
+  List<String> get types =>
+      _native.types.toDart.map((s) => s.toDart).toList();
+  @override
+  void setData(String format, String data) => _native.setData(format, data);
+  @override
+  String getData(String format) => _native.getData(format);
+  @override
+  void clearData([String? format]) =>
+      format != null ? _native.clearData(format) : _native.clearData();
 }

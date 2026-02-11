@@ -158,11 +158,11 @@ class ServerHistory implements iface.History {
   @override
   int get length => 0;
   @override
-  dynamic get state => null;
+  Object? get state => null;
   @override
-  void pushState(dynamic data, String title, [String? url]) {}
+  void pushState(Object? data, String title, [String? url]) {}
   @override
-  void replaceState(dynamic data, String title, [String? url]) {}
+  void replaceState(Object? data, String title, [String? url]) {}
   @override
   void back() {}
   @override
@@ -194,15 +194,15 @@ class ServerNavigator implements iface.Navigator {
 
 class ServerConsole implements iface.Console {
   @override
-  void log(dynamic message, [List<dynamic>? args]) {}
+  void log(Object? message, [List<Object?>? args]) {}
   @override
-  void warn(dynamic message, [List<dynamic>? args]) {}
+  void warn(Object? message, [List<Object?>? args]) {}
   @override
-  void error(dynamic message, [List<dynamic>? args]) {}
+  void error(Object? message, [List<Object?>? args]) {}
   @override
-  void info(dynamic message, [List<dynamic>? args]) {}
+  void info(Object? message, [List<Object?>? args]) {}
   @override
-  void debug(dynamic message, [List<dynamic>? args]) {}
+  void debug(Object? message, [List<Object?>? args]) {}
 }
 
 // ---------------------------------------------------------------------------
@@ -235,9 +235,9 @@ class ServerPerformance implements iface.Performance {
 
 class ServerCustomElementRegistry implements iface.CustomElementRegistry {
   @override
-  void define(String name, dynamic constructor, [dynamic options]) {}
+  void define(String name, Object constructor, [Object? options]) {}
   @override
-  dynamic get(String name) => null;
+  Object? get(String name) => null;
   @override
   void upgrade(Node root) {}
   @override

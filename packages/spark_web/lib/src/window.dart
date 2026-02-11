@@ -92,10 +92,10 @@ abstract class Location {
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/History
 abstract class History {
   int get length;
-  dynamic get state;
+  Object? get state;
 
-  void pushState(dynamic data, String title, [String? url]);
-  void replaceState(dynamic data, String title, [String? url]);
+  void pushState(Object? data, String title, [String? url]);
+  void replaceState(Object? data, String title, [String? url]);
   void back();
   void forward();
   void go([int delta = 0]);
@@ -124,11 +124,11 @@ abstract class Navigator {
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/Console
 abstract class Console {
-  void log(dynamic message, [List<dynamic>? args]);
-  void warn(dynamic message, [List<dynamic>? args]);
-  void error(dynamic message, [List<dynamic>? args]);
-  void info(dynamic message, [List<dynamic>? args]);
-  void debug(dynamic message, [List<dynamic>? args]);
+  void log(Object? message, [List<Object?>? args]);
+  void warn(Object? message, [List<Object?>? args]);
+  void error(Object? message, [List<Object?>? args]);
+  void info(Object? message, [List<Object?>? args]);
+  void debug(Object? message, [List<Object?>? args]);
 }
 
 // ---------------------------------------------------------------------------
@@ -161,8 +161,8 @@ abstract class Performance {
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 abstract class CustomElementRegistry {
-  void define(String name, dynamic constructor, [dynamic options]);
-  dynamic get(String name);
+  void define(String name, Object constructor, [Object? options]);
+  Object? get(String name);
   void upgrade(Node root);
   Future<void> whenDefined(String name);
 }

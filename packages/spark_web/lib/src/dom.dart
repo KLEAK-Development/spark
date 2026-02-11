@@ -188,8 +188,8 @@ abstract class HTMLCanvasElement implements HTMLElement {
   set width(int val);
   int get height;
   set height(int val);
-  dynamic getContext(String contextId, [dynamic options]);
-  String toDataURL([String type, dynamic quality]);
+  Object? getContext(String contextId, [Map<String, Object?>? options]);
+  String toDataURL([String type, num? quality]);
 }
 
 /// Base class for media elements (audio & video).
