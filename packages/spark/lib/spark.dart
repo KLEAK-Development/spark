@@ -50,7 +50,11 @@
 /// `SparkPage` class. See `package:spark/server.dart` for details.
 library;
 
-export 'src/component/component.dart' hide Text, Element, Request, Response;
+// Hide spark_web types that conflict with the DSL types (Element, Text)
+// and shelf types (Request, Response). Also hide Document/Comment to avoid
+// ambiguity with dart:core or other libraries.
+export 'src/component/component.dart'
+    hide Text, Element, Comment, Document, Request, Response;
 export 'src/utils/utils.dart';
 export 'src/annotations/annotations.dart';
 export 'src/page/page.dart';

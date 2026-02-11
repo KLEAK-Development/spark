@@ -1,0 +1,14 @@
+name: spark_web
+description: >-
+  Server-safe Web API abstraction for Dart. Mirrors the MDN Web API with
+  identical naming so developers can rely on MDN documentation. Works on both
+  the Dart VM (server) and dart2js (browser).
+version: 1.0.0-alpha.1
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  web: ^1.1.1
+  meta: ^1.18.0

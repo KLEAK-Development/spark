@@ -10,3 +10,4 @@ workspace:
   - packages/spark/example
   - packages/spark_cli
   - packages/spark_generator
+  - packages/spark_web

@@ -1,4 +1,4 @@
-import 'package:spark_framework/src/component/stubs.dart';
+import 'package:spark_web/spark_web.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -17,10 +17,10 @@ void main() {
     expect(decoded, equals(original));
   });
 
-  test('LocalStorage is stateless no-op', () {
+  test('LocalStorage is backed by Map on server', () {
     window.localStorage.setItem('key', 'value');
-    // Should be null because server stubs don't persist state
-    expect(window.localStorage.getItem('key'), isNull);
+    expect(window.localStorage.getItem('key'), equals('value'));
+    window.localStorage.removeItem('key');
   });
 
   test('Console logs do not crash', () {
@@ -28,6 +28,6 @@ void main() {
   });
 
   test('Navigator properties', () {
-    expect(window.navigator.userAgent, equals('Spark'));
+    expect(window.navigator.userAgent, equals('Spark Server'));
   });
 }

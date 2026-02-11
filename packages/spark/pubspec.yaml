@@ -12,6 +12,8 @@ environment:
 
 dependencies:
   web: ^1.1.1
+  spark_web:
+    path: ../spark_web
   meta: ^1.18.0
   shelf: ^1.4.2
   shelf_router: ^1.1.4

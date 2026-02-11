@@ -1,0 +1,875 @@
+/// Browser implementations of DOM types wrapping `package:web`.
+library;
+
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
+
+import '../core.dart';
+import '../dom.dart' as iface;
+import '../collections.dart';
+import '../css.dart';
+import 'collections.dart';
+import 'css.dart';
+
+// ---------------------------------------------------------------------------
+// Wrapping utilities
+// ---------------------------------------------------------------------------
+
+/// Wraps a native `web.Node` into the appropriate spark_web type.
+Node wrapNode(web.Node node) {
+  if ((node as JSAny?).isA<web.ShadowRoot>()) {
+    return BrowserShadowRoot(node as web.ShadowRoot);
+  }
+  if ((node as JSAny?).isA<web.DocumentFragment>()) {
+    return BrowserDocumentFragment(node as web.DocumentFragment);
+  }
+  if ((node as JSAny?).isA<web.Document>()) {
+    return BrowserDocument(node as web.Document);
+  }
+  if ((node as JSAny?).isA<web.HTMLInputElement>()) {
+    return BrowserHTMLInputElement(node as web.HTMLInputElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLButtonElement>()) {
+    return BrowserHTMLButtonElement(node as web.HTMLButtonElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLTextAreaElement>()) {
+    return BrowserHTMLTextAreaElement(node as web.HTMLTextAreaElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLSelectElement>()) {
+    return BrowserHTMLSelectElement(node as web.HTMLSelectElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLOptionElement>()) {
+    return BrowserHTMLOptionElement(node as web.HTMLOptionElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLAnchorElement>()) {
+    return BrowserHTMLAnchorElement(node as web.HTMLAnchorElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLImageElement>()) {
+    return BrowserHTMLImageElement(node as web.HTMLImageElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLFormElement>()) {
+    return BrowserHTMLFormElement(node as web.HTMLFormElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLLabelElement>()) {
+    return BrowserHTMLLabelElement(node as web.HTMLLabelElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLTemplateElement>()) {
+    return BrowserHTMLTemplateElement(node as web.HTMLTemplateElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLElement>()) {
+    return BrowserHTMLElement(node as web.HTMLElement);
+  }
+  if ((node as JSAny?).isA<web.Element>()) {
+    return BrowserElement(node as web.Element);
+  }
+  if (node.nodeType == 3) {
+    return BrowserText(node as web.Text);
+  }
+  if (node.nodeType == 8) {
+    return BrowserComment(node as web.Comment);
+  }
+  return BrowserNode(node);
+}
+
+/// Wraps a native `web.Element` into the appropriate spark_web Element type.
+iface.Element wrapElement(web.Element el) => wrapNode(el) as iface.Element;
+
+/// Wraps a native `web.Event` into a spark_web Event.
+Event wrapEvent(web.Event e) {
+  if ((e as JSAny?).isA<web.MouseEvent>()) {
+    return BrowserMouseEvent(e as web.MouseEvent);
+  }
+  if ((e as JSAny?).isA<web.KeyboardEvent>()) {
+    return BrowserKeyboardEvent(e as web.KeyboardEvent);
+  }
+  if ((e as JSAny?).isA<web.InputEvent>()) {
+    return BrowserInputEvent(e as web.InputEvent);
+  }
+  return BrowserEvent(e);
+}
+
+// ---------------------------------------------------------------------------
+// EventTarget
+// ---------------------------------------------------------------------------
+
+class BrowserEventTarget implements EventTarget {
+  final web.EventTarget _native;
+  BrowserEventTarget(this._native);
+
+  @override
+  dynamic get raw => _native;
+
+  @override
+  void addEventListener(String type, EventListener? callback) {
+    if (callback == null) return;
+    _native.addEventListener(
+      type,
+      ((web.Event e) => callback(wrapEvent(e))).toJS,
+    );
+  }
+
+  @override
+  void removeEventListener(String type, EventListener? callback) {
+    // Note: removing requires the same JS function reference.
+    // For full support, callers should use the framework's event system.
+  }
+
+  @override
+  bool dispatchEvent(Event event) {
+    if (event.raw is web.Event) {
+      return _native.dispatchEvent(event.raw as web.Event);
+    }
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event
+// ---------------------------------------------------------------------------
+
+class BrowserEvent implements Event {
+  final web.Event _native;
+  BrowserEvent(this._native);
+
+  @override
+  dynamic get raw => _native;
+  @override
+  String get type => _native.type;
+  @override
+  EventTarget? get target {
+    final t = _native.target;
+    return t != null ? BrowserEventTarget(t) : null;
+  }
+
+  @override
+  EventTarget? get currentTarget {
+    final t = _native.currentTarget;
+    return t != null ? BrowserEventTarget(t) : null;
+  }
+
+  @override
+  bool get bubbles => _native.bubbles;
+  @override
+  bool get cancelable => _native.cancelable;
+  @override
+  void preventDefault() => _native.preventDefault();
+  @override
+  void stopPropagation() => _native.stopPropagation();
+  @override
+  void stopImmediatePropagation() => _native.stopImmediatePropagation();
+}
+
+class BrowserMouseEvent extends BrowserEvent implements MouseEvent {
+  final web.MouseEvent _nativeMouse;
+  BrowserMouseEvent(this._nativeMouse) : super(_nativeMouse);
+
+  @override
+  double get clientX => _nativeMouse.clientX.toDouble();
+  @override
+  double get clientY => _nativeMouse.clientY.toDouble();
+  @override
+  double get pageX => _nativeMouse.pageX.toDouble();
+  @override
+  double get pageY => _nativeMouse.pageY.toDouble();
+  @override
+  double get screenX => _nativeMouse.screenX.toDouble();
+  @override
+  double get screenY => _nativeMouse.screenY.toDouble();
+  @override
+  int get button => _nativeMouse.button;
+  @override
+  int get buttons => _nativeMouse.buttons;
+  @override
+  bool get altKey => _nativeMouse.altKey;
+  @override
+  bool get ctrlKey => _nativeMouse.ctrlKey;
+  @override
+  bool get metaKey => _nativeMouse.metaKey;
+  @override
+  bool get shiftKey => _nativeMouse.shiftKey;
+}
+
+class BrowserKeyboardEvent extends BrowserEvent implements KeyboardEvent {
+  final web.KeyboardEvent _nativeKb;
+  BrowserKeyboardEvent(this._nativeKb) : super(_nativeKb);
+
+  @override
+  String get key => _nativeKb.key;
+  @override
+  String get code => _nativeKb.code;
+  @override
+  bool get altKey => _nativeKb.altKey;
+  @override
+  bool get ctrlKey => _nativeKb.ctrlKey;
+  @override
+  bool get metaKey => _nativeKb.metaKey;
+  @override
+  bool get shiftKey => _nativeKb.shiftKey;
+  @override
+  bool get repeat => _nativeKb.repeat;
+  @override
+  int get location => _nativeKb.location;
+}
+
+class BrowserInputEvent extends BrowserEvent implements InputEvent {
+  final web.InputEvent _nativeInput;
+  BrowserInputEvent(this._nativeInput) : super(_nativeInput);
+
+  @override
+  String? get data => _nativeInput.data;
+  @override
+  String get inputType => _nativeInput.inputType;
+  @override
+  bool get isComposing => _nativeInput.isComposing;
+}
+
+// ---------------------------------------------------------------------------
+// Node
+// ---------------------------------------------------------------------------
+
+class BrowserNode extends BrowserEventTarget implements Node {
+  final web.Node _nativeNode;
+  BrowserNode(this._nativeNode) : super(_nativeNode);
+
+  @override
+  dynamic get raw => _nativeNode;
+  @override
+  int get nodeType => _nativeNode.nodeType;
+  @override
+  String get nodeName => _nativeNode.nodeName;
+  @override
+  Node? get parentNode {
+    final p = _nativeNode.parentNode;
+    return p != null ? wrapNode(p) : null;
+  }
+
+  @override
+  Node? get parentElement {
+    final p = _nativeNode.parentElement;
+    return p != null ? wrapNode(p) : null;
+  }
+
+  @override
+  NodeList get childNodes => BrowserNodeList(_nativeNode.childNodes);
+  @override
+  Node? get firstChild {
+    final c = _nativeNode.firstChild;
+    return c != null ? wrapNode(c) : null;
+  }
+
+  @override
+  Node? get lastChild {
+    final c = _nativeNode.lastChild;
+    return c != null ? wrapNode(c) : null;
+  }
+
+  @override
+  Node? get nextSibling {
+    final s = _nativeNode.nextSibling;
+    return s != null ? wrapNode(s) : null;
+  }
+
+  @override
+  Node? get previousSibling {
+    final s = _nativeNode.previousSibling;
+    return s != null ? wrapNode(s) : null;
+  }
+
+  @override
+  String? get textContent => _nativeNode.textContent;
+  @override
+  set textContent(String? value) => _nativeNode.textContent = value ?? '';
+  @override
+  bool get isConnected => _nativeNode.isConnected;
+
+  @override
+  Node appendChild(Node child) {
+    _nativeNode.appendChild(child.raw as web.Node);
+    return child;
+  }
+
+  @override
+  Node removeChild(Node child) {
+    _nativeNode.removeChild(child.raw as web.Node);
+    return child;
+  }
+
+  @override
+  Node insertBefore(Node newNode, Node? referenceNode) {
+    _nativeNode.insertBefore(
+      newNode.raw as web.Node,
+      referenceNode?.raw as web.Node?,
+    );
+    return newNode;
+  }
+
+  @override
+  Node replaceChild(Node newChild, Node oldChild) {
+    _nativeNode.replaceChild(
+      newChild.raw as web.Node,
+      oldChild.raw as web.Node,
+    );
+    return oldChild;
+  }
+
+  @override
+  Node cloneNode([bool deep = false]) =>
+      wrapNode(_nativeNode.cloneNode(deep));
+  @override
+  bool contains(Node? other) =>
+      other != null && _nativeNode.contains(other.raw as web.Node?);
+  @override
+  bool hasChildNodes() => _nativeNode.hasChildNodes();
+}
+
+// ---------------------------------------------------------------------------
+// Element
+// ---------------------------------------------------------------------------
+
+class BrowserElement extends BrowserNode implements iface.Element {
+  final web.Element _nativeElement;
+  BrowserElement(this._nativeElement) : super(_nativeElement);
+
+  @override
+  dynamic get raw => _nativeElement;
+  @override
+  String get tagName => _nativeElement.tagName;
+  @override
+  String get id => _nativeElement.id;
+  @override
+  set id(String value) => _nativeElement.id = value;
+  @override
+  String get className => _nativeElement.className;
+  @override
+  set className(String value) => _nativeElement.className = value;
+  @override
+  String get innerHTML => _nativeElement.innerHTML;
+  @override
+  set innerHTML(String value) => _nativeElement.innerHTML = value;
+  @override
+  String get outerHTML => _nativeElement.outerHTML;
+  @override
+  String? get namespaceURI => _nativeElement.namespaceURI;
+  @override
+  NamedNodeMap get attributes =>
+      BrowserNamedNodeMap(_nativeElement.attributes);
+  @override
+  DOMTokenList get classList =>
+      BrowserDOMTokenList(_nativeElement.classList);
+  @override
+  String? getAttribute(String name) => _nativeElement.getAttribute(name);
+  @override
+  void setAttribute(String name, String value) =>
+      _nativeElement.setAttribute(name, value);
+  @override
+  void removeAttribute(String name) => _nativeElement.removeAttribute(name);
+  @override
+  bool hasAttribute(String name) => _nativeElement.hasAttribute(name);
+  @override
+  iface.Element? querySelector(String selectors) {
+    final el = _nativeElement.querySelector(selectors);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  NodeList querySelectorAll(String selectors) =>
+      BrowserNodeList(_nativeElement.querySelectorAll(selectors));
+  @override
+  void remove() => _nativeElement.remove();
+  @override
+  void append(Node node) =>
+      _nativeElement.append(node.raw as web.Node);
+}
+
+// ---------------------------------------------------------------------------
+// HTMLElement
+// ---------------------------------------------------------------------------
+
+class BrowserHTMLElement extends BrowserElement implements iface.HTMLElement {
+  final web.HTMLElement _nativeHtml;
+  BrowserHTMLElement(this._nativeHtml) : super(_nativeHtml);
+
+  @override
+  dynamic get raw => _nativeHtml;
+  @override
+  String get innerText => _nativeHtml.innerText;
+  @override
+  set innerText(String value) => _nativeHtml.innerText = value;
+  @override
+  bool get hidden => _nativeHtml.hidden;
+  @override
+  set hidden(bool value) => _nativeHtml.hidden = value;
+  @override
+  String get title => _nativeHtml.title;
+  @override
+  set title(String value) => _nativeHtml.title = value;
+  @override
+  CSSStyleDeclaration get style =>
+      BrowserCSSStyleDeclaration(_nativeHtml.style);
+  @override
+  iface.ShadowRoot? get shadowRoot {
+    final sr = _nativeHtml.shadowRoot;
+    return sr != null ? BrowserShadowRoot(sr) : null;
+  }
+
+  @override
+  iface.ShadowRoot attachShadow(iface.ShadowRootInit init) {
+    final sr = _nativeHtml.attachShadow(
+      web.ShadowRootInit(mode: init.mode),
+    );
+    return BrowserShadowRoot(sr);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Specific HTMLElement subclasses
+// ---------------------------------------------------------------------------
+
+class BrowserHTMLInputElement extends BrowserHTMLElement
+    implements iface.HTMLInputElement {
+  final web.HTMLInputElement _nativeInput;
+  BrowserHTMLInputElement(this._nativeInput) : super(_nativeInput);
+
+  @override
+  dynamic get raw => _nativeInput;
+  @override
+  String get value => _nativeInput.value;
+  @override
+  set value(String val) => _nativeInput.value = val;
+  @override
+  String get type => _nativeInput.type;
+  @override
+  set type(String val) => _nativeInput.type = val;
+  @override
+  String get placeholder => _nativeInput.placeholder;
+  @override
+  set placeholder(String val) => _nativeInput.placeholder = val;
+  @override
+  bool get disabled => _nativeInput.disabled;
+  @override
+  set disabled(bool val) => _nativeInput.disabled = val;
+  @override
+  bool get checked => _nativeInput.checked;
+  @override
+  set checked(bool val) => _nativeInput.checked = val;
+  @override
+  String get name => _nativeInput.name;
+  @override
+  set name(String val) => _nativeInput.name = val;
+}
+
+class BrowserHTMLButtonElement extends BrowserHTMLElement
+    implements iface.HTMLButtonElement {
+  final web.HTMLButtonElement _nativeButton;
+  BrowserHTMLButtonElement(this._nativeButton) : super(_nativeButton);
+
+  @override
+  dynamic get raw => _nativeButton;
+  @override
+  bool get disabled => _nativeButton.disabled;
+  @override
+  set disabled(bool val) => _nativeButton.disabled = val;
+  @override
+  String get type => _nativeButton.type;
+  @override
+  set type(String val) => _nativeButton.type = val;
+}
+
+class BrowserHTMLTextAreaElement extends BrowserHTMLElement
+    implements iface.HTMLTextAreaElement {
+  final web.HTMLTextAreaElement _nativeTextArea;
+  BrowserHTMLTextAreaElement(this._nativeTextArea) : super(_nativeTextArea);
+
+  @override
+  dynamic get raw => _nativeTextArea;
+  @override
+  String get value => _nativeTextArea.value;
+  @override
+  set value(String val) => _nativeTextArea.value = val;
+  @override
+  String get placeholder => _nativeTextArea.placeholder;
+  @override
+  set placeholder(String val) => _nativeTextArea.placeholder = val;
+  @override
+  bool get disabled => _nativeTextArea.disabled;
+  @override
+  set disabled(bool val) => _nativeTextArea.disabled = val;
+  @override
+  int get rows => _nativeTextArea.rows;
+  @override
+  set rows(int val) => _nativeTextArea.rows = val;
+  @override
+  int get cols => _nativeTextArea.cols;
+  @override
+  set cols(int val) => _nativeTextArea.cols = val;
+}
+
+class BrowserHTMLSelectElement extends BrowserHTMLElement
+    implements iface.HTMLSelectElement {
+  final web.HTMLSelectElement _nativeSelect;
+  BrowserHTMLSelectElement(this._nativeSelect) : super(_nativeSelect);
+
+  @override
+  dynamic get raw => _nativeSelect;
+  @override
+  String get value => _nativeSelect.value;
+  @override
+  set value(String val) => _nativeSelect.value = val;
+  @override
+  int get selectedIndex => _nativeSelect.selectedIndex;
+  @override
+  set selectedIndex(int val) => _nativeSelect.selectedIndex = val;
+  @override
+  bool get disabled => _nativeSelect.disabled;
+  @override
+  set disabled(bool val) => _nativeSelect.disabled = val;
+}
+
+class BrowserHTMLOptionElement extends BrowserHTMLElement
+    implements iface.HTMLOptionElement {
+  final web.HTMLOptionElement _nativeOption;
+  BrowserHTMLOptionElement(this._nativeOption) : super(_nativeOption);
+
+  @override
+  dynamic get raw => _nativeOption;
+  @override
+  String get value => _nativeOption.value;
+  @override
+  set value(String val) => _nativeOption.value = val;
+  @override
+  String get text => _nativeOption.text;
+  @override
+  set text(String val) => _nativeOption.text = val;
+  @override
+  bool get selected => _nativeOption.selected;
+  @override
+  set selected(bool val) => _nativeOption.selected = val;
+}
+
+class BrowserHTMLAnchorElement extends BrowserHTMLElement
+    implements iface.HTMLAnchorElement {
+  final web.HTMLAnchorElement _nativeAnchor;
+  BrowserHTMLAnchorElement(this._nativeAnchor) : super(_nativeAnchor);
+
+  @override
+  dynamic get raw => _nativeAnchor;
+  @override
+  String get href => _nativeAnchor.href;
+  @override
+  set href(String val) => _nativeAnchor.href = val;
+  @override
+  String get target => _nativeAnchor.target;
+  @override
+  set target(String val) => _nativeAnchor.target = val;
+}
+
+class BrowserHTMLImageElement extends BrowserHTMLElement
+    implements iface.HTMLImageElement {
+  final web.HTMLImageElement _nativeImage;
+  BrowserHTMLImageElement(this._nativeImage) : super(_nativeImage);
+
+  @override
+  dynamic get raw => _nativeImage;
+  @override
+  String get src => _nativeImage.src;
+  @override
+  set src(String val) => _nativeImage.src = val;
+  @override
+  String get alt => _nativeImage.alt;
+  @override
+  set alt(String val) => _nativeImage.alt = val;
+  @override
+  int get width => _nativeImage.width;
+  @override
+  set width(int val) => _nativeImage.width = val;
+  @override
+  int get height => _nativeImage.height;
+  @override
+  set height(int val) => _nativeImage.height = val;
+}
+
+class BrowserHTMLFormElement extends BrowserHTMLElement
+    implements iface.HTMLFormElement {
+  final web.HTMLFormElement _nativeForm;
+  BrowserHTMLFormElement(this._nativeForm) : super(_nativeForm);
+
+  @override
+  dynamic get raw => _nativeForm;
+  @override
+  String get action => _nativeForm.action;
+  @override
+  set action(String val) => _nativeForm.action = val;
+  @override
+  String get method => _nativeForm.method;
+  @override
+  set method(String val) => _nativeForm.method = val;
+  @override
+  void submit() => _nativeForm.submit();
+  @override
+  void reset() => _nativeForm.reset();
+  @override
+  bool reportValidity() => _nativeForm.reportValidity();
+}
+
+class BrowserHTMLLabelElement extends BrowserHTMLElement
+    implements iface.HTMLLabelElement {
+  final web.HTMLLabelElement _nativeLabel;
+  BrowserHTMLLabelElement(this._nativeLabel) : super(_nativeLabel);
+
+  @override
+  dynamic get raw => _nativeLabel;
+  @override
+  String get htmlFor => _nativeLabel.htmlFor;
+  @override
+  set htmlFor(String val) => _nativeLabel.htmlFor = val;
+}
+
+class BrowserHTMLTemplateElement extends BrowserHTMLElement
+    implements iface.HTMLTemplateElement {
+  final web.HTMLTemplateElement _nativeTemplate;
+  BrowserHTMLTemplateElement(this._nativeTemplate) : super(_nativeTemplate);
+
+  @override
+  dynamic get raw => _nativeTemplate;
+  @override
+  iface.DocumentFragment get content =>
+      BrowserDocumentFragment(_nativeTemplate.content);
+}
+
+// ---------------------------------------------------------------------------
+// DocumentFragment
+// ---------------------------------------------------------------------------
+
+class BrowserDocumentFragment extends BrowserNode
+    implements iface.DocumentFragment {
+  final web.DocumentFragment _nativeFragment;
+  BrowserDocumentFragment(this._nativeFragment) : super(_nativeFragment);
+
+  @override
+  dynamic get raw => _nativeFragment;
+  @override
+  iface.Element? querySelector(String selectors) {
+    final el = _nativeFragment.querySelector(selectors);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  NodeList querySelectorAll(String selectors) =>
+      BrowserNodeList(_nativeFragment.querySelectorAll(selectors));
+}
+
+// ---------------------------------------------------------------------------
+// ShadowRoot
+// ---------------------------------------------------------------------------
+
+class BrowserShadowRoot extends BrowserDocumentFragment
+    implements iface.ShadowRoot {
+  final web.ShadowRoot _nativeShadowRoot;
+  BrowserShadowRoot(this._nativeShadowRoot) : super(_nativeShadowRoot);
+
+  @override
+  dynamic get raw => _nativeShadowRoot;
+  @override
+  iface.Element get host => wrapElement(_nativeShadowRoot.host);
+  @override
+  String get mode => _nativeShadowRoot.mode;
+  @override
+  iface.Element? get firstElementChild {
+    final el = _nativeShadowRoot.firstElementChild;
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  iface.Element? querySelector(String selectors) {
+    final el = _nativeShadowRoot.querySelector(selectors);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  NodeList querySelectorAll(String selectors) =>
+      BrowserNodeList(_nativeShadowRoot.querySelectorAll(selectors));
+
+  @override
+  List<CSSStyleSheet> get adoptedStyleSheets => [];
+
+  @override
+  set adoptedStyleSheets(List<CSSStyleSheet> sheets) {
+    final nativeSheets =
+        sheets.map((s) => (s as BrowserCSSStyleSheet).native).toList();
+    _nativeShadowRoot.adoptedStyleSheets = nativeSheets.toJS;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Document
+// ---------------------------------------------------------------------------
+
+class BrowserDocument extends BrowserNode implements iface.Document {
+  final web.Document _nativeDoc;
+  BrowserDocument(this._nativeDoc) : super(_nativeDoc);
+
+  @override
+  dynamic get raw => _nativeDoc;
+  @override
+  iface.Element? get documentElement {
+    final el = _nativeDoc.documentElement;
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  iface.HTMLElement? get body {
+    final el = _nativeDoc.body;
+    return el != null ? BrowserHTMLElement(el) : null;
+  }
+
+  @override
+  iface.HTMLElement? get head {
+    final el = _nativeDoc.head;
+    return el != null ? BrowserHTMLElement(el) : null;
+  }
+
+  @override
+  iface.Element createElement(String tagName) =>
+      wrapElement(_nativeDoc.createElement(tagName));
+  @override
+  iface.Element createElementNS(String? namespace, String qualifiedName) =>
+      wrapElement(_nativeDoc.createElementNS(namespace, qualifiedName));
+  @override
+  iface.Text createTextNode(String data) =>
+      BrowserText(_nativeDoc.createTextNode(data));
+  @override
+  iface.Comment createComment(String data) =>
+      BrowserComment(_nativeDoc.createComment(data));
+  @override
+  iface.DocumentFragment createDocumentFragment() =>
+      BrowserDocumentFragment(_nativeDoc.createDocumentFragment());
+  @override
+  iface.Element? getElementById(String id) {
+    final el = _nativeDoc.getElementById(id);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  iface.Element? querySelector(String selectors) {
+    final el = _nativeDoc.querySelector(selectors);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  NodeList querySelectorAll(String selectors) =>
+      BrowserNodeList(_nativeDoc.querySelectorAll(selectors));
+}
+
+// ---------------------------------------------------------------------------
+// Text & Comment
+// ---------------------------------------------------------------------------
+
+class BrowserText extends BrowserNode implements iface.Text {
+  final web.Text _nativeText;
+  BrowserText(this._nativeText) : super(_nativeText);
+
+  @override
+  dynamic get raw => _nativeText;
+  @override
+  String get data => _nativeText.data;
+  @override
+  set data(String value) => _nativeText.data = value;
+  @override
+  String get wholeText => _nativeText.wholeText;
+}
+
+class BrowserComment extends BrowserNode implements iface.Comment {
+  final web.Comment _nativeComment;
+  BrowserComment(this._nativeComment) : super(_nativeComment);
+
+  @override
+  dynamic get raw => _nativeComment;
+  @override
+  String get data => _nativeComment.data;
+  @override
+  set data(String value) => _nativeComment.data = value;
+}
+
+// ---------------------------------------------------------------------------
+// MutationObserver
+// ---------------------------------------------------------------------------
+
+class BrowserMutationObserver implements MutationObserver {
+  final web.MutationObserver _native;
+
+  BrowserMutationObserver(MutationCallback callback)
+      : _native = web.MutationObserver(
+          ((JSArray<web.MutationRecord> mutations,
+                  web.MutationObserver observer) {
+            callback(
+              mutations.toDart
+                  .map((r) => BrowserMutationRecord(r))
+                  .toList(),
+              BrowserMutationObserver._wrap(observer),
+            );
+          }).toJS,
+        );
+
+  BrowserMutationObserver._wrap(web.MutationObserver native)
+      : _native = native;
+
+  @override
+  void observe(Node target, [MutationObserverInit? options]) {
+    if (options != null) {
+      _native.observe(
+        target.raw as web.Node,
+        web.MutationObserverInit(
+          attributes: options.attributes,
+          attributeOldValue: options.attributeOldValue,
+          attributeFilter: options.attributeFilter
+              ?.map((s) => s.toJS)
+              .toList()
+              .toJS,
+          childList: options.childList,
+          characterData: options.characterData,
+          subtree: options.subtree,
+          characterDataOldValue: options.characterDataOldValue,
+        ),
+      );
+    } else {
+      _native.observe(target.raw as web.Node);
+    }
+  }
+
+  @override
+  void disconnect() => _native.disconnect();
+
+  @override
+  List<MutationRecord> takeRecords() =>
+      _native.takeRecords().toDart.map((r) => BrowserMutationRecord(r)).toList();
+}
+
+class BrowserMutationRecord implements MutationRecord {
+  final web.MutationRecord _native;
+  BrowserMutationRecord(this._native);
+
+  @override
+  String get type => _native.type;
+  @override
+  Node get target => wrapNode(_native.target);
+  @override
+  NodeList get addedNodes => BrowserNodeList(_native.addedNodes);
+  @override
+  NodeList get removedNodes => BrowserNodeList(_native.removedNodes);
+  @override
+  Node? get previousSibling {
+    final s = _native.previousSibling;
+    return s != null ? wrapNode(s) : null;
+  }
+
+  @override
+  Node? get nextSibling {
+    final s = _native.nextSibling;
+    return s != null ? wrapNode(s) : null;
+  }
+
+  @override
+  String? get attributeName => _native.attributeName;
+  @override
+  String? get oldValue => _native.oldValue;
+}
