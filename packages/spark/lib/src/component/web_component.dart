@@ -15,17 +15,9 @@ import 'package:spark_web/spark_web.dart' as web;
 
 import '../html/dsl.dart' as html;
 
-// Conditional import for adopted stylesheets (browser-specific optimization)
-import 'adopted_styles_web.dart'
-    if (dart.library.io) 'adopted_styles_stub.dart'
-    as adopted_styles;
-
 // Re-export spark_web types for use in components.
 // This allows component code to access web types via the spark.dart barrel.
 export 'package:spark_web/spark_web.dart';
-
-// Re-export query stubs / web query (unchanged)
-export 'query_stubs.dart' if (dart.library.html) 'query_web.dart';
 
 /// Abstract base class for Spark components.
 ///
@@ -317,9 +309,37 @@ abstract class WebComponent {
   /// On the server, this is a no-op.
   void adoptStyleSheets(List<String> cssTexts) {
     if (_shadowRoot == null) return;
-    // Pass the underlying native shadow root for browser-specific CSS API.
-    adopted_styles.setAdoptedStyleSheets(_shadowRoot!.raw, cssTexts);
+    final sheets = cssTexts.map(createStyleSheet).toList();
+    _shadowRoot!.adoptedStyleSheets = sheets;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Stylesheet cache — shared across all components for deduplication.
+// ---------------------------------------------------------------------------
+
+/// Cache of parsed CSSStyleSheet objects keyed by CSS content.
+final Map<String, web.CSSStyleSheet> _stylesheetCache = {};
+
+/// Creates or retrieves a cached [web.CSSStyleSheet] from the given CSS string.
+///
+/// This function uses the constructable stylesheets API which is more
+/// efficient than creating `<style>` elements. Stylesheets are cached
+/// so the same CSS content always returns the same instance.
+web.CSSStyleSheet createStyleSheet(String cssText) {
+  return _stylesheetCache.putIfAbsent(cssText, () {
+    final sheet = web.createCSSStyleSheet();
+    sheet.replaceSync(cssText);
+    return sheet;
+  });
+}
+
+/// Clears the stylesheet cache.
+///
+/// Useful for testing or when stylesheets should be re-parsed
+/// (e.g., during hot reload).
+void clearStyleSheetCache() {
+  _stylesheetCache.clear();
 }
 
 /// Factory function type for creating component instances.

@@ -1,10 +1,7 @@
 import 'package:test/test.dart';
 import 'package:spark_framework/src/style/style.dart';
 import 'package:spark_framework/src/style/css_types/css_types.dart';
-
-// Conditional import - use browser implementation in browser, stub in VM
-import 'package:spark_framework/src/component/adopted_styles_web.dart'
-    if (dart.library.io) 'adopted_styles_test_stub.dart';
+import 'package:spark_framework/src/component/web_component.dart';
 
 void main() {
   group('AdoptedStyleSheets', () {
