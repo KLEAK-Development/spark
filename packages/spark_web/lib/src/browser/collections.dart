@@ -1,7 +1,6 @@
 /// Browser implementations of DOM collection types.
 library;
 
-import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 import '../core.dart';

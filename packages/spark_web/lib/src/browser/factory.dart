@@ -1,7 +1,6 @@
 /// Browser-side factory for creating platform implementations.
 library;
 
-import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 import '../core.dart';
