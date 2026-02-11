@@ -1,4 +1,4 @@
-import 'package:web/web.dart' if (dart.library.io) 'stubs.dart' as web;
+import 'package:spark_web/spark_web.dart' as web;
 
 /// query stub
 web.Element? query(String selector) {

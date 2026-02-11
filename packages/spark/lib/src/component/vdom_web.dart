@@ -1,5 +1,5 @@
 import 'dart:js_interop';
-import 'package:spark_framework/src/component/web_component.dart' as web;
+import 'package:web/web.dart' as web;
 import '../html/node.dart';
 import '../html/dsl.dart' as html;
 import 'package:meta/meta.dart';

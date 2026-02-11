@@ -4,33 +4,28 @@
 /// and browser. Components can render HTML on the server and hydrate on the
 /// browser to add interactivity.
 ///
-/// The approach uses composition rather than inheritance to work with
-/// the modern `package:web` extension types.
+/// Uses `package:spark_web` for a server-safe Web API abstraction that mirrors
+/// the MDN Web API with identical naming.
 library;
 
-// Conditional import: Use package:web on browser, stubs on server
-import 'package:web/web.dart' if (dart.library.io) 'stubs.dart' as web;
+// spark_web provides the same API as the browser Web API, but works on both
+// server and browser. On the server, types are no-ops. On the browser, they
+// wrap the real package:web DOM objects.
+import 'package:spark_web/spark_web.dart' as web;
 
-// Conditional import for JS callback conversion
 import '../html/dsl.dart' as html;
-import 'js_callback_web.dart'
-    if (dart.library.io) 'js_callback_stub.dart'
-    as js_callback;
 
-// Conditional import for adopted stylesheets
+// Conditional import for adopted stylesheets (browser-specific optimization)
 import 'adopted_styles_web.dart'
     if (dart.library.io) 'adopted_styles_stub.dart'
     as adopted_styles;
 
-// Re-export DOM types for use in components
-export 'package:web/web.dart' if (dart.library.io) 'stubs.dart';
+// Re-export spark_web types for use in components.
+// This allows component code to access web types via the spark.dart barrel.
+export 'package:spark_web/spark_web.dart';
 
+// Re-export query stubs / web query (unchanged)
 export 'query_stubs.dart' if (dart.library.html) 'query_web.dart';
-
-/// Whether we are running in a browser environment.
-///
-/// This is true when compiled to JavaScript, false on Dart VM.
-const bool kIsBrowser = bool.fromEnvironment('dart.library.js_interop');
 
 /// Abstract base class for Spark components.
 ///
@@ -74,7 +69,7 @@ const bool kIsBrowser = bool.fromEnvironment('dart.library.js_interop');
 ///   @override
 ///   void onMount() {
 ///     final btn = query('#btn');
-///     btn?.onClick.listen((_) => print('Clicked!'));
+///     btn?.addEventListener('click', (_) => print('Clicked!'));
 ///   }
 /// }
 ///
@@ -91,20 +86,6 @@ abstract class WebComponent {
   ///
   /// Override this method to define the component's HTML structure.
   /// This is called on the server to generate initial HTML.
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// @override
-  /// dynamic render() {
-  ///   return element(tagName, [
-  ///     template(shadowrootmode: 'open', [
-  ///       style([...]),
-  ///       div([...]),
-  ///     ]),
-  ///   ], attributes: {'start': start});
-  /// }
-  /// ```
   html.Element render();
 
   /// The underlying DOM element (null on server, set during hydration).
@@ -165,19 +146,21 @@ abstract class WebComponent {
   ///
   /// Override this to perform setup steps that must happen before the first
   /// [attributeChangedCallback] (and subsequent [update]) occurs.
-  /// Common use case: removing SSR artifacts like <style> tags to avoid VDOM mismatch.
   void onHydrating() {}
 
   /// Sets up a MutationObserver to watch for attribute changes.
   void _setupAttributeObserver() {
     final attrs = observedAttributes;
-    if (attrs.isEmpty || !kIsBrowser) return;
+    if (attrs.isEmpty || !web.kIsBrowser) return;
 
-    final callback = js_callback.toMutationCallback(_handleMutations);
-    _attributeObserver = web.MutationObserver(callback);
+    _attributeObserver = web.createMutationObserver(_handleMutations);
     _attributeObserver!.observe(
       _element!,
-      js_callback.toMutationObserverInit(attrs),
+      web.MutationObserverInit(
+        attributes: true,
+        attributeOldValue: true,
+        attributeFilter: attrs,
+      ),
     );
   }
 
@@ -199,7 +182,7 @@ abstract class WebComponent {
 
   /// Notifies initial attribute values during hydration.
   void _notifyInitialAttributes() {
-    if (!kIsBrowser) return;
+    if (!web.kIsBrowser) return;
     for (final attr in observedAttributes) {
       final currentValue = _element!.getAttribute(attr);
       if (currentValue != null) {
@@ -209,9 +192,6 @@ abstract class WebComponent {
   }
 
   /// Internal cleanup - disconnects observers and calls [onUnmount].
-  ///
-  /// Call this method when a component is removed from the DOM to
-  /// properly clean up resources.
   // ignore: unused_element
   void _cleanup() {
     _attributeObserver?.disconnect();
@@ -222,7 +202,6 @@ abstract class WebComponent {
   /// Called when the component is mounted/hydrated in the browser.
   ///
   /// Override this method to add interactivity to your component.
-  /// The shadow DOM will already be rendered (thanks to Declarative Shadow DOM).
   void onMount() {}
 
   /// Called when the component is unmounted from the DOM.
@@ -233,42 +212,9 @@ abstract class WebComponent {
   /// Returns a list of attribute names to observe for changes.
   ///
   /// Override this in subclasses to react to attribute changes.
-  /// When an observed attribute changes, [attributeChangedCallback] is called.
-  ///
-  /// **Note:** Use lowercase attribute names (HTML normalizes to lowercase).
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// @override
-  /// List<String> get observedAttributes => ['disabled', 'count', 'label'];
-  /// ```
   List<String> get observedAttributes => const [];
 
   /// Called when an observed attribute changes.
-  ///
-  /// Override this method to react to attribute changes at runtime.
-  /// This is called:
-  /// - For each observed attribute with a value during hydration (before [onMount])
-  /// - Whenever an observed attribute is added, changed, or removed
-  ///
-  /// - [name]: The attribute name that changed
-  /// - [oldValue]: The previous value (null if attribute was added)
-  /// - [newValue]: The new value (null if attribute was removed)
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// @override
-  /// void attributeChangedCallback(String name, String? oldValue, String? newValue) {
-  ///   switch (name) {
-  ///     case 'disabled':
-  ///       _updateDisabledState(newValue != null);
-  ///     case 'count':
-  ///       _updateCount(int.tryParse(newValue ?? '') ?? 0);
-  ///   }
-  /// }
-  /// ```
   void attributeChangedCallback(
     String name,
     String? oldValue,
@@ -278,18 +224,6 @@ abstract class WebComponent {
   /// Sets an attribute on the element.
   ///
   /// If [value] is null, the attribute is removed.
-  /// If the attribute is in [observedAttributes], [attributeChangedCallback]
-  /// will be triggered by the MutationObserver.
-  ///
-  /// Does nothing if not hydrated or running on server.
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// setAttr('count', '5');     // Sets count="5"
-  /// setAttr('disabled', '');   // Sets disabled="" (boolean attribute)
-  /// setAttr('count', null);    // Removes the count attribute
-  /// ```
   void setAttr(String name, String? value) {
     if (_element == null) return;
     if (value == null) {
@@ -300,39 +234,16 @@ abstract class WebComponent {
   }
 
   /// Removes an attribute from the element.
-  ///
-  /// If the attribute is in [observedAttributes], [attributeChangedCallback]
-  /// will be triggered by the MutationObserver with [newValue] as null.
-  ///
-  /// Does nothing if not hydrated or running on server.
   void removeAttr(String name) {
     _element?.removeAttribute(name);
   }
 
   /// Checks if the element has the specified attribute.
-  ///
-  /// Returns false if not hydrated or running on server.
   bool hasAttr(String name) {
     return _element?.hasAttribute(name) ?? false;
   }
 
   /// Toggles a boolean attribute on the element.
-  ///
-  /// If [force] is provided:
-  /// - true: adds the attribute
-  /// - false: removes the attribute
-  ///
-  /// If [force] is not provided, toggles the current state.
-  ///
-  /// Returns the new state (true if attribute exists, false if removed).
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// toggleAttr('disabled');        // Toggle current state
-  /// toggleAttr('disabled', true);  // Force add
-  /// toggleAttr('disabled', false); // Force remove
-  /// ```
   bool toggleAttr(String name, [bool? force]) {
     if (_element == null) return false;
 
@@ -346,8 +257,6 @@ abstract class WebComponent {
   }
 
   /// Reads an attribute value from the element.
-  ///
-  /// Returns [fallback] if the attribute is not set or if running on server.
   String prop(String key, [String fallback = '']) {
     if (_element == null) return fallback;
     return _element!.getAttribute(key) ?? fallback;
@@ -368,8 +277,6 @@ abstract class WebComponent {
   }
 
   /// Reads a boolean attribute value.
-  ///
-  /// Returns true if the attribute exists and is not 'false' or '0'.
   bool propBool(String key, [bool fallback = false]) {
     final value = prop(key);
     if (value.isEmpty) return fallback;
@@ -377,9 +284,6 @@ abstract class WebComponent {
   }
 
   /// Queries for an element within this component's shadow root or element.
-  ///
-  /// First checks the shadow root (if available), then falls back to
-  /// the element itself.
   web.Element? query(String selector) {
     if (_shadowRoot != null) {
       return _shadowRoot!.querySelector(selector);
@@ -400,8 +304,8 @@ abstract class WebComponent {
     final result = <web.Element>[];
     for (var i = 0; i < nodes.length; i++) {
       final item = nodes.item(i);
-      if (item != null) {
-        result.add(item as web.Element);
+      if (item != null && item is web.Element) {
+        result.add(item);
       }
     }
     return result;
@@ -409,29 +313,12 @@ abstract class WebComponent {
 
   /// Applies CSS strings as adopted stylesheets to this component's shadow root.
   ///
-  /// This uses the modern [adoptedStyleSheets](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets)
-  /// API which is more efficient than creating `<style>` elements because:
-  /// - Stylesheets can be shared across multiple shadow roots
-  /// - CSS is only parsed once and cached
-  /// - The browser can optimize stylesheet application
-  ///
-  /// **Note:** This only works in the browser. On the server (during SSR),
-  /// this is a no-op since styles should be rendered as `<style>` elements.
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// @override
-  /// void onMount() {
-  ///   adoptStyleSheets([
-  ///     ':host { display: block; padding: 16px; }',
-  ///     'button { background: blue; color: white; }',
-  ///   ]);
-  /// }
-  /// ```
+  /// Uses the modern `adoptedStyleSheets` API for efficient style management.
+  /// On the server, this is a no-op.
   void adoptStyleSheets(List<String> cssTexts) {
     if (_shadowRoot == null) return;
-    adopted_styles.setAdoptedStyleSheets(_shadowRoot!, cssTexts);
+    // Pass the underlying native shadow root for browser-specific CSS API.
+    adopted_styles.setAdoptedStyleSheets(_shadowRoot!.raw, cssTexts);
   }
 }
 
@@ -442,39 +329,13 @@ typedef ComponentFactory = Function;
 final Map<String, ComponentFactory> _componentRegistry = {};
 
 /// Registers a component factory for hydration.
-///
-/// Call this for each component type before calling [hydrateComponents].
-///
-/// ## Example
-///
-/// ```dart
-/// void main() {
-///   registerComponent('my-counter', Counter.new);
-///   hydrateAll();
-/// }
-/// ```
 void registerComponent(String tagName, ComponentFactory factory) {
   _componentRegistry[tagName.toLowerCase()] = factory;
 }
 
 /// Hydrates all registered components found in the DOM.
-///
-/// This function:
-/// 1. Finds all elements matching registered component tags
-/// 2. Creates component instances
-/// 3. Calls [WebComponent.onMount] on each
-///
-/// ## Example
-///
-/// ```dart
-/// void main() {
-///   registerComponent('my-counter', Counter.new);
-///   registerComponent('my-button', Button.new);
-///   hydrateAll();
-/// }
-/// ```
 void hydrateAll() {
-  if (!kIsBrowser) return;
+  if (!web.kIsBrowser) return;
 
   for (final entry in _componentRegistry.entries) {
     final tagName = entry.key;
@@ -484,10 +345,8 @@ void hydrateAll() {
     for (var i = 0; i < elements.length; i++) {
       final element = elements.item(i);
       if (element != null) {
-        // Custom elements are HTMLElement instances by definition
         final component = factory();
 
-        // Skip hydration if not a WebComponent
         if (component is! WebComponent) {
           continue;
         }
@@ -499,36 +358,9 @@ void hydrateAll() {
 }
 
 /// Convenience function to register multiple components and hydrate.
-///
-/// ## Example
-///
-/// ```dart
-/// void main() {
-///   hydrateComponents({
-///     'my-counter': Counter.new,
-///     'my-button': Button.new,
-///   });
-/// }
-/// ```
 void hydrateComponents(Map<String, ComponentFactory> components) {
   for (final entry in components.entries) {
     registerComponent(entry.key, entry.value);
   }
   hydrateAll();
-}
-
-/// Wraps a Dart function as a JavaScript callback for event handlers.
-///
-/// Use this when attaching event listeners:
-///
-/// ```dart
-/// element.addEventListener('click', jsCallback((event) {
-///   // handle click
-/// }));
-/// ```
-///
-/// On the server (Dart VM), this returns the function as-is since
-/// the stubs accept any callback type.
-dynamic jsCallback(void Function(web.Event) callback) {
-  return js_callback.jsCallbackImpl(callback);
 }

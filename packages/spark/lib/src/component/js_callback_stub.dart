@@ -1,7 +1,7 @@
 /// Stub implementation of jsCallback for server-side.
 library;
 
-import 'stubs.dart'
+import 'package:spark_web/spark_web.dart'
     show Event, MutationObserver, MutationRecord, MutationObserverInit;
 
 /// On the server, just return the callback as-is.
@@ -9,14 +9,14 @@ import 'stubs.dart'
 dynamic jsCallbackImpl(void Function(Event) callback) => callback;
 
 /// Adds a listener to the target (server stub).
+/// On the server, this is a no-op since there's no real DOM.
 void addEventListener(
   dynamic target,
   String type,
   dynamic callback,
   bool? useCapture,
 ) {
-  // stubs.EventTarget accepts dynamic
-  target.addEventListener(type, callback, useCapture);
+  // No-op on server
 }
 
 /// Stub for MutationObserver callback conversion.
