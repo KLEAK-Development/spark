@@ -184,6 +184,8 @@ class ServerNavigator implements iface.Navigator {
   List<String> get languages => const ['en-US'];
   @override
   bool get onLine => true;
+  @override
+  iface.Clipboard get clipboard => ServerClipboard();
 }
 
 // ---------------------------------------------------------------------------
@@ -240,4 +242,20 @@ class ServerCustomElementRegistry implements iface.CustomElementRegistry {
   void upgrade(Node root) {}
   @override
   Future<void> whenDefined(String name) async {}
+}
+
+// ---------------------------------------------------------------------------
+// Clipboard (no-op on server)
+// ---------------------------------------------------------------------------
+
+class ServerClipboard extends ServerEventTarget implements iface.Clipboard {
+  String _text = '';
+
+  @override
+  Future<String> readText() async => _text;
+
+  @override
+  Future<void> writeText(String data) async {
+    _text = data;
+  }
 }

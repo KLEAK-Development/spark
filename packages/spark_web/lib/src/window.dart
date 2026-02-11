@@ -113,6 +113,7 @@ abstract class Navigator {
   String get language;
   List<String> get languages;
   bool get onLine;
+  Clipboard get clipboard;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,4 +165,23 @@ abstract class CustomElementRegistry {
   dynamic get(String name);
   void upgrade(Node root);
   Future<void> whenDefined(String name);
+}
+
+// ---------------------------------------------------------------------------
+// Clipboard
+// ---------------------------------------------------------------------------
+
+/// Provides read and write access to the system clipboard.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard
+abstract class Clipboard implements EventTarget {
+  /// Reads text from the system clipboard.
+  ///
+  /// See: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/readText
+  Future<String> readText();
+
+  /// Writes text to the system clipboard.
+  ///
+  /// See: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/writeText
+  Future<void> writeText(String data);
 }

@@ -174,6 +174,8 @@ class BrowserNavigator implements iface.Navigator {
   List<String> get languages => _native.languages.toDart.map((js) => js.toDart).toList();
   @override
   bool get onLine => _native.onLine;
+  @override
+  iface.Clipboard get clipboard => BrowserClipboard(_native.clipboard);
 }
 
 // ---------------------------------------------------------------------------
@@ -223,6 +225,27 @@ class BrowserPerformance implements iface.Performance {
 
   @override
   double now() => _native.now();
+}
+
+// ---------------------------------------------------------------------------
+// CustomElementRegistry
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Clipboard
+// ---------------------------------------------------------------------------
+
+class BrowserClipboard extends BrowserEventTarget implements iface.Clipboard {
+  final web.Clipboard _native;
+  BrowserClipboard(this._native) : super(_native);
+
+  @override
+  Future<String> readText() =>
+      _native.readText().toDart.then((js) => js.toDart);
+
+  @override
+  Future<void> writeText(String data) =>
+      _native.writeText(data).toDart.then((_) {});
 }
 
 // ---------------------------------------------------------------------------
