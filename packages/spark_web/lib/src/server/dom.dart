@@ -319,9 +319,9 @@ class ServerHTMLCanvasElement extends ServerHTMLElement
   @override
   set height(int val) {}
   @override
-  dynamic getContext(String contextId, [dynamic options]) => null;
+  Object? getContext(String contextId, [Map<String, Object?>? options]) => null;
   @override
-  String toDataURL([String type = 'image/png', dynamic quality]) => '';
+  String toDataURL([String type = 'image/png', num? quality]) => '';
 }
 
 class ServerHTMLMediaElement extends ServerHTMLElement

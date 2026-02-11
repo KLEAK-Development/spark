@@ -164,10 +164,9 @@ abstract class PointerEvent implements MouseEvent {
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
 abstract class TouchEvent implements Event {
-  // TouchList is not wrapped yet — expose as dynamic for now.
-  dynamic get touches;
-  dynamic get targetTouches;
-  dynamic get changedTouches;
+  TouchList get touches;
+  TouchList get targetTouches;
+  TouchList get changedTouches;
   bool get altKey;
   bool get ctrlKey;
   bool get metaKey;
@@ -178,8 +177,7 @@ abstract class TouchEvent implements Event {
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/DragEvent
 abstract class DragEvent implements MouseEvent {
-  // DataTransfer is not wrapped yet — expose as dynamic for now.
-  dynamic get dataTransfer;
+  DataTransfer? get dataTransfer;
 }
 
 /// An animation event.
@@ -204,7 +202,55 @@ abstract class TransitionEvent implements Event {
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
 abstract class CustomEvent implements Event {
-  dynamic get detail;
+  Object? get detail;
+}
+
+// ---------------------------------------------------------------------------
+// Touch API
+// ---------------------------------------------------------------------------
+
+/// A single contact point on a touch-sensitive device.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/Touch
+abstract class Touch {
+  int get identifier;
+  EventTarget get target;
+  double get screenX;
+  double get screenY;
+  double get clientX;
+  double get clientY;
+  double get pageX;
+  double get pageY;
+  double get radiusX;
+  double get radiusY;
+  double get rotationAngle;
+  double get force;
+}
+
+/// A list of [Touch] objects.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/TouchList
+abstract class TouchList {
+  int get length;
+  Touch? item(int index);
+}
+
+// ---------------------------------------------------------------------------
+// DataTransfer API
+// ---------------------------------------------------------------------------
+
+/// Holds the data being dragged during a drag-and-drop operation.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer
+abstract class DataTransfer {
+  String get dropEffect;
+  set dropEffect(String value);
+  String get effectAllowed;
+  set effectAllowed(String value);
+  List<String> get types;
+  void setData(String format, String data);
+  String getData(String format);
+  void clearData([String? format]);
 }
 
 // ---------------------------------------------------------------------------

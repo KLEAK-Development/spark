@@ -125,11 +125,11 @@ class ServerPointerEvent extends ServerMouseEvent implements PointerEvent {
 class ServerTouchEvent extends ServerEvent implements TouchEvent {
   ServerTouchEvent([String type = 'touchstart']) : super(type);
   @override
-  dynamic get touches => null;
+  TouchList get touches => ServerTouchList();
   @override
-  dynamic get targetTouches => null;
+  TouchList get targetTouches => ServerTouchList();
   @override
-  dynamic get changedTouches => null;
+  TouchList get changedTouches => ServerTouchList();
   @override
   bool get altKey => false;
   @override
@@ -143,7 +143,7 @@ class ServerTouchEvent extends ServerEvent implements TouchEvent {
 class ServerDragEvent extends ServerMouseEvent implements DragEvent {
   ServerDragEvent([String type = 'drag']) : super(type);
   @override
-  dynamic get dataTransfer => null;
+  DataTransfer? get dataTransfer => null;
 }
 
 class ServerAnimationEvent extends ServerEvent implements AnimationEvent {
@@ -169,5 +169,62 @@ class ServerTransitionEvent extends ServerEvent implements TransitionEvent {
 class ServerCustomEvent extends ServerEvent implements CustomEvent {
   ServerCustomEvent([String type = 'custom']) : super(type);
   @override
-  dynamic get detail => null;
+  Object? get detail => null;
+}
+
+// ---------------------------------------------------------------------------
+// Server-side Touch & DataTransfer implementations
+// ---------------------------------------------------------------------------
+
+class ServerTouch implements Touch {
+  @override
+  int get identifier => 0;
+  @override
+  EventTarget get target => ServerEventTarget();
+  @override
+  double get screenX => 0;
+  @override
+  double get screenY => 0;
+  @override
+  double get clientX => 0;
+  @override
+  double get clientY => 0;
+  @override
+  double get pageX => 0;
+  @override
+  double get pageY => 0;
+  @override
+  double get radiusX => 0;
+  @override
+  double get radiusY => 0;
+  @override
+  double get rotationAngle => 0;
+  @override
+  double get force => 0;
+}
+
+class ServerTouchList implements TouchList {
+  @override
+  int get length => 0;
+  @override
+  Touch? item(int index) => null;
+}
+
+class ServerDataTransfer implements DataTransfer {
+  @override
+  String get dropEffect => 'none';
+  @override
+  set dropEffect(String value) {}
+  @override
+  String get effectAllowed => 'uninitialized';
+  @override
+  set effectAllowed(String value) {}
+  @override
+  List<String> get types => const [];
+  @override
+  void setData(String format, String data) {}
+  @override
+  String getData(String format) => '';
+  @override
+  void clearData([String? format]) {}
 }
