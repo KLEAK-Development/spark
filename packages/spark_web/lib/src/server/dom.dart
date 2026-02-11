@@ -4,7 +4,6 @@
 /// to compile and run on the Dart VM without crashing.
 library;
 
-import 'dart:async';
 import '../core.dart';
 import '../dom.dart' as iface;
 import '../collections.dart';

@@ -343,11 +343,11 @@ class BrowserElement extends BrowserNode implements iface.Element {
   @override
   set className(String value) => _nativeElement.className = value;
   @override
-  String get innerHTML => _nativeElement.innerHTML;
+  String get innerHTML => (_nativeElement.innerHTML as JSString).toDart;
   @override
-  set innerHTML(String value) => _nativeElement.innerHTML = value;
+  set innerHTML(String value) => _nativeElement.innerHTML = value.toJS;
   @override
-  String get outerHTML => _nativeElement.outerHTML;
+  String get outerHTML => (_nativeElement.outerHTML as JSString).toDart;
   @override
   String? get namespaceURI => _nativeElement.namespaceURI;
   @override
@@ -396,9 +396,9 @@ class BrowserHTMLElement extends BrowserElement implements iface.HTMLElement {
   @override
   set innerText(String value) => _nativeHtml.innerText = value;
   @override
-  bool get hidden => _nativeHtml.hidden;
+  bool get hidden => (_nativeHtml.hidden as JSBoolean?)?.toDart ?? false;
   @override
-  set hidden(bool value) => _nativeHtml.hidden = value;
+  set hidden(bool value) => _nativeHtml.hidden = value.toJS;
   @override
   String get title => _nativeHtml.title;
   @override
@@ -816,20 +816,22 @@ class BrowserMutationObserver implements MutationObserver {
   @override
   void observe(Node target, [MutationObserverInit? options]) {
     if (options != null) {
+      final init = web.MutationObserverInit(
+        attributes: options.attributes ?? false,
+        attributeOldValue: options.attributeOldValue ?? false,
+        childList: options.childList ?? false,
+        characterData: options.characterData ?? false,
+        subtree: options.subtree ?? false,
+        characterDataOldValue: options.characterDataOldValue ?? false,
+      );
+      // attributeFilter must be set separately if provided
+      if (options.attributeFilter != null) {
+        init.attributeFilter =
+            options.attributeFilter!.map((s) => s.toJS).toList().toJS;
+      }
       _native.observe(
         target.raw as web.Node,
-        web.MutationObserverInit(
-          attributes: options.attributes,
-          attributeOldValue: options.attributeOldValue,
-          attributeFilter: options.attributeFilter
-              ?.map((s) => s.toJS)
-              .toList()
-              .toJS,
-          childList: options.childList,
-          characterData: options.characterData,
-          subtree: options.subtree,
-          characterDataOldValue: options.characterDataOldValue,
-        ),
+        init,
       );
     } else {
       _native.observe(target.raw as web.Node);

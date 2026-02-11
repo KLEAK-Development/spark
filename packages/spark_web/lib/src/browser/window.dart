@@ -21,7 +21,7 @@ class BrowserWindow extends BrowserEventTarget implements iface.Window {
   @override
   iface.Document get document => BrowserDocument(_win.document);
   @override
-  iface.Console get console => BrowserConsole(_win.console);
+  iface.Console get console => BrowserConsole(web.console);
   @override
   iface.Navigator get navigator => BrowserNavigator(_win.navigator);
   @override
@@ -50,12 +50,12 @@ class BrowserWindow extends BrowserEventTarget implements iface.Window {
 
   @override
   int setTimeout(void Function() callback, [int delay = 0]) =>
-      _win.setTimeout(callback.toJS, delay);
+      _win.setTimeout(callback.toJS, delay.toJS);
   @override
   void clearTimeout(int handle) => _win.clearTimeout(handle);
   @override
   int setInterval(void Function() callback, [int delay = 0]) =>
-      _win.setInterval(callback.toJS, delay);
+      _win.setInterval(callback.toJS, delay.toJS);
   @override
   void clearInterval(int handle) => _win.clearInterval(handle);
 
@@ -171,7 +171,7 @@ class BrowserNavigator implements iface.Navigator {
   @override
   String get language => _native.language;
   @override
-  List<String> get languages => _native.languages.toDart.map((js) => (js as JSString).toDart).toList();
+  List<String> get languages => _native.languages.toDart.map((js) => js.toDart).toList();
   @override
   bool get onLine => _native.onLine;
 }
@@ -181,7 +181,7 @@ class BrowserNavigator implements iface.Navigator {
 // ---------------------------------------------------------------------------
 
 class BrowserConsole implements iface.Console {
-  final web.Console _native;
+  final web.$Console _native;
   BrowserConsole(this._native);
 
   @override

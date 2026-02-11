@@ -54,7 +54,7 @@ library;
 // and shelf types (Request, Response). Also hide Document/Comment to avoid
 // ambiguity with dart:core or other libraries.
 export 'src/component/component.dart'
-    hide Text, Element, Comment, Document, Request, Response;
+    hide Text, Element, Comment, Document;
 export 'src/utils/utils.dart';
 export 'src/annotations/annotations.dart';
 export 'src/page/page.dart';
