@@ -308,6 +308,342 @@ class ServerHTMLTemplateElement extends ServerHTMLElement
   iface.DocumentFragment get content => ServerDocumentFragment();
 }
 
+class ServerHTMLCanvasElement extends ServerHTMLElement
+    implements iface.HTMLCanvasElement {
+  @override
+  int get width => 0;
+  @override
+  set width(int val) {}
+  @override
+  int get height => 0;
+  @override
+  set height(int val) {}
+  @override
+  dynamic getContext(String contextId, [dynamic options]) => null;
+  @override
+  String toDataURL([String type = 'image/png', dynamic quality]) => '';
+}
+
+class ServerHTMLMediaElement extends ServerHTMLElement
+    implements iface.HTMLMediaElement {
+  @override
+  String get src => '';
+  @override
+  set src(String val) {}
+  @override
+  String get currentSrc => '';
+  @override
+  double get currentTime => 0;
+  @override
+  set currentTime(num val) {}
+  @override
+  double get duration => 0;
+  @override
+  bool get paused => true;
+  @override
+  bool get ended => false;
+  @override
+  bool get loop => false;
+  @override
+  set loop(bool val) {}
+  @override
+  double get volume => 1;
+  @override
+  set volume(num val) {}
+  @override
+  bool get muted => false;
+  @override
+  set muted(bool val) {}
+  @override
+  bool get autoplay => false;
+  @override
+  set autoplay(bool val) {}
+  @override
+  bool get controls => false;
+  @override
+  set controls(bool val) {}
+  @override
+  double get playbackRate => 1;
+  @override
+  set playbackRate(num val) {}
+  @override
+  int get readyState => 0;
+  @override
+  int get networkState => 0;
+  @override
+  String get preload => 'auto';
+  @override
+  set preload(String val) {}
+  @override
+  Future<void> play() async {}
+  @override
+  void pause() {}
+  @override
+  void load() {}
+}
+
+class ServerHTMLVideoElement extends ServerHTMLMediaElement
+    implements iface.HTMLVideoElement {
+  @override
+  int get width => 0;
+  @override
+  set width(int val) {}
+  @override
+  int get height => 0;
+  @override
+  set height(int val) {}
+  @override
+  int get videoWidth => 0;
+  @override
+  int get videoHeight => 0;
+  @override
+  String get poster => '';
+  @override
+  set poster(String val) {}
+  @override
+  bool get playsInline => false;
+  @override
+  set playsInline(bool val) {}
+}
+
+class ServerHTMLAudioElement extends ServerHTMLMediaElement
+    implements iface.HTMLAudioElement {}
+
+class ServerHTMLDialogElement extends ServerHTMLElement
+    implements iface.HTMLDialogElement {
+  @override
+  bool get open => false;
+  @override
+  set open(bool val) {}
+  @override
+  String get returnValue => '';
+  @override
+  set returnValue(String val) {}
+  @override
+  void show() {}
+  @override
+  void showModal() {}
+  @override
+  void close([String? returnValue]) {}
+}
+
+class ServerHTMLDetailsElement extends ServerHTMLElement
+    implements iface.HTMLDetailsElement {
+  @override
+  bool get open => false;
+  @override
+  set open(bool val) {}
+  @override
+  String get name => '';
+  @override
+  set name(String val) {}
+}
+
+class ServerHTMLSlotElement extends ServerHTMLElement
+    implements iface.HTMLSlotElement {
+  @override
+  String get name => '';
+  @override
+  set name(String val) {}
+  @override
+  List<Node> assignedNodes() => [];
+  @override
+  List<iface.Element> assignedElements() => [];
+}
+
+class ServerHTMLIFrameElement extends ServerHTMLElement
+    implements iface.HTMLIFrameElement {
+  @override
+  String get src => '';
+  @override
+  set src(String val) {}
+  @override
+  String get name => '';
+  @override
+  set name(String val) {}
+  @override
+  String get allow => '';
+  @override
+  set allow(String val) {}
+  @override
+  bool get allowFullscreen => false;
+  @override
+  set allowFullscreen(bool val) {}
+  @override
+  String get width => '';
+  @override
+  set width(String val) {}
+  @override
+  String get height => '';
+  @override
+  set height(String val) {}
+  @override
+  String get loading => '';
+  @override
+  set loading(String val) {}
+  @override
+  String get referrerPolicy => '';
+  @override
+  set referrerPolicy(String val) {}
+}
+
+class ServerHTMLTableElement extends ServerHTMLElement
+    implements iface.HTMLTableElement {
+  @override
+  iface.HTMLElement? get caption => null;
+  @override
+  set caption(iface.HTMLElement? val) {}
+  @override
+  iface.HTMLElement? get tHead => null;
+  @override
+  set tHead(iface.HTMLElement? val) {}
+  @override
+  iface.HTMLElement? get tFoot => null;
+  @override
+  set tFoot(iface.HTMLElement? val) {}
+  @override
+  iface.HTMLElement createTBody() => ServerHTMLElement();
+  @override
+  iface.HTMLElement insertRow([int index = -1]) => ServerHTMLElement();
+  @override
+  void deleteRow(int index) {}
+}
+
+class ServerHTMLTableSectionElement extends ServerHTMLElement
+    implements iface.HTMLTableSectionElement {
+  @override
+  iface.HTMLElement insertRow([int index = -1]) => ServerHTMLElement();
+  @override
+  void deleteRow(int index) {}
+}
+
+class ServerHTMLTableRowElement extends ServerHTMLElement
+    implements iface.HTMLTableRowElement {
+  @override
+  int get rowIndex => -1;
+  @override
+  int get sectionRowIndex => -1;
+  @override
+  iface.HTMLElement insertCell([int index = -1]) => ServerHTMLElement();
+  @override
+  void deleteCell(int index) {}
+}
+
+class ServerHTMLTableCellElement extends ServerHTMLElement
+    implements iface.HTMLTableCellElement {
+  @override
+  int get colSpan => 1;
+  @override
+  set colSpan(int val) {}
+  @override
+  int get rowSpan => 1;
+  @override
+  set rowSpan(int val) {}
+  @override
+  int get cellIndex => -1;
+}
+
+class ServerHTMLHeadingElement extends ServerHTMLElement
+    implements iface.HTMLHeadingElement {}
+
+class ServerHTMLUListElement extends ServerHTMLElement
+    implements iface.HTMLUListElement {}
+
+class ServerHTMLOListElement extends ServerHTMLElement
+    implements iface.HTMLOListElement {
+  @override
+  bool get reversed => false;
+  @override
+  set reversed(bool val) {}
+  @override
+  int get start => 1;
+  @override
+  set start(int val) {}
+  @override
+  String get type => '';
+  @override
+  set type(String val) {}
+}
+
+class ServerHTMLLIElement extends ServerHTMLElement
+    implements iface.HTMLLIElement {
+  @override
+  int get value => 0;
+  @override
+  set value(int val) {}
+}
+
+class ServerHTMLPreElement extends ServerHTMLElement
+    implements iface.HTMLPreElement {}
+
+class ServerHTMLHRElement extends ServerHTMLElement
+    implements iface.HTMLHRElement {}
+
+class ServerHTMLBRElement extends ServerHTMLElement
+    implements iface.HTMLBRElement {}
+
+class ServerHTMLProgressElement extends ServerHTMLElement
+    implements iface.HTMLProgressElement {
+  @override
+  double get value => 0;
+  @override
+  set value(double val) {}
+  @override
+  double get max => 1;
+  @override
+  set max(double val) {}
+  @override
+  double get position => -1;
+}
+
+class ServerHTMLMeterElement extends ServerHTMLElement
+    implements iface.HTMLMeterElement {
+  @override
+  double get value => 0;
+  @override
+  set value(double val) {}
+  @override
+  double get min => 0;
+  @override
+  set min(double val) {}
+  @override
+  double get max => 1;
+  @override
+  set max(double val) {}
+  @override
+  double get low => 0;
+  @override
+  set low(double val) {}
+  @override
+  double get high => 1;
+  @override
+  set high(double val) {}
+  @override
+  double get optimum => 0.5;
+  @override
+  set optimum(double val) {}
+}
+
+class ServerHTMLOutputElement extends ServerHTMLElement
+    implements iface.HTMLOutputElement {
+  @override
+  String get value => '';
+  @override
+  set value(String val) {}
+  @override
+  String get defaultValue => '';
+  @override
+  set defaultValue(String val) {}
+  @override
+  String get name => '';
+  @override
+  set name(String val) {}
+  @override
+  String get type => 'output';
+  @override
+  DOMTokenList get htmlFor => ServerDOMTokenList();
+}
+
 // ---------------------------------------------------------------------------
 // DocumentFragment
 // ---------------------------------------------------------------------------

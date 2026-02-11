@@ -103,14 +103,14 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | `MouseEvent` | ✅ Done | `clientX/Y`, `pageX/Y`, `screenX/Y`, `button`, modifier keys |
 | `KeyboardEvent` | ✅ Done | `key`, `code`, `repeat`, `location`, modifier keys |
 | `InputEvent` | ✅ Done | `data`, `inputType`, `isComposing` |
-| `FocusEvent` | ❌ TODO | `relatedTarget` |
-| `WheelEvent` | ❌ TODO | `deltaX`, `deltaY`, `deltaZ`, `deltaMode` |
-| `TouchEvent` | ❌ TODO | `touches`, `targetTouches`, `changedTouches` |
-| `PointerEvent` | ❌ TODO | `pointerId`, `width`, `height`, `pressure`, `pointerType` |
-| `DragEvent` | ❌ TODO | `dataTransfer` |
-| `AnimationEvent` | ❌ TODO | `animationName`, `elapsedTime`, `pseudoElement` |
-| `TransitionEvent` | ❌ TODO | `propertyName`, `elapsedTime`, `pseudoElement` |
-| `CustomEvent` | ❌ TODO | `detail` |
+| `FocusEvent` | ✅ Done | `relatedTarget` |
+| `WheelEvent` | ✅ Done | `deltaX`, `deltaY`, `deltaZ`, `deltaMode` |
+| `TouchEvent` | ✅ Done | `touches`, `targetTouches`, `changedTouches`, modifier keys |
+| `PointerEvent` | ✅ Done | `pointerId`, `width`, `height`, `pressure`, `tangentialPressure`, `tiltX/Y`, `twist`, `pointerType`, `isPrimary` |
+| `DragEvent` | ✅ Done | `dataTransfer` |
+| `AnimationEvent` | ✅ Done | `animationName`, `elapsedTime`, `pseudoElement` |
+| `TransitionEvent` | ✅ Done | `propertyName`, `elapsedTime`, `pseudoElement` |
+| `CustomEvent` | ✅ Done | `detail` |
 | `Node` | ✅ Done | Full tree traversal, `appendChild`, `removeChild`, `cloneNode`, etc. |
 | `NodeList` | ✅ Done | `length`, `item()` |
 | `MutationObserver` | ✅ Done | `observe`, `disconnect`, `takeRecords` |
@@ -139,26 +139,28 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | `HTMLFormElement` | ✅ Done | `action`, `method`, `submit()`, `reset()`, `reportValidity()` |
 | `HTMLLabelElement` | ✅ Done | `htmlFor` |
 | `HTMLTemplateElement` | ✅ Done | `content` |
-| `HTMLCanvasElement` | ❌ TODO | `getContext()`, `toDataURL()`, `width`, `height` |
-| `HTMLVideoElement` | ❌ TODO | `src`, `play()`, `pause()`, `currentTime` |
-| `HTMLAudioElement` | ❌ TODO | `src`, `play()`, `pause()` |
-| `HTMLDialogElement` | ❌ TODO | `open`, `showModal()`, `close()`, `returnValue` |
-| `HTMLDetailsElement` | ❌ TODO | `open` |
-| `HTMLSlotElement` | ❌ TODO | `assignedNodes()`, `assignedElements()` |
-| `HTMLIFrameElement` | ❌ TODO | `src`, `contentWindow`, `contentDocument` |
-| `HTMLTableElement` | ❌ TODO | `rows`, `insertRow()`, `deleteRow()` |
-| `HTMLTableRowElement` | ❌ TODO | `cells`, `insertCell()`, `deleteCell()` |
-| `HTMLTableCellElement` | ❌ TODO | `colSpan`, `rowSpan` |
-| `HTMLHeadingElement` | ❌ TODO | h1–h6 |
-| `HTMLUListElement` | ❌ TODO | |
-| `HTMLOListElement` | ❌ TODO | |
-| `HTMLLIElement` | ❌ TODO | |
-| `HTMLPreElement` | ❌ TODO | |
-| `HTMLHRElement` | ❌ TODO | |
-| `HTMLBRElement` | ❌ TODO | |
-| `HTMLProgressElement` | ❌ TODO | `value`, `max` |
-| `HTMLMeterElement` | ❌ TODO | `value`, `min`, `max`, `low`, `high`, `optimum` |
-| `HTMLOutputElement` | ❌ TODO | `value` |
+| `HTMLCanvasElement` | ✅ Done | `getContext()`, `toDataURL()`, `width`, `height` |
+| `HTMLMediaElement` | ✅ Done | `src`, `currentTime`, `duration`, `paused`, `volume`, `play()`, `pause()`, `load()`, etc. |
+| `HTMLVideoElement` | ✅ Done | `width`, `height`, `videoWidth`, `videoHeight`, `poster`, `playsInline` |
+| `HTMLAudioElement` | ✅ Done | Inherits all from HTMLMediaElement |
+| `HTMLDialogElement` | ✅ Done | `open`, `returnValue`, `show()`, `showModal()`, `close()` |
+| `HTMLDetailsElement` | ✅ Done | `open`, `name` |
+| `HTMLSlotElement` | ✅ Done | `name`, `assignedNodes()`, `assignedElements()` |
+| `HTMLIFrameElement` | ✅ Done | `src`, `name`, `allow`, `allowFullscreen`, `width`, `height`, `loading`, `referrerPolicy` |
+| `HTMLTableElement` | ✅ Done | `caption`, `tHead`, `tFoot`, `createTBody()`, `insertRow()`, `deleteRow()` |
+| `HTMLTableSectionElement` | ✅ Done | `insertRow()`, `deleteRow()` |
+| `HTMLTableRowElement` | ✅ Done | `rowIndex`, `sectionRowIndex`, `insertCell()`, `deleteCell()` |
+| `HTMLTableCellElement` | ✅ Done | `colSpan`, `rowSpan`, `cellIndex` |
+| `HTMLHeadingElement` | ✅ Done | h1–h6 |
+| `HTMLUListElement` | ✅ Done | |
+| `HTMLOListElement` | ✅ Done | `reversed`, `start`, `type` |
+| `HTMLLIElement` | ✅ Done | `value` |
+| `HTMLPreElement` | ✅ Done | |
+| `HTMLHRElement` | ✅ Done | |
+| `HTMLBRElement` | ✅ Done | |
+| `HTMLProgressElement` | ✅ Done | `value`, `max`, `position` |
+| `HTMLMeterElement` | ✅ Done | `value`, `min`, `max`, `low`, `high`, `optimum` |
+| `HTMLOutputElement` | ✅ Done | `value`, `defaultValue`, `name`, `type`, `htmlFor` |
 
 ### Document & Fragments
 

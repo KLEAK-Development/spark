@@ -56,6 +56,51 @@ Node wrapNode(web.Node node) {
   if ((node as JSAny?).isA<web.HTMLTemplateElement>()) {
     return BrowserHTMLTemplateElement(node as web.HTMLTemplateElement);
   }
+  if ((node as JSAny?).isA<web.HTMLCanvasElement>()) {
+    return BrowserHTMLCanvasElement(node as web.HTMLCanvasElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLVideoElement>()) {
+    return BrowserHTMLVideoElement(node as web.HTMLVideoElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLAudioElement>()) {
+    return BrowserHTMLAudioElement(node as web.HTMLAudioElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLDialogElement>()) {
+    return BrowserHTMLDialogElement(node as web.HTMLDialogElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLDetailsElement>()) {
+    return BrowserHTMLDetailsElement(node as web.HTMLDetailsElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLSlotElement>()) {
+    return BrowserHTMLSlotElement(node as web.HTMLSlotElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLIFrameElement>()) {
+    return BrowserHTMLIFrameElement(node as web.HTMLIFrameElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLTableElement>()) {
+    return BrowserHTMLTableElement(node as web.HTMLTableElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLTableRowElement>()) {
+    return BrowserHTMLTableRowElement(node as web.HTMLTableRowElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLTableCellElement>()) {
+    return BrowserHTMLTableCellElement(node as web.HTMLTableCellElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLProgressElement>()) {
+    return BrowserHTMLProgressElement(node as web.HTMLProgressElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLMeterElement>()) {
+    return BrowserHTMLMeterElement(node as web.HTMLMeterElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLOutputElement>()) {
+    return BrowserHTMLOutputElement(node as web.HTMLOutputElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLOListElement>()) {
+    return BrowserHTMLOListElement(node as web.HTMLOListElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLLIElement>()) {
+    return BrowserHTMLLIElement(node as web.HTMLLIElement);
+  }
   if ((node as JSAny?).isA<web.HTMLElement>()) {
     return BrowserHTMLElement(node as web.HTMLElement);
   }
@@ -76,6 +121,16 @@ iface.Element wrapElement(web.Element el) => wrapNode(el) as iface.Element;
 
 /// Wraps a native `web.Event` into a spark_web Event.
 Event wrapEvent(web.Event e) {
+  // Check most specific types first.
+  if ((e as JSAny?).isA<web.PointerEvent>()) {
+    return BrowserPointerEvent(e as web.PointerEvent);
+  }
+  if ((e as JSAny?).isA<web.WheelEvent>()) {
+    return BrowserWheelEvent(e as web.WheelEvent);
+  }
+  if ((e as JSAny?).isA<web.DragEvent>()) {
+    return BrowserDragEvent(e as web.DragEvent);
+  }
   if ((e as JSAny?).isA<web.MouseEvent>()) {
     return BrowserMouseEvent(e as web.MouseEvent);
   }
@@ -84,6 +139,21 @@ Event wrapEvent(web.Event e) {
   }
   if ((e as JSAny?).isA<web.InputEvent>()) {
     return BrowserInputEvent(e as web.InputEvent);
+  }
+  if ((e as JSAny?).isA<web.FocusEvent>()) {
+    return BrowserFocusEvent(e as web.FocusEvent);
+  }
+  if ((e as JSAny?).isA<web.TouchEvent>()) {
+    return BrowserTouchEvent(e as web.TouchEvent);
+  }
+  if ((e as JSAny?).isA<web.AnimationEvent>()) {
+    return BrowserAnimationEvent(e as web.AnimationEvent);
+  }
+  if ((e as JSAny?).isA<web.TransitionEvent>()) {
+    return BrowserTransitionEvent(e as web.TransitionEvent);
+  }
+  if ((e as JSAny?).isA<web.CustomEvent>()) {
+    return BrowserCustomEvent(e as web.CustomEvent);
   }
   return BrowserEvent(e);
 }
@@ -221,6 +291,117 @@ class BrowserInputEvent extends BrowserEvent implements InputEvent {
   String get inputType => _nativeInput.inputType;
   @override
   bool get isComposing => _nativeInput.isComposing;
+}
+
+class BrowserFocusEvent extends BrowserEvent implements FocusEvent {
+  final web.FocusEvent _nativeFocus;
+  BrowserFocusEvent(this._nativeFocus) : super(_nativeFocus);
+
+  @override
+  EventTarget? get relatedTarget {
+    final t = _nativeFocus.relatedTarget;
+    return t != null ? BrowserEventTarget(t) : null;
+  }
+}
+
+class BrowserWheelEvent extends BrowserMouseEvent implements WheelEvent {
+  final web.WheelEvent _nativeWheel;
+  BrowserWheelEvent(this._nativeWheel) : super(_nativeWheel);
+
+  @override
+  double get deltaX => _nativeWheel.deltaX;
+  @override
+  double get deltaY => _nativeWheel.deltaY;
+  @override
+  double get deltaZ => _nativeWheel.deltaZ;
+  @override
+  int get deltaMode => _nativeWheel.deltaMode;
+}
+
+class BrowserPointerEvent extends BrowserMouseEvent implements PointerEvent {
+  final web.PointerEvent _nativePointer;
+  BrowserPointerEvent(this._nativePointer) : super(_nativePointer);
+
+  @override
+  int get pointerId => _nativePointer.pointerId;
+  @override
+  double get width => _nativePointer.width;
+  @override
+  double get height => _nativePointer.height;
+  @override
+  double get pressure => _nativePointer.pressure;
+  @override
+  double get tangentialPressure => _nativePointer.tangentialPressure;
+  @override
+  int get tiltX => _nativePointer.tiltX;
+  @override
+  int get tiltY => _nativePointer.tiltY;
+  @override
+  int get twist => _nativePointer.twist;
+  @override
+  String get pointerType => _nativePointer.pointerType;
+  @override
+  bool get isPrimary => _nativePointer.isPrimary;
+}
+
+class BrowserTouchEvent extends BrowserEvent implements TouchEvent {
+  final web.TouchEvent _nativeTouch;
+  BrowserTouchEvent(this._nativeTouch) : super(_nativeTouch);
+
+  @override
+  dynamic get touches => _nativeTouch.touches;
+  @override
+  dynamic get targetTouches => _nativeTouch.targetTouches;
+  @override
+  dynamic get changedTouches => _nativeTouch.changedTouches;
+  @override
+  bool get altKey => _nativeTouch.altKey;
+  @override
+  bool get ctrlKey => _nativeTouch.ctrlKey;
+  @override
+  bool get metaKey => _nativeTouch.metaKey;
+  @override
+  bool get shiftKey => _nativeTouch.shiftKey;
+}
+
+class BrowserDragEvent extends BrowserMouseEvent implements DragEvent {
+  final web.DragEvent _nativeDrag;
+  BrowserDragEvent(this._nativeDrag) : super(_nativeDrag);
+
+  @override
+  dynamic get dataTransfer => _nativeDrag.dataTransfer;
+}
+
+class BrowserAnimationEvent extends BrowserEvent implements AnimationEvent {
+  final web.AnimationEvent _nativeAnim;
+  BrowserAnimationEvent(this._nativeAnim) : super(_nativeAnim);
+
+  @override
+  String get animationName => _nativeAnim.animationName;
+  @override
+  double get elapsedTime => _nativeAnim.elapsedTime;
+  @override
+  String get pseudoElement => _nativeAnim.pseudoElement;
+}
+
+class BrowserTransitionEvent extends BrowserEvent implements TransitionEvent {
+  final web.TransitionEvent _nativeTrans;
+  BrowserTransitionEvent(this._nativeTrans) : super(_nativeTrans);
+
+  @override
+  String get propertyName => _nativeTrans.propertyName;
+  @override
+  double get elapsedTime => _nativeTrans.elapsedTime;
+  @override
+  String get pseudoElement => _nativeTrans.pseudoElement;
+}
+
+class BrowserCustomEvent extends BrowserEvent implements CustomEvent {
+  final web.CustomEvent _nativeCustom;
+  BrowserCustomEvent(this._nativeCustom) : super(_nativeCustom);
+
+  @override
+  dynamic get detail => _nativeCustom.detail;
 }
 
 // ---------------------------------------------------------------------------
@@ -634,6 +815,421 @@ class BrowserHTMLTemplateElement extends BrowserHTMLElement
   @override
   iface.DocumentFragment get content =>
       BrowserDocumentFragment(_nativeTemplate.content);
+}
+
+class BrowserHTMLCanvasElement extends BrowserHTMLElement
+    implements iface.HTMLCanvasElement {
+  final web.HTMLCanvasElement _nativeCanvas;
+  BrowserHTMLCanvasElement(this._nativeCanvas) : super(_nativeCanvas);
+
+  @override
+  dynamic get raw => _nativeCanvas;
+  @override
+  int get width => _nativeCanvas.width;
+  @override
+  set width(int val) => _nativeCanvas.width = val;
+  @override
+  int get height => _nativeCanvas.height;
+  @override
+  set height(int val) => _nativeCanvas.height = val;
+  @override
+  dynamic getContext(String contextId, [dynamic options]) =>
+      _nativeCanvas.getContext(contextId);
+  @override
+  String toDataURL([String type = 'image/png', dynamic quality]) =>
+      _nativeCanvas.toDataURL(type);
+}
+
+class BrowserHTMLMediaElement extends BrowserHTMLElement
+    implements iface.HTMLMediaElement {
+  final web.HTMLMediaElement _nativeMedia;
+  BrowserHTMLMediaElement(this._nativeMedia) : super(_nativeMedia);
+
+  @override
+  dynamic get raw => _nativeMedia;
+  @override
+  String get src => _nativeMedia.src;
+  @override
+  set src(String val) => _nativeMedia.src = val;
+  @override
+  String get currentSrc => _nativeMedia.currentSrc;
+  @override
+  double get currentTime => _nativeMedia.currentTime;
+  @override
+  set currentTime(num val) => _nativeMedia.currentTime = val;
+  @override
+  double get duration => _nativeMedia.duration;
+  @override
+  bool get paused => _nativeMedia.paused;
+  @override
+  bool get ended => _nativeMedia.ended;
+  @override
+  bool get loop => _nativeMedia.loop;
+  @override
+  set loop(bool val) => _nativeMedia.loop = val;
+  @override
+  double get volume => _nativeMedia.volume;
+  @override
+  set volume(num val) => _nativeMedia.volume = val;
+  @override
+  bool get muted => _nativeMedia.muted;
+  @override
+  set muted(bool val) => _nativeMedia.muted = val;
+  @override
+  bool get autoplay => _nativeMedia.autoplay;
+  @override
+  set autoplay(bool val) => _nativeMedia.autoplay = val;
+  @override
+  bool get controls => _nativeMedia.controls;
+  @override
+  set controls(bool val) => _nativeMedia.controls = val;
+  @override
+  double get playbackRate => _nativeMedia.playbackRate;
+  @override
+  set playbackRate(num val) => _nativeMedia.playbackRate = val;
+  @override
+  int get readyState => _nativeMedia.readyState;
+  @override
+  int get networkState => _nativeMedia.networkState;
+  @override
+  String get preload => _nativeMedia.preload;
+  @override
+  set preload(String val) => _nativeMedia.preload = val;
+  @override
+  Future<void> play() => _nativeMedia.play().toDart.then((_) {});
+  @override
+  void pause() => _nativeMedia.pause();
+  @override
+  void load() => _nativeMedia.load();
+}
+
+class BrowserHTMLVideoElement extends BrowserHTMLMediaElement
+    implements iface.HTMLVideoElement {
+  final web.HTMLVideoElement _nativeVideo;
+  BrowserHTMLVideoElement(this._nativeVideo) : super(_nativeVideo);
+
+  @override
+  dynamic get raw => _nativeVideo;
+  @override
+  int get width => _nativeVideo.width;
+  @override
+  set width(int val) => _nativeVideo.width = val;
+  @override
+  int get height => _nativeVideo.height;
+  @override
+  set height(int val) => _nativeVideo.height = val;
+  @override
+  int get videoWidth => _nativeVideo.videoWidth;
+  @override
+  int get videoHeight => _nativeVideo.videoHeight;
+  @override
+  String get poster => _nativeVideo.poster;
+  @override
+  set poster(String val) => _nativeVideo.poster = val;
+  @override
+  bool get playsInline => _nativeVideo.playsInline;
+  @override
+  set playsInline(bool val) => _nativeVideo.playsInline = val;
+}
+
+class BrowserHTMLAudioElement extends BrowserHTMLMediaElement
+    implements iface.HTMLAudioElement {
+  BrowserHTMLAudioElement(web.HTMLAudioElement native) : super(native);
+}
+
+class BrowserHTMLDialogElement extends BrowserHTMLElement
+    implements iface.HTMLDialogElement {
+  final web.HTMLDialogElement _nativeDialog;
+  BrowserHTMLDialogElement(this._nativeDialog) : super(_nativeDialog);
+
+  @override
+  dynamic get raw => _nativeDialog;
+  @override
+  bool get open => _nativeDialog.open;
+  @override
+  set open(bool val) => _nativeDialog.open = val;
+  @override
+  String get returnValue => _nativeDialog.returnValue;
+  @override
+  set returnValue(String val) => _nativeDialog.returnValue = val;
+  @override
+  void show() => _nativeDialog.show();
+  @override
+  void showModal() => _nativeDialog.showModal();
+  @override
+  void close([String? returnValue]) => _nativeDialog.close(returnValue ?? '');
+}
+
+class BrowserHTMLDetailsElement extends BrowserHTMLElement
+    implements iface.HTMLDetailsElement {
+  final web.HTMLDetailsElement _nativeDetails;
+  BrowserHTMLDetailsElement(this._nativeDetails) : super(_nativeDetails);
+
+  @override
+  dynamic get raw => _nativeDetails;
+  @override
+  bool get open => _nativeDetails.open;
+  @override
+  set open(bool val) => _nativeDetails.open = val;
+  @override
+  String get name => _nativeDetails.name;
+  @override
+  set name(String val) => _nativeDetails.name = val;
+}
+
+class BrowserHTMLSlotElement extends BrowserHTMLElement
+    implements iface.HTMLSlotElement {
+  final web.HTMLSlotElement _nativeSlot;
+  BrowserHTMLSlotElement(this._nativeSlot) : super(_nativeSlot);
+
+  @override
+  dynamic get raw => _nativeSlot;
+  @override
+  String get name => _nativeSlot.name;
+  @override
+  set name(String val) => _nativeSlot.name = val;
+  @override
+  List<Node> assignedNodes() =>
+      _nativeSlot.assignedNodes().toDart.map((n) => wrapNode(n)).toList();
+  @override
+  List<iface.Element> assignedElements() => _nativeSlot
+      .assignedElements()
+      .toDart
+      .map((e) => wrapElement(e))
+      .toList();
+}
+
+class BrowserHTMLIFrameElement extends BrowserHTMLElement
+    implements iface.HTMLIFrameElement {
+  final web.HTMLIFrameElement _nativeIFrame;
+  BrowserHTMLIFrameElement(this._nativeIFrame) : super(_nativeIFrame);
+
+  @override
+  dynamic get raw => _nativeIFrame;
+  @override
+  String get src => _nativeIFrame.src;
+  @override
+  set src(String val) => _nativeIFrame.src = val;
+  @override
+  String get name => _nativeIFrame.name;
+  @override
+  set name(String val) => _nativeIFrame.name = val;
+  @override
+  String get allow => _nativeIFrame.allow;
+  @override
+  set allow(String val) => _nativeIFrame.allow = val;
+  @override
+  bool get allowFullscreen => _nativeIFrame.allowFullscreen;
+  @override
+  set allowFullscreen(bool val) => _nativeIFrame.allowFullscreen = val;
+  @override
+  String get width => _nativeIFrame.width;
+  @override
+  set width(String val) => _nativeIFrame.width = val;
+  @override
+  String get height => _nativeIFrame.height;
+  @override
+  set height(String val) => _nativeIFrame.height = val;
+  @override
+  String get loading => _nativeIFrame.loading;
+  @override
+  set loading(String val) => _nativeIFrame.loading = val;
+  @override
+  String get referrerPolicy => _nativeIFrame.referrerPolicy;
+  @override
+  set referrerPolicy(String val) => _nativeIFrame.referrerPolicy = val;
+}
+
+class BrowserHTMLTableElement extends BrowserHTMLElement
+    implements iface.HTMLTableElement {
+  final web.HTMLTableElement _nativeTable;
+  BrowserHTMLTableElement(this._nativeTable) : super(_nativeTable);
+
+  @override
+  dynamic get raw => _nativeTable;
+  @override
+  iface.HTMLElement? get caption {
+    final c = _nativeTable.caption;
+    return c != null ? BrowserHTMLElement(c) : null;
+  }
+
+  @override
+  set caption(iface.HTMLElement? val) =>
+      _nativeTable.caption = val?.raw as web.HTMLTableCaptionElement?;
+  @override
+  iface.HTMLElement? get tHead {
+    final h = _nativeTable.tHead;
+    return h != null ? BrowserHTMLElement(h) : null;
+  }
+
+  @override
+  set tHead(iface.HTMLElement? val) =>
+      _nativeTable.tHead = val?.raw as web.HTMLTableSectionElement?;
+  @override
+  iface.HTMLElement? get tFoot {
+    final f = _nativeTable.tFoot;
+    return f != null ? BrowserHTMLElement(f) : null;
+  }
+
+  @override
+  set tFoot(iface.HTMLElement? val) =>
+      _nativeTable.tFoot = val?.raw as web.HTMLTableSectionElement?;
+  @override
+  iface.HTMLElement createTBody() =>
+      BrowserHTMLElement(_nativeTable.createTBody());
+  @override
+  iface.HTMLElement insertRow([int index = -1]) =>
+      BrowserHTMLElement(_nativeTable.insertRow(index));
+  @override
+  void deleteRow(int index) => _nativeTable.deleteRow(index);
+}
+
+class BrowserHTMLTableRowElement extends BrowserHTMLElement
+    implements iface.HTMLTableRowElement {
+  final web.HTMLTableRowElement _nativeRow;
+  BrowserHTMLTableRowElement(this._nativeRow) : super(_nativeRow);
+
+  @override
+  dynamic get raw => _nativeRow;
+  @override
+  int get rowIndex => _nativeRow.rowIndex;
+  @override
+  int get sectionRowIndex => _nativeRow.sectionRowIndex;
+  @override
+  iface.HTMLElement insertCell([int index = -1]) =>
+      BrowserHTMLElement(_nativeRow.insertCell(index));
+  @override
+  void deleteCell(int index) => _nativeRow.deleteCell(index);
+}
+
+class BrowserHTMLTableCellElement extends BrowserHTMLElement
+    implements iface.HTMLTableCellElement {
+  final web.HTMLTableCellElement _nativeCell;
+  BrowserHTMLTableCellElement(this._nativeCell) : super(_nativeCell);
+
+  @override
+  dynamic get raw => _nativeCell;
+  @override
+  int get colSpan => _nativeCell.colSpan;
+  @override
+  set colSpan(int val) => _nativeCell.colSpan = val;
+  @override
+  int get rowSpan => _nativeCell.rowSpan;
+  @override
+  set rowSpan(int val) => _nativeCell.rowSpan = val;
+  @override
+  int get cellIndex => _nativeCell.cellIndex;
+}
+
+class BrowserHTMLProgressElement extends BrowserHTMLElement
+    implements iface.HTMLProgressElement {
+  final web.HTMLProgressElement _nativeProgress;
+  BrowserHTMLProgressElement(this._nativeProgress) : super(_nativeProgress);
+
+  @override
+  dynamic get raw => _nativeProgress;
+  @override
+  double get value => _nativeProgress.value;
+  @override
+  set value(double val) => _nativeProgress.value = val;
+  @override
+  double get max => _nativeProgress.max;
+  @override
+  set max(double val) => _nativeProgress.max = val;
+  @override
+  double get position => _nativeProgress.position;
+}
+
+class BrowserHTMLMeterElement extends BrowserHTMLElement
+    implements iface.HTMLMeterElement {
+  final web.HTMLMeterElement _nativeMeter;
+  BrowserHTMLMeterElement(this._nativeMeter) : super(_nativeMeter);
+
+  @override
+  dynamic get raw => _nativeMeter;
+  @override
+  double get value => _nativeMeter.value;
+  @override
+  set value(double val) => _nativeMeter.value = val;
+  @override
+  double get min => _nativeMeter.min;
+  @override
+  set min(double val) => _nativeMeter.min = val;
+  @override
+  double get max => _nativeMeter.max;
+  @override
+  set max(double val) => _nativeMeter.max = val;
+  @override
+  double get low => _nativeMeter.low;
+  @override
+  set low(double val) => _nativeMeter.low = val;
+  @override
+  double get high => _nativeMeter.high;
+  @override
+  set high(double val) => _nativeMeter.high = val;
+  @override
+  double get optimum => _nativeMeter.optimum;
+  @override
+  set optimum(double val) => _nativeMeter.optimum = val;
+}
+
+class BrowserHTMLOutputElement extends BrowserHTMLElement
+    implements iface.HTMLOutputElement {
+  final web.HTMLOutputElement _nativeOutput;
+  BrowserHTMLOutputElement(this._nativeOutput) : super(_nativeOutput);
+
+  @override
+  dynamic get raw => _nativeOutput;
+  @override
+  String get value => _nativeOutput.value;
+  @override
+  set value(String val) => _nativeOutput.value = val;
+  @override
+  String get defaultValue => _nativeOutput.defaultValue;
+  @override
+  set defaultValue(String val) => _nativeOutput.defaultValue = val;
+  @override
+  String get name => _nativeOutput.name;
+  @override
+  set name(String val) => _nativeOutput.name = val;
+  @override
+  String get type => _nativeOutput.type;
+  @override
+  DOMTokenList get htmlFor => BrowserDOMTokenList(_nativeOutput.htmlFor);
+}
+
+class BrowserHTMLOListElement extends BrowserHTMLElement
+    implements iface.HTMLOListElement {
+  final web.HTMLOListElement _nativeOList;
+  BrowserHTMLOListElement(this._nativeOList) : super(_nativeOList);
+
+  @override
+  dynamic get raw => _nativeOList;
+  @override
+  bool get reversed => _nativeOList.reversed;
+  @override
+  set reversed(bool val) => _nativeOList.reversed = val;
+  @override
+  int get start => _nativeOList.start;
+  @override
+  set start(int val) => _nativeOList.start = val;
+  @override
+  String get type => _nativeOList.type;
+  @override
+  set type(String val) => _nativeOList.type = val;
+}
+
+class BrowserHTMLLIElement extends BrowserHTMLElement
+    implements iface.HTMLLIElement {
+  final web.HTMLLIElement _nativeLI;
+  BrowserHTMLLIElement(this._nativeLI) : super(_nativeLI);
+
+  @override
+  dynamic get raw => _nativeLI;
+  @override
+  int get value => _nativeLI.value;
+  @override
+  set value(int val) => _nativeLI.value = val;
 }
 
 // ---------------------------------------------------------------------------

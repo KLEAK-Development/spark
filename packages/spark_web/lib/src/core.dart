@@ -123,6 +123,90 @@ abstract class InputEvent implements Event {
   bool get isComposing;
 }
 
+/// A focus event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/FocusEvent
+abstract class FocusEvent implements Event {
+  EventTarget? get relatedTarget;
+}
+
+/// A wheel event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent
+abstract class WheelEvent implements MouseEvent {
+  static const int DOM_DELTA_PIXEL = 0;
+  static const int DOM_DELTA_LINE = 1;
+  static const int DOM_DELTA_PAGE = 2;
+
+  double get deltaX;
+  double get deltaY;
+  double get deltaZ;
+  int get deltaMode;
+}
+
+/// A pointer event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent
+abstract class PointerEvent implements MouseEvent {
+  int get pointerId;
+  double get width;
+  double get height;
+  double get pressure;
+  double get tangentialPressure;
+  int get tiltX;
+  int get tiltY;
+  int get twist;
+  String get pointerType;
+  bool get isPrimary;
+}
+
+/// A touch event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
+abstract class TouchEvent implements Event {
+  // TouchList is not wrapped yet — expose as dynamic for now.
+  dynamic get touches;
+  dynamic get targetTouches;
+  dynamic get changedTouches;
+  bool get altKey;
+  bool get ctrlKey;
+  bool get metaKey;
+  bool get shiftKey;
+}
+
+/// A drag event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/DragEvent
+abstract class DragEvent implements MouseEvent {
+  // DataTransfer is not wrapped yet — expose as dynamic for now.
+  dynamic get dataTransfer;
+}
+
+/// An animation event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/AnimationEvent
+abstract class AnimationEvent implements Event {
+  String get animationName;
+  double get elapsedTime;
+  String get pseudoElement;
+}
+
+/// A transition event.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/TransitionEvent
+abstract class TransitionEvent implements Event {
+  String get propertyName;
+  double get elapsedTime;
+  String get pseudoElement;
+}
+
+/// A custom event with arbitrary detail data.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
+abstract class CustomEvent implements Event {
+  dynamic get detail;
+}
+
 // ---------------------------------------------------------------------------
 // Forward declarations for types referenced across files.
 // ---------------------------------------------------------------------------
