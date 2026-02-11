@@ -182,6 +182,217 @@ abstract class HTMLTemplateElement implements HTMLElement {
   DocumentFragment get content;
 }
 
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement
+abstract class HTMLCanvasElement implements HTMLElement {
+  int get width;
+  set width(int val);
+  int get height;
+  set height(int val);
+  dynamic getContext(String contextId, [dynamic options]);
+  String toDataURL([String type, dynamic quality]);
+}
+
+/// Base class for media elements (audio & video).
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement
+abstract class HTMLMediaElement implements HTMLElement {
+  String get src;
+  set src(String val);
+  String get currentSrc;
+  double get currentTime;
+  set currentTime(num val);
+  double get duration;
+  bool get paused;
+  bool get ended;
+  bool get loop;
+  set loop(bool val);
+  double get volume;
+  set volume(num val);
+  bool get muted;
+  set muted(bool val);
+  bool get autoplay;
+  set autoplay(bool val);
+  bool get controls;
+  set controls(bool val);
+  double get playbackRate;
+  set playbackRate(num val);
+  int get readyState;
+  int get networkState;
+  String get preload;
+  set preload(String val);
+  Future<void> play();
+  void pause();
+  void load();
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement
+abstract class HTMLVideoElement implements HTMLMediaElement {
+  int get width;
+  set width(int val);
+  int get height;
+  set height(int val);
+  int get videoWidth;
+  int get videoHeight;
+  String get poster;
+  set poster(String val);
+  bool get playsInline;
+  set playsInline(bool val);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
+abstract class HTMLAudioElement implements HTMLMediaElement {}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement
+abstract class HTMLDialogElement implements HTMLElement {
+  bool get open;
+  set open(bool val);
+  String get returnValue;
+  set returnValue(String val);
+  void show();
+  void showModal();
+  void close([String? returnValue]);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLDetailsElement
+abstract class HTMLDetailsElement implements HTMLElement {
+  bool get open;
+  set open(bool val);
+  String get name;
+  set name(String val);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLSlotElement
+abstract class HTMLSlotElement implements HTMLElement {
+  String get name;
+  set name(String val);
+  List<Node> assignedNodes();
+  List<Element> assignedElements();
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement
+abstract class HTMLIFrameElement implements HTMLElement {
+  String get src;
+  set src(String val);
+  String get name;
+  set name(String val);
+  String get allow;
+  set allow(String val);
+  bool get allowFullscreen;
+  set allowFullscreen(bool val);
+  String get width;
+  set width(String val);
+  String get height;
+  set height(String val);
+  String get loading;
+  set loading(String val);
+  String get referrerPolicy;
+  set referrerPolicy(String val);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableElement
+abstract class HTMLTableElement implements HTMLElement {
+  HTMLElement? get caption;
+  set caption(HTMLElement? val);
+  HTMLElement? get tHead;
+  set tHead(HTMLElement? val);
+  HTMLElement? get tFoot;
+  set tFoot(HTMLElement? val);
+  HTMLElement createTBody();
+  HTMLElement insertRow([int index = -1]);
+  void deleteRow(int index);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableSectionElement
+abstract class HTMLTableSectionElement implements HTMLElement {
+  HTMLElement insertRow([int index = -1]);
+  void deleteRow(int index);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableRowElement
+abstract class HTMLTableRowElement implements HTMLElement {
+  int get rowIndex;
+  int get sectionRowIndex;
+  HTMLElement insertCell([int index = -1]);
+  void deleteCell(int index);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableCellElement
+abstract class HTMLTableCellElement implements HTMLElement {
+  int get colSpan;
+  set colSpan(int val);
+  int get rowSpan;
+  set rowSpan(int val);
+  int get cellIndex;
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLHeadingElement
+abstract class HTMLHeadingElement implements HTMLElement {}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLUListElement
+abstract class HTMLUListElement implements HTMLElement {}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLOListElement
+abstract class HTMLOListElement implements HTMLElement {
+  bool get reversed;
+  set reversed(bool val);
+  int get start;
+  set start(int val);
+  String get type;
+  set type(String val);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLLIElement
+abstract class HTMLLIElement implements HTMLElement {
+  int get value;
+  set value(int val);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLPreElement
+abstract class HTMLPreElement implements HTMLElement {}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLHRElement
+abstract class HTMLHRElement implements HTMLElement {}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLBRElement
+abstract class HTMLBRElement implements HTMLElement {}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLProgressElement
+abstract class HTMLProgressElement implements HTMLElement {
+  double get value;
+  set value(double val);
+  double get max;
+  set max(double val);
+  double get position;
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMeterElement
+abstract class HTMLMeterElement implements HTMLElement {
+  double get value;
+  set value(double val);
+  double get min;
+  set min(double val);
+  double get max;
+  set max(double val);
+  double get low;
+  set low(double val);
+  double get high;
+  set high(double val);
+  double get optimum;
+  set optimum(double val);
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLOutputElement
+abstract class HTMLOutputElement implements HTMLElement {
+  String get value;
+  set value(String val);
+  String get defaultValue;
+  set defaultValue(String val);
+  String get name;
+  set name(String val);
+  String get type;
+  DOMTokenList get htmlFor;
+}
+
 // ---------------------------------------------------------------------------
 // DocumentFragment
 // ---------------------------------------------------------------------------
