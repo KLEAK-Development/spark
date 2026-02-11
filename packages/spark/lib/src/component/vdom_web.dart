@@ -3,9 +3,6 @@ import 'package:web/web.dart' as web;
 import '../html/node.dart';
 import '../html/dsl.dart' as html;
 import 'package:meta/meta.dart';
-import 'js_callback_web.dart'
-    if (dart.library.io) 'js_callback_stub.dart'
-    as js_callback;
 
 /// Mounts a VDOM node into a parent element.
 /// Handles initial render (appendChild) vs update (patch) logic.
@@ -279,42 +276,40 @@ void _updateEvents(web.Element el, Map<String, Function> newEvents) {
 
   newEvents.forEach((event, handler) {
     if (!oldEvents.containsKey(event)) {
-      final proxy = js_callback.jsCallbackImpl((dynamic e) {
-        if ((e as JSAny?).isA<web.Event>()) {
-          final target = (e as web.Event).currentTarget as web.Element;
-          final dbId = target.getAttribute('data-spark-id');
-          if (dbId != null) {
-            final handlers = _listenersConfig[dbId];
-            if (handlers != null && handlers.containsKey(event)) {
-              dynamic data = e;
-              if (target.isA<web.HTMLInputElement>()) {
-                final t = target as web.HTMLInputElement;
-                if (target.type == 'number') {
-                  data = num.tryParse(t.value);
-                } else if (target.type == 'checkbox') {
-                  data = t.checked;
-                } else if (target.type == 'text' ||
-                    target.type == 'password' ||
-                    target.type == 'email' ||
-                    target.type == 'search' ||
-                    target.type == 'url' ||
-                    target.type == 'tel') {
-                  data = t.value;
-                } else {
-                  data = {'value': t.value, 'checked': t.checked};
-                }
+      void listener(web.Event e) {
+        final target = e.currentTarget as web.Element;
+        final dbId = target.getAttribute('data-spark-id');
+        if (dbId != null) {
+          final handlers = _listenersConfig[dbId];
+          if (handlers != null && handlers.containsKey(event)) {
+            dynamic data = e;
+            if (target.isA<web.HTMLInputElement>()) {
+              final t = target as web.HTMLInputElement;
+              if (target.type == 'number') {
+                data = num.tryParse(t.value);
+              } else if (target.type == 'checkbox') {
+                data = t.checked;
+              } else if (target.type == 'text' ||
+                  target.type == 'password' ||
+                  target.type == 'email' ||
+                  target.type == 'search' ||
+                  target.type == 'url' ||
+                  target.type == 'tel') {
+                data = t.value;
+              } else {
+                data = {'value': t.value, 'checked': t.checked};
               }
-              (handlers[event] as Function)(data);
             }
+            (handlers[event] as Function)(data);
           }
         }
-      });
+      }
 
       final domEvent = event.startsWith('on')
           ? event.substring(2).toLowerCase()
           : event.toLowerCase();
 
-      js_callback.addEventListener(el, domEvent, proxy, null);
+      el.addEventListener(domEvent, listener.toJS);
     }
   });
 

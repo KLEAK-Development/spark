@@ -40,7 +40,7 @@ export 'src/css.dart';
 export 'src/window.dart';
 
 // Re-export factory functions (platform-aware constructors).
-export 'src/api.dart' show createMutationObserver, createEvent;
+export 'src/api.dart' show createMutationObserver, createEvent, createCSSStyleSheet;
 
 // ---------------------------------------------------------------------------
 // Global singletons — matching the browser's global objects.

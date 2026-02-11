@@ -2,8 +2,10 @@
 library;
 
 import '../core.dart';
+import '../css.dart' as iface;
 import '../dom.dart' as iface;
 import '../window.dart' as iface;
+import 'css.dart';
 import 'dom.dart';
 import 'window.dart';
 
@@ -19,6 +21,9 @@ MutationObserver createMutationObserver(MutationCallback callback) =>
 
 /// Creates a server-side [Event].
 Event createEvent(String type) => ServerEvent(type);
+
+/// Creates a server-side [CSSStyleSheet] (no-op).
+iface.CSSStyleSheet createCSSStyleSheet() => ServerCSSStyleSheet();
 
 // ---------------------------------------------------------------------------
 // Server-side Event implementations
