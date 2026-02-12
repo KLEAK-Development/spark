@@ -320,7 +320,7 @@ class ServerHTMLCanvasElement extends ServerHTMLElement
   @override
   set height(int val) {}
   @override
-  iface.RenderingContext? getContext(String contextId,
+  iface.RenderingContext? getContext(iface.CanvasContextType contextType,
       [Map<String, Object?>? options]) => null;
   @override
   String toDataURL([String type = 'image/png', num? quality]) => '';

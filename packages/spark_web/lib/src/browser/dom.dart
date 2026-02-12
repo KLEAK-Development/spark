@@ -839,17 +839,16 @@ class BrowserHTMLCanvasElement extends BrowserHTMLElement
   @override
   set height(int val) => _nativeCanvas.height = val;
   @override
-  iface.RenderingContext? getContext(String contextId,
+  iface.RenderingContext? getContext(iface.CanvasContextType contextType,
       [Map<String, Object?>? options]) {
-    final ctx = _nativeCanvas.getContext(contextId);
+    final typeStr = iface.canvasContextTypeToString(contextType);
+    final ctx = _nativeCanvas.getContext(typeStr);
     if (ctx == null) return null;
-    if (contextId == '2d') {
-      return BrowserCanvasRenderingContext2D(
-          ctx as web.CanvasRenderingContext2D);
+    switch (contextType) {
+      case iface.CanvasContextType.canvas2d:
+        return BrowserCanvasRenderingContext2D(
+            ctx as web.CanvasRenderingContext2D);
     }
-    // Other context types (webgl, webgl2, etc.) are not yet typed.
-    // Return null to indicate unsupported context type.
-    return null;
   }
 
   @override
