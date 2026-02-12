@@ -173,8 +173,11 @@ class ElementDefinitionOptions {
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 abstract class CustomElementRegistry {
-  void define(String name, Object constructor,
-      [ElementDefinitionOptions? options]);
+  void define(
+    String name,
+    Object constructor, [
+    ElementDefinitionOptions? options,
+  ]);
   Object? get(String name);
   void upgrade(Node root);
   Future<void> whenDefined(String name);

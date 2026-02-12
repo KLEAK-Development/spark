@@ -9,7 +9,6 @@ library;
 
 import 'package:spark_framework/spark.dart';
 
-import '../components/counter.dart';
 import '../components/counter_final/counter_final.dart';
 
 /// Home page data model.
@@ -65,7 +64,6 @@ class HomePage extends SparkPage<HomePageData> {
       h1(data.title),
       p(data.description),
 
-      Counter(value: data.counterStart, label: 'Clicks').render(),
       CounterFinal(value: data.counterStart).render(),
 
       p([
@@ -79,7 +77,7 @@ class HomePage extends SparkPage<HomePageData> {
   String title(HomePageData data, PageRequest request) => data.title;
 
   @override
-  List<Type> get components => [Counter, CounterFinal];
+  List<Type> get components => [CounterFinal];
 
   @override
   Stylesheet? get inlineStyles => css({

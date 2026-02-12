@@ -320,8 +320,10 @@ class ServerHTMLCanvasElement extends ServerHTMLElement
   @override
   set height(int val) {}
   @override
-  iface.RenderingContext? getContext(iface.CanvasContextType contextType,
-      [Map<String, Object?>? options]) => null;
+  iface.RenderingContext? getContext(
+    iface.CanvasContextType contextType, [
+    Map<String, Object?>? options,
+  ]) => null;
   @override
   String toDataURL([String type = 'image/png', num? quality]) => '';
 }
@@ -705,8 +707,7 @@ class ServerDocument extends ServerNode implements iface.Document {
   @override
   iface.Comment createComment(String data) => ServerComment(data);
   @override
-  iface.DocumentFragment createDocumentFragment() =>
-      ServerDocumentFragment();
+  iface.DocumentFragment createDocumentFragment() => ServerDocumentFragment();
   @override
   iface.Element? getElementById(String id) => null;
   @override
