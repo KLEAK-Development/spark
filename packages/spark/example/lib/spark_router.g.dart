@@ -123,6 +123,7 @@ Future<Response> _$handleHelloEndpoint(Request request) async {
       ).toResponse(e.statusCode);
     } catch (e, s) {
       print(e);
+      print(s);
       return ApiError(
         message: 'Internal Server Error',
         code: 'INTERNAL_ERROR',
@@ -203,6 +204,7 @@ Future<Response> _$handleEchoUserEndpoint(Request request) async {
       ).toResponse(e.statusCode);
     } catch (e, s) {
       print(e);
+      print(s);
       return ApiError(
         message: 'Internal Server Error',
         code: 'INTERNAL_ERROR',
@@ -269,6 +271,7 @@ Future<Response> _$handleEchoDetailsEndpoint(Request request) async {
       ).toResponse(e.statusCode);
     } catch (e, s) {
       print(e);
+      print(s);
       return ApiError(
         message: 'Internal Server Error',
         code: 'INTERNAL_ERROR',
@@ -310,6 +313,7 @@ Future<Response> _$handleCheckMwEndpoint(Request request) async {
       ).toResponse(e.statusCode);
     } catch (e, s) {
       print(e);
+      print(s);
       return ApiError(
         message: 'Internal Server Error',
         code: 'INTERNAL_ERROR',
@@ -357,6 +361,7 @@ Future<Response> _$handleGetUserEndpoint(Request request, String id) async {
       ).toResponse(e.statusCode);
     } catch (e, s) {
       print(e);
+      print(s);
       return ApiError(
         message: 'Internal Server Error',
         code: 'INTERNAL_ERROR',
@@ -404,6 +409,7 @@ Future<Response> _$handleReproEndpoint(Request request) async {
       ).toResponse(e.statusCode);
     } catch (e, s) {
       print(e);
+      print(s);
       return ApiError(
         message: 'Internal Server Error',
         code: 'INTERNAL_ERROR',

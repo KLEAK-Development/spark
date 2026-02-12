@@ -6,6 +6,10 @@ description: >-
 version: 1.0.0-alpha.1
 resolution: workspace
 
+homepage: https://spark.kleak.dev
+repository: https://github.com/KLEAK-Development/spark
+issue_tracker: https://github.com/KLEAK-Development/spark/issues
+
 environment:
   sdk: ^3.10.0
 

@@ -148,6 +148,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       buffer.writeln('      ).toResponse(e.statusCode);');
       buffer.writeln('    } catch (e, s) {');
       buffer.writeln("      print(e);");
+      buffer.writeln("      print(s);");
       buffer.writeln('      return ApiError(');
       buffer.writeln("        message: 'Internal Server Error',");
       buffer.writeln("        code: 'INTERNAL_ERROR',");
@@ -398,9 +399,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       );
     } else if (innerType is VoidType ||
         innerType.getDisplayString() == 'void') {
-      buffer.writeln(
-        '    return Response.ok("", headers: {"content-type": "text/plain"});',
-      );
+      buffer.writeln('    return Response(204);');
     } else {
       // Use field-based serialization
       final serialized = _generateTypeSerialization(innerType, 'result');
