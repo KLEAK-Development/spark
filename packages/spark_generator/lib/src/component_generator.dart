@@ -427,6 +427,11 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Extracts import statements from the source file.
+  ///
+  /// Replaces the `package:spark_framework/spark.dart` import with one that
+  /// hides the top-level [query] and [queryAll] stubs so that the generated
+  /// class resolves those names to the inherited [WebComponent] instance
+  /// methods instead.
   List<String> _extractImports(String sourceFilePath) {
     try {
       final file = File(sourceFilePath);
@@ -435,11 +440,20 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       final contents = file.readAsStringSync();
       final imports = <String>[];
 
-      // Find all import statements
+      // Always emit the spark import with query/queryAll hidden so the
+      // generated class uses WebComponent.query() (instance method).
+      imports.add(
+        "import 'package:spark_framework/spark.dart' hide query, queryAll;",
+      );
+
+      // Copy remaining imports, skipping the user's spark import (replaced above).
       final lines = contents.split('\n');
       for (final line in lines) {
         final trimmed = line.trim();
         if (trimmed.startsWith('import ') && trimmed.endsWith(';')) {
+          if (trimmed.contains('package:spark_framework/spark.dart')) {
+            continue;
+          }
           imports.add(trimmed);
         }
       }
