@@ -42,6 +42,7 @@ jobs:
           filters: |
             spark:
               - 'packages/spark/**'
+              - 'packages/spark_web/**'
               - 'pubspec.yaml'
               - '.github/workflows/ci.yaml'
             spark_cli:
@@ -51,6 +52,7 @@ jobs:
             spark_generator:
               - 'packages/spark_generator/**'
               - 'packages/spark/**'
+              - 'packages/spark_web/**'
               - 'pubspec.yaml'
               - '.github/workflows/ci.yaml'
 
