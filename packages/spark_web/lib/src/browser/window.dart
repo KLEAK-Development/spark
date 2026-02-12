@@ -257,8 +257,19 @@ class BrowserCustomElementRegistry implements iface.CustomElementRegistry {
   BrowserCustomElementRegistry(this._native);
 
   @override
-  void define(String name, Object constructor, [Object? options]) =>
+  void define(String name, Object constructor,
+      [iface.ElementDefinitionOptions? options]) {
+    if (options?.extends_ != null) {
+      _native.define(
+        name,
+        constructor as JSFunction,
+        web.ElementDefinitionOptions(extends_: options!.extends_!),
+      );
+    } else {
       _native.define(name, constructor as JSFunction);
+    }
+  }
+
   @override
   Object? get(String name) => _native.get(name);
   @override

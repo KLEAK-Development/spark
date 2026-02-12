@@ -3,6 +3,7 @@
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/Element
 library;
 
+import 'canvas.dart';
 import 'core.dart';
 import 'collections.dart';
 import 'css.dart';
@@ -188,7 +189,15 @@ abstract class HTMLCanvasElement implements HTMLElement {
   set width(int val);
   int get height;
   set height(int val);
-  Object? getContext(String contextId, [Map<String, Object?>? options]);
+
+  /// Returns a rendering context for the canvas.
+  ///
+  /// Pass `'2d'` for a [CanvasRenderingContext2D]. Other values (e.g.,
+  /// `'webgl'`, `'webgl2'`) return a [RenderingContext] that can be
+  /// downcast to the appropriate type.
+  RenderingContext? getContext(String contextId,
+      [Map<String, Object?>? options]);
+
   String toDataURL([String type, num? quality]);
 }
 

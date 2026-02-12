@@ -4,6 +4,7 @@
 /// to compile and run on the Dart VM without crashing.
 library;
 
+import '../canvas.dart' as iface;
 import '../core.dart';
 import '../dom.dart' as iface;
 import '../collections.dart';
@@ -319,7 +320,8 @@ class ServerHTMLCanvasElement extends ServerHTMLElement
   @override
   set height(int val) {}
   @override
-  Object? getContext(String contextId, [Map<String, Object?>? options]) => null;
+  iface.RenderingContext? getContext(String contextId,
+      [Map<String, Object?>? options]) => null;
   @override
   String toDataURL([String type = 'image/png', num? quality]) => '';
 }
