@@ -61,12 +61,13 @@ class BrowserWindow extends BrowserEventTarget implements iface.Window {
 
   @override
   int requestAnimationFrame(void Function(num) callback) =>
-      _win.requestAnimationFrame(((JSNumber time) {
-        callback(time.toDartDouble);
-      }).toJS);
+      _win.requestAnimationFrame(
+        ((JSNumber time) {
+          callback(time.toDartDouble);
+        }).toJS,
+      );
   @override
-  void cancelAnimationFrame(int handle) =>
-      _win.cancelAnimationFrame(handle);
+  void cancelAnimationFrame(int handle) => _win.cancelAnimationFrame(handle);
 
   @override
   String btoa(String data) => _win.btoa(data);
@@ -171,7 +172,8 @@ class BrowserNavigator implements iface.Navigator {
   @override
   String get language => _native.language;
   @override
-  List<String> get languages => _native.languages.toDart.map((js) => js.toDart).toList();
+  List<String> get languages =>
+      _native.languages.toDart.map((js) => js.toDart).toList();
   @override
   bool get onLine => _native.onLine;
   @override
@@ -257,8 +259,11 @@ class BrowserCustomElementRegistry implements iface.CustomElementRegistry {
   BrowserCustomElementRegistry(this._native);
 
   @override
-  void define(String name, Object constructor,
-      [iface.ElementDefinitionOptions? options]) {
+  void define(
+    String name,
+    Object constructor, [
+    iface.ElementDefinitionOptions? options,
+  ]) {
     if (options?.extends_ != null) {
       _native.define(
         name,

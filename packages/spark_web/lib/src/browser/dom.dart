@@ -355,8 +355,7 @@ class BrowserTouchEvent extends BrowserEvent implements TouchEvent {
   @override
   TouchList get targetTouches => BrowserTouchList(_nativeTouch.targetTouches);
   @override
-  TouchList get changedTouches =>
-      BrowserTouchList(_nativeTouch.changedTouches);
+  TouchList get changedTouches => BrowserTouchList(_nativeTouch.changedTouches);
   @override
   bool get altKey => _nativeTouch.altKey;
   @override
@@ -500,8 +499,7 @@ class BrowserNode extends BrowserEventTarget implements Node {
   }
 
   @override
-  Node cloneNode([bool deep = false]) =>
-      wrapNode(_nativeNode.cloneNode(deep));
+  Node cloneNode([bool deep = false]) => wrapNode(_nativeNode.cloneNode(deep));
   @override
   bool contains(Node? other) =>
       other != null && _nativeNode.contains(other.raw as web.Node?);
@@ -538,11 +536,9 @@ class BrowserElement extends BrowserNode implements iface.Element {
   @override
   String? get namespaceURI => _nativeElement.namespaceURI;
   @override
-  NamedNodeMap get attributes =>
-      BrowserNamedNodeMap(_nativeElement.attributes);
+  NamedNodeMap get attributes => BrowserNamedNodeMap(_nativeElement.attributes);
   @override
-  DOMTokenList get classList =>
-      BrowserDOMTokenList(_nativeElement.classList);
+  DOMTokenList get classList => BrowserDOMTokenList(_nativeElement.classList);
   @override
   String? getAttribute(String name) => _nativeElement.getAttribute(name);
   @override
@@ -564,8 +560,7 @@ class BrowserElement extends BrowserNode implements iface.Element {
   @override
   void remove() => _nativeElement.remove();
   @override
-  void append(Node node) =>
-      _nativeElement.append(node.raw as web.Node);
+  void append(Node node) => _nativeElement.append(node.raw as web.Node);
 }
 
 // ---------------------------------------------------------------------------
@@ -601,9 +596,7 @@ class BrowserHTMLElement extends BrowserElement implements iface.HTMLElement {
 
   @override
   iface.ShadowRoot attachShadow(iface.ShadowRootInit init) {
-    final sr = _nativeHtml.attachShadow(
-      web.ShadowRootInit(mode: init.mode),
-    );
+    final sr = _nativeHtml.attachShadow(web.ShadowRootInit(mode: init.mode));
     return BrowserShadowRoot(sr);
   }
 }
@@ -839,15 +832,18 @@ class BrowserHTMLCanvasElement extends BrowserHTMLElement
   @override
   set height(int val) => _nativeCanvas.height = val;
   @override
-  iface.RenderingContext? getContext(iface.CanvasContextType contextType,
-      [Map<String, Object?>? options]) {
+  iface.RenderingContext? getContext(
+    iface.CanvasContextType contextType, [
+    Map<String, Object?>? options,
+  ]) {
     final typeStr = iface.canvasContextTypeToString(contextType);
     final ctx = _nativeCanvas.getContext(typeStr);
     if (ctx == null) return null;
     switch (contextType) {
       case iface.CanvasContextType.canvas2d:
         return BrowserCanvasRenderingContext2D(
-            ctx as web.CanvasRenderingContext2D);
+          ctx as web.CanvasRenderingContext2D,
+        );
     }
   }
 
@@ -1008,11 +1004,8 @@ class BrowserHTMLSlotElement extends BrowserHTMLElement
   List<Node> assignedNodes() =>
       _nativeSlot.assignedNodes().toDart.map((n) => wrapNode(n)).toList();
   @override
-  List<iface.Element> assignedElements() => _nativeSlot
-      .assignedElements()
-      .toDart
-      .map((e) => wrapElement(e))
-      .toList();
+  List<iface.Element> assignedElements() =>
+      _nativeSlot.assignedElements().toDart.map((e) => wrapElement(e)).toList();
 }
 
 class BrowserHTMLIFrameElement extends BrowserHTMLElement
@@ -1306,8 +1299,9 @@ class BrowserShadowRoot extends BrowserDocumentFragment
 
   @override
   set adoptedStyleSheets(List<CSSStyleSheet> sheets) {
-    final nativeSheets =
-        sheets.map((s) => (s as BrowserCSSStyleSheet).native).toList();
+    final nativeSheets = sheets
+        .map((s) => (s as BrowserCSSStyleSheet).native)
+        .toList();
     _nativeShadowRoot.adoptedStyleSheets = nativeSheets.toJS;
   }
 }
@@ -1410,20 +1404,20 @@ class BrowserMutationObserver implements MutationObserver {
   final web.MutationObserver _native;
 
   BrowserMutationObserver(MutationCallback callback)
-      : _native = web.MutationObserver(
-          ((JSArray<web.MutationRecord> mutations,
-                  web.MutationObserver observer) {
-            callback(
-              mutations.toDart
-                  .map((r) => BrowserMutationRecord(r))
-                  .toList(),
-              BrowserMutationObserver._wrap(observer),
-            );
-          }).toJS,
-        );
+    : _native = web.MutationObserver(
+        ((
+              JSArray<web.MutationRecord> mutations,
+              web.MutationObserver observer,
+            ) {
+              callback(
+                mutations.toDart.map((r) => BrowserMutationRecord(r)).toList(),
+                BrowserMutationObserver._wrap(observer),
+              );
+            })
+            .toJS,
+      );
 
-  BrowserMutationObserver._wrap(web.MutationObserver native)
-      : _native = native;
+  BrowserMutationObserver._wrap(web.MutationObserver native) : _native = native;
 
   @override
   void observe(Node target, [MutationObserverInit? options]) {
@@ -1438,13 +1432,12 @@ class BrowserMutationObserver implements MutationObserver {
       );
       // attributeFilter must be set separately if provided
       if (options.attributeFilter != null) {
-        init.attributeFilter =
-            options.attributeFilter!.map((s) => s.toJS).toList().toJS;
+        init.attributeFilter = options.attributeFilter!
+            .map((s) => s.toJS)
+            .toList()
+            .toJS;
       }
-      _native.observe(
-        target.raw as web.Node,
-        init,
-      );
+      _native.observe(target.raw as web.Node, init);
     } else {
       _native.observe(target.raw as web.Node);
     }
@@ -1454,8 +1447,11 @@ class BrowserMutationObserver implements MutationObserver {
   void disconnect() => _native.disconnect();
 
   @override
-  List<MutationRecord> takeRecords() =>
-      _native.takeRecords().toDart.map((r) => BrowserMutationRecord(r)).toList();
+  List<MutationRecord> takeRecords() => _native
+      .takeRecords()
+      .toDart
+      .map((r) => BrowserMutationRecord(r))
+      .toList();
 }
 
 class BrowserMutationRecord implements MutationRecord {
@@ -1552,8 +1548,7 @@ class BrowserDataTransfer implements DataTransfer {
   @override
   set effectAllowed(String value) => _native.effectAllowed = value;
   @override
-  List<String> get types =>
-      _native.types.toDart.map((s) => s.toDart).toList();
+  List<String> get types => _native.types.toDart.map((s) => s.toDart).toList();
   @override
   void setData(String format, String data) => _native.setData(format, data);
   @override

@@ -92,8 +92,14 @@ abstract class CanvasRenderingContext2D implements RenderingContext {
   void lineTo(num x, num y);
 
   /// Adds a circular arc to the current path.
-  void arc(num x, num y, num radius, num startAngle, num endAngle,
-      [bool counterclockwise = false]);
+  void arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle, [
+    bool counterclockwise = false,
+  ]);
 
   /// Adds an arc between two tangent lines.
   void arcTo(num x1, num y1, num x2, num y2, num radius);
@@ -108,9 +114,16 @@ abstract class CanvasRenderingContext2D implements RenderingContext {
   void rect(num x, num y, num width, num height);
 
   /// Adds an elliptical arc to the current path.
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle,
-      [bool counterclockwise = false]);
+  void ellipse(
+    num x,
+    num y,
+    num radiusX,
+    num radiusY,
+    num rotation,
+    num startAngle,
+    num endAngle, [
+    bool counterclockwise = false,
+  ]);
 
   /// Fills the current path.
   void fill();
@@ -235,12 +248,20 @@ abstract class CanvasRenderingContext2D implements RenderingContext {
   void drawImage(Element image, num dx, num dy);
 
   /// Draws an image scaled to the given dimensions.
-  void drawImageScaled(
-      Element image, num dx, num dy, num dWidth, num dHeight);
+  void drawImageScaled(Element image, num dx, num dy, num dWidth, num dHeight);
 
   /// Draws a portion of an image onto a portion of the canvas.
-  void drawImageScaledFromSource(Element image, num sx, num sy, num sWidth,
-      num sHeight, num dx, num dy, num dWidth, num dHeight);
+  void drawImageScaledFromSource(
+    Element image,
+    num sx,
+    num sy,
+    num sWidth,
+    num sHeight,
+    num dx,
+    num dy,
+    num dWidth,
+    num dHeight,
+  );
 
   // -- Pixel manipulation ---------------------------------------------------
 

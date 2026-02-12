@@ -12,7 +12,8 @@ import 'dom.dart';
 // CanvasRenderingContext2D
 // ---------------------------------------------------------------------------
 
-class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D {
+class BrowserCanvasRenderingContext2D
+    implements iface.CanvasRenderingContext2D {
   final web.CanvasRenderingContext2D _native;
   BrowserCanvasRenderingContext2D(this._native);
 
@@ -43,15 +44,19 @@ class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D 
   @override
   void lineTo(num x, num y) => _native.lineTo(x, y);
   @override
-  void arc(num x, num y, num radius, num startAngle, num endAngle,
-          [bool counterclockwise = false]) =>
-      _native.arc(x, y, radius, startAngle, endAngle, counterclockwise);
+  void arc(
+    num x,
+    num y,
+    num radius,
+    num startAngle,
+    num endAngle, [
+    bool counterclockwise = false,
+  ]) => _native.arc(x, y, radius, startAngle, endAngle, counterclockwise);
   @override
   void arcTo(num x1, num y1, num x2, num y2, num radius) =>
       _native.arcTo(x1, y1, x2, y2, radius);
   @override
-  void bezierCurveTo(
-          num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) =>
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) =>
       _native.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
   @override
   void quadraticCurveTo(num cpx, num cpy, num x, num y) =>
@@ -60,12 +65,25 @@ class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D 
   void rect(num x, num y, num width, num height) =>
       _native.rect(x, y, width, height);
   @override
-  void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-          num startAngle, num endAngle,
-          [bool counterclockwise = false]) =>
-      _native.ellipse(
-          x, y, radiusX, radiusY, rotation, startAngle, endAngle,
-          counterclockwise);
+  void ellipse(
+    num x,
+    num y,
+    num radiusX,
+    num radiusY,
+    num rotation,
+    num startAngle,
+    num endAngle, [
+    bool counterclockwise = false,
+  ]) => _native.ellipse(
+    x,
+    y,
+    radiusX,
+    radiusY,
+    rotation,
+    startAngle,
+    endAngle,
+    counterclockwise,
+  );
   @override
   void fill() => _native.fill();
   @override
@@ -76,15 +94,14 @@ class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D 
   // -- Text methods ---------------------------------------------------------
 
   @override
-  void fillText(String text, num x, num y, [num? maxWidth]) =>
-      maxWidth != null
-          ? _native.fillText(text, x, y, maxWidth)
-          : _native.fillText(text, x, y);
+  void fillText(String text, num x, num y, [num? maxWidth]) => maxWidth != null
+      ? _native.fillText(text, x, y, maxWidth)
+      : _native.fillText(text, x, y);
   @override
   void strokeText(String text, num x, num y, [num? maxWidth]) =>
       maxWidth != null
-          ? _native.strokeText(text, x, y, maxWidth)
-          : _native.strokeText(text, x, y);
+      ? _native.strokeText(text, x, y, maxWidth)
+      : _native.strokeText(text, x, y);
   @override
   iface.TextMetrics measureText(String text) =>
       BrowserTextMetrics(_native.measureText(text));
@@ -192,9 +209,8 @@ class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D 
   @override
   void translate(num x, num y) => _native.translate(x, y);
   @override
-  void setTransform(num a, num b, num c, num d, num e, num f) =>
-      _native.setTransform(
-          web.DOMMatrix2DInit(a: a, b: b, c: c, d: d, e: e, f: f));
+  void setTransform(num a, num b, num c, num d, num e, num f) => _native
+      .setTransform(web.DOMMatrix2DInit(a: a, b: b, c: c, d: d, e: e, f: f));
   @override
   void resetTransform() => _native.resetTransform();
 
@@ -205,22 +221,40 @@ class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D 
       _native.drawImage(image.raw as web.CanvasImageSource, dx, dy);
   @override
   void drawImageScaled(
-          iface.Element image, num dx, num dy, num dWidth, num dHeight) =>
-      _native.drawImage(
-          image.raw as web.CanvasImageSource, dx, dy, dWidth, dHeight);
+    iface.Element image,
+    num dx,
+    num dy,
+    num dWidth,
+    num dHeight,
+  ) => _native.drawImage(
+    image.raw as web.CanvasImageSource,
+    dx,
+    dy,
+    dWidth,
+    dHeight,
+  );
   @override
   void drawImageScaledFromSource(
-          iface.Element image,
-          num sx,
-          num sy,
-          num sWidth,
-          num sHeight,
-          num dx,
-          num dy,
-          num dWidth,
-          num dHeight) =>
-      _native.drawImage(image.raw as web.CanvasImageSource, sx, sy, sWidth,
-          sHeight, dx, dy, dWidth, dHeight);
+    iface.Element image,
+    num sx,
+    num sy,
+    num sWidth,
+    num sHeight,
+    num dx,
+    num dy,
+    num dWidth,
+    num dHeight,
+  ) => _native.drawImage(
+    image.raw as web.CanvasImageSource,
+    sx,
+    sy,
+    sWidth,
+    sHeight,
+    dx,
+    dy,
+    dWidth,
+    dHeight,
+  );
 
   // -- Pixel manipulation ---------------------------------------------------
 
@@ -232,8 +266,7 @@ class BrowserCanvasRenderingContext2D implements iface.CanvasRenderingContext2D 
       BrowserImageData(_native.createImageData(sw.toJS, sh));
   @override
   void putImageData(iface.ImageData imagedata, int dx, int dy) =>
-      _native.putImageData(
-          (imagedata as BrowserImageData)._native, dx, dy);
+      _native.putImageData((imagedata as BrowserImageData)._native, dx, dy);
 
   // -- Line dash ------------------------------------------------------------
 

@@ -14,10 +14,8 @@ library;
 typedef EventListener = void Function(Event event);
 
 /// Callback type for MutationObserver.
-typedef MutationCallback = void Function(
-  List<MutationRecord> mutations,
-  MutationObserver observer,
-);
+typedef MutationCallback =
+    void Function(List<MutationRecord> mutations, MutationObserver observer);
 
 // ---------------------------------------------------------------------------
 // EventTarget
