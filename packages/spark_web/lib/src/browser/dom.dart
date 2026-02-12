@@ -4,10 +4,12 @@ library;
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
+import '../canvas.dart' as iface;
 import '../core.dart';
 import '../dom.dart' as iface;
 import '../collections.dart';
 import '../css.dart';
+import 'canvas.dart';
 import 'collections.dart';
 import 'css.dart';
 
@@ -837,8 +839,19 @@ class BrowserHTMLCanvasElement extends BrowserHTMLElement
   @override
   set height(int val) => _nativeCanvas.height = val;
   @override
-  Object? getContext(String contextId, [Map<String, Object?>? options]) =>
-      _nativeCanvas.getContext(contextId);
+  iface.RenderingContext? getContext(String contextId,
+      [Map<String, Object?>? options]) {
+    final ctx = _nativeCanvas.getContext(contextId);
+    if (ctx == null) return null;
+    if (contextId == '2d') {
+      return BrowserCanvasRenderingContext2D(
+          ctx as web.CanvasRenderingContext2D);
+    }
+    // Other context types (webgl, webgl2, etc.) are not yet typed.
+    // Return null to indicate unsupported context type.
+    return null;
+  }
+
   @override
   String toDataURL([String type = 'image/png', num? quality]) =>
       _nativeCanvas.toDataURL(type, quality?.toJS);

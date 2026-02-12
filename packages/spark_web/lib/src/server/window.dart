@@ -235,7 +235,8 @@ class ServerPerformance implements iface.Performance {
 
 class ServerCustomElementRegistry implements iface.CustomElementRegistry {
   @override
-  void define(String name, Object constructor, [Object? options]) {}
+  void define(String name, Object constructor,
+      [iface.ElementDefinitionOptions? options]) {}
   @override
   Object? get(String name) => null;
   @override

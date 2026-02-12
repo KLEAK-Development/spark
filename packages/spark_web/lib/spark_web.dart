@@ -33,6 +33,7 @@ library;
 import 'src/api.dart' as impl;
 
 // Re-export all interface types.
+export 'src/canvas.dart';
 export 'src/core.dart';
 export 'src/dom.dart';
 export 'src/collections.dart';

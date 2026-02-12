@@ -157,11 +157,24 @@ abstract class Performance {
 // CustomElementRegistry
 // ---------------------------------------------------------------------------
 
+/// Options for [CustomElementRegistry.define].
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry/define#options
+class ElementDefinitionOptions {
+  /// The name of a built-in element to extend (e.g., `'p'`, `'div'`).
+  ///
+  /// Maps to the `extends` property in the Web API.
+  final String? extends_;
+
+  const ElementDefinitionOptions({this.extends_});
+}
+
 /// Registry for custom elements.
 ///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry
 abstract class CustomElementRegistry {
-  void define(String name, Object constructor, [Object? options]);
+  void define(String name, Object constructor,
+      [ElementDefinitionOptions? options]);
   Object? get(String name);
   void upgrade(Node root);
   Future<void> whenDefined(String name);
