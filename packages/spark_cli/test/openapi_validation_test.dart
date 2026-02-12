@@ -73,6 +73,10 @@ environment:
 dependencies:
   $sparkPackageName:
     path: $sparkPackagePath
+
+dependency_overrides:
+  spark_web:
+    path: ${p.join(p.dirname(sparkPackagePath), 'spark_web')}
 ''');
 
       // Run pub get
