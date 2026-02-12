@@ -6,17 +6,51 @@ library;
 import 'dom.dart';
 
 // ---------------------------------------------------------------------------
+// CanvasContextType
+// ---------------------------------------------------------------------------
+
+/// Identifies the type of rendering context to create.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext#contexttype
+enum CanvasContextType {
+  /// 2D rendering context ([CanvasRenderingContext2D]).
+  canvas2d,
+
+  // -- Unsupported context types -------------------------------------------
+  // To add support for a new context type:
+  //   1. Add the enum value here.
+  //   2. Create the abstract class in this file (e.g., WebGLRenderingContext).
+  //   3. Add the browser wrapper in browser/canvas.dart.
+  //   4. Update BrowserHTMLCanvasElement.getContext in browser/dom.dart.
+  //
+  // webgl,            // → WebGLRenderingContext
+  // webgl2,           // → WebGL2RenderingContext
+  // webgpu,           // → GPUCanvasContext
+  // bitmaprenderer,   // → ImageBitmapRenderingContext
+}
+
+/// The native context-type string for each [CanvasContextType].
+const Map<CanvasContextType, String> _contextTypeStrings = {
+  CanvasContextType.canvas2d: '2d',
+};
+
+/// Returns the native context-type string (e.g. `'2d'`) for the given enum.
+String canvasContextTypeToString(CanvasContextType type) =>
+    _contextTypeStrings[type]!;
+
+// ---------------------------------------------------------------------------
 // RenderingContext (base type for all canvas contexts)
 // ---------------------------------------------------------------------------
 
 /// Base type for canvas rendering contexts.
 ///
 /// Returned by [HTMLCanvasElement.getContext]. Cast to the specific context
-/// type (e.g., [CanvasRenderingContext2D]) based on the context ID you
-/// requested.
+/// type (e.g., [CanvasRenderingContext2D]) based on the [CanvasContextType]
+/// you requested.
 ///
 /// ```dart
-/// final ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+/// final ctx = canvas.getContext(CanvasContextType.canvas2d)
+///     as CanvasRenderingContext2D;
 /// ctx.fillRect(0, 0, 100, 100);
 /// ```
 abstract class RenderingContext {

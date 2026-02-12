@@ -192,10 +192,8 @@ abstract class HTMLCanvasElement implements HTMLElement {
 
   /// Returns a rendering context for the canvas.
   ///
-  /// Pass `'2d'` for a [CanvasRenderingContext2D]. Other values (e.g.,
-  /// `'webgl'`, `'webgl2'`) return a [RenderingContext] that can be
-  /// downcast to the appropriate type.
-  RenderingContext? getContext(String contextId,
+  /// Use [CanvasContextType.canvas2d] for a [CanvasRenderingContext2D].
+  RenderingContext? getContext(CanvasContextType contextType,
       [Map<String, Object?>? options]);
 
   String toDataURL([String type, num? quality]);
