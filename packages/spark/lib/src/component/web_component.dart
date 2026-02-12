@@ -20,45 +20,31 @@ import '../html/dsl.dart' as html;
 export 'package:spark_web/spark_web.dart';
 
 // ---------------------------------------------------------------------------
-// Queryable mixin — provides query/queryAll stubs for user component code.
+// Top-level query stubs for user component code.
 // ---------------------------------------------------------------------------
 
-/// Mixin that provides [query] and [queryAll] for user component code.
+/// Queries for an element within the component's shadow root.
 ///
-/// Apply this mixin to your `@Component` class so you can query elements
-/// inside the shadow DOM. The generated code inherits the real
-/// implementations from [WebComponent], so these stubs are only used for
-/// type-checking in your source file.
+/// This is a **stub** for user `@Component` source files. The generated code
+/// extends [SparkComponent] → [WebComponent], where the instance method
+/// [WebComponent.query] shadows this top-level function automatically.
 ///
 /// ```dart
 /// @Component(tag: 'my-widget')
-/// class MyWidget with Queryable {
+/// class MyWidget {
 ///   Element render() {
-///     return div([
-///       span(id: 'greeting', ['Hello']),
-///       button(onClick: (_) {
-///         final el = query('#greeting');
-///         // ...
-///       }, ['Click']),
-///     ]);
+///     return button(onClick: (_) {
+///       final el = query('#greeting'); // just works
+///     }, ['Click']);
 ///   }
 /// }
 /// ```
-mixin Queryable {
-  /// Queries for an element within this component's shadow root.
-  ///
-  /// Returns `null` on the server or if the element is not found.
-  /// The real implementation is provided by [WebComponent] in the
-  /// generated code.
-  web.Element? query(String selector) => null;
+web.Element? query(String selector) => null;
 
-  /// Queries for all matching elements within this component's shadow root.
-  ///
-  /// Returns an empty list on the server or if no elements match.
-  /// The real implementation is provided by [WebComponent] in the
-  /// generated code.
-  List<web.Element> queryAll(String selector) => [];
-}
+/// Queries for all matching elements within the component's shadow root.
+///
+/// This is a **stub** — see [query] for details.
+List<web.Element> queryAll(String selector) => [];
 
 /// Abstract base class for Spark components.
 ///
