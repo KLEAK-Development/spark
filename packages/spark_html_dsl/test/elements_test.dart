@@ -52,7 +52,7 @@ void main() {
       expect((el.children.first as Text).text, 'hello');
     });
 
-    test('passes through VNode children as-is', () {
+    test('passes through Node children as-is', () {
       final child = Element('span');
       final el = h('div', children: [child]);
       expect(el.children.length, 1);
@@ -78,7 +78,7 @@ void main() {
       expect((el.children[2] as Text).text, 'c');
     });
 
-    test('converts non-string non-VNode children via toString', () {
+    test('converts non-string non-Node children via toString', () {
       final el = h('div', children: [42]);
       expect(el.children.length, 1);
       expect((el.children.first as Text).text, '42');

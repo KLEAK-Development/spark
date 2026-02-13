@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:spark_html_dsl/spark_html_dsl.dart';
 
 // Conditional import - use browser implementation in browser, stub in VM
-import 'package:spark_vdom/src/vdom_web.dart'
+import 'package:spark_vdom/vdom_web.dart'
     if (dart.library.io) 'vdom_test_stub.dart';
 
 void main() {

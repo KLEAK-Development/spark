@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import '../html/dsl.dart' as html;
+import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
 import '../style/style.dart';
 import '../style/style_registry.dart';
 import 'web_component.dart';
-import 'vdom.dart' as vdom;
+import 'package:spark_vdom/vdom.dart' as vdom;
 
 /// A reactive Web Component for Spark.
 ///
@@ -85,7 +85,7 @@ abstract class SparkComponent extends WebComponent {
   }
 
   /// Builds the component tree with styles automatically prepended.
-  List<html.VNode> _buildWithStyles() {
+  List<html.Node> _buildWithStyles() {
     final children = build();
     final styles = adoptedStyleSheets;
 
@@ -117,7 +117,7 @@ abstract class SparkComponent extends WebComponent {
     final prevWrapper = html.Element.eventWrapper;
     html.Element.eventWrapper = _wrapHandler;
 
-    List<html.VNode> newVdom;
+    List<html.Node> newVdom;
     try {
       newVdom = [build()];
     } finally {

@@ -4,7 +4,7 @@ library;
 import 'package:test/test.dart';
 import 'package:spark_framework/src/server/render_page.dart';
 import 'package:spark_framework/src/server/static_handler.dart';
-import 'package:spark_framework/src/html/dsl.dart';
+import 'package:spark_html_dsl/spark_html_dsl.dart';
 
 void main() {
   group('renderPage', () {

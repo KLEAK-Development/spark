@@ -5,7 +5,7 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'package:spark_framework/src/component/spark_component.dart';
 import 'package:spark_framework/src/component/web_component.dart';
-import 'package:spark_framework/src/html/dsl.dart' as html;
+import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
 import 'package:spark_framework/src/style/style.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;

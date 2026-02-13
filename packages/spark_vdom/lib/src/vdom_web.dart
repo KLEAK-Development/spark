@@ -1,12 +1,12 @@
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
-import 'package:spark_html_dsl/spark_html_dsl.dart' show VNode;
+import 'package:spark_html_dsl/spark_html_dsl.dart' show Node;
 import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
 import 'package:meta/meta.dart';
 
 /// Mounts a VDOM node into a parent element.
 /// Handles initial render (appendChild) vs update (patch) logic.
-void mount(dynamic parent, VNode vNode) {
+void mount(dynamic parent, Node vNode) {
   if ((parent as JSAny?).isA<web.Node>() != true) return;
   final node = parent as web.Node;
 
@@ -32,7 +32,7 @@ void mount(dynamic parent, VNode vNode) {
 
 /// Mounts a list of VDOM nodes into a parent element.
 /// Each node is mounted sequentially.
-void mountList(dynamic parent, List<VNode> vNodes) {
+void mountList(dynamic parent, List<Node> vNodes) {
   if ((parent as JSAny?).isA<web.Node>() != true) return;
   final node = parent as web.Node;
 
@@ -80,7 +80,7 @@ bool _isIgnorable(web.Node node) {
 
 /// Patches an existing DOM element to match a Virtual DOM node.
 /// Accepts dynamic [realNode] to support build_runner (VM) compilation where types are stubs.
-void patch(dynamic realNode, VNode vNode, {bool isSvg = false}) {
+void patch(dynamic realNode, Node vNode, {bool isSvg = false}) {
   if ((realNode as JSAny?).isA<web.Node>() != true) return;
 
   final node = realNode as web.Node;
@@ -129,7 +129,7 @@ void patch(dynamic realNode, VNode vNode, {bool isSvg = false}) {
 
 /// Creates a real DOM node from a VDOM node.
 /// Returns dynamic to support build_runner.
-dynamic createNode(VNode vNode, {bool isSvg = false}) {
+dynamic createNode(Node vNode, {bool isSvg = false}) {
   if (vNode is html.Text) {
     return web.document.createTextNode(vNode.text);
   } else if (vNode is html.Element) {

@@ -1,8 +1,8 @@
 @TestOn('browser')
 library;
 
-import 'package:spark_framework/src/component/vdom_web.dart';
-import 'package:spark_framework/src/html/dsl.dart';
+import 'package:spark_vdom/vdom_web.dart';
+import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
 

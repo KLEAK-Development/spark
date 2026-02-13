@@ -13,7 +13,7 @@ library;
 // wrap the real package:web DOM objects.
 import 'package:spark_web/spark_web.dart' as web;
 
-import '../html/dsl.dart' as html;
+import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
 
 // Re-export spark_web types for use in components.
 // This allows component code to access web types via the spark.dart barrel.

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:spark_framework/src/html/node.dart';
+import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'package:test/test.dart';
 
 void main() {

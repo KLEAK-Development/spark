@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 /// Base class for all HTML nodes.
-abstract class VNode {
+abstract class Node {
   /// Renders the node to an HTML string.
   String toHtml();
 
@@ -12,7 +12,7 @@ abstract class VNode {
 
 /// A text node containing a string value.
 /// The content is automatically escaped when rendered.
-class Text extends VNode {
+class Text extends Node {
   final String text;
 
   Text(this.text);
@@ -24,7 +24,7 @@ class Text extends VNode {
 /// A raw HTML node.
 /// The content is rendered exactly as provided, without escaping.
 /// Use with caution.
-class RawHtml extends VNode {
+class RawHtml extends Node {
   final String html;
 
   RawHtml(this.html);
@@ -34,7 +34,7 @@ class RawHtml extends VNode {
 }
 
 /// An HTML element with a tag, attributes, and children.
-class Element extends VNode {
+class Element extends Node {
   /// A global hook to wrap event handlers during element creation.
   /// This is used by SparkComponent to inject reactivity without traversing the VDOM.
   static Function(Function)? eventWrapper;
@@ -42,7 +42,7 @@ class Element extends VNode {
   final String tag;
   final Map<String, dynamic> attributes;
   final Map<String, Function> events;
-  final List<VNode> children;
+  final List<Node> children;
   final bool selfClosing;
 
   Element(
