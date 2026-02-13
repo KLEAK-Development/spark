@@ -124,13 +124,11 @@ abstract class SparkComponent extends WebComponent {
       html.Element.eventWrapper = prevWrapper;
     }
 
-    // Pass the underlying native DOM object to the VDOM engine.
-    // vdom_web.dart works with package:web types directly for performance.
     final root = shadowRoot;
     if (root != null) {
-      vdom.mountList(root.raw, newVdom);
+      vdom.mountList(root, newVdom);
     } else {
-      vdom.mountList(element.raw, newVdom);
+      vdom.mountList(element, newVdom);
     }
   }
 

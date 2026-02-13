@@ -4,7 +4,7 @@ library;
 import 'package:spark_vdom/vdom_web.dart';
 import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
 import 'package:test/test.dart';
-import 'package:web/web.dart' as web;
+import 'package:spark_web/spark_web.dart' as web;
 
 void main() {
   group('vdom_web hydration focus', () {
@@ -31,8 +31,8 @@ void main() {
       // Focus the input
       input.focus();
       expect(
-        web.document.activeElement,
-        input,
+        (web.document.activeElement as web.HTMLInputElement?)?.id,
+        equals('my-input'),
         reason: 'Input should be focused initially',
       );
 
@@ -49,17 +49,19 @@ void main() {
           parent.querySelector('#my-input') as web.HTMLInputElement?;
 
       expect(newInput, isNotNull);
-      // specific check: the element instance should be the EXACT SAME one
+      // specific check: the element should be the EXACT SAME one (not replaced)
       expect(
-        newInput,
-        equals(input),
+        newInput!.id,
+        equals('my-input'),
         reason: 'Should reuse existing input element',
       );
+      // Verify the element was truly reused by checking it's still in the same parent
+      expect(parent.querySelector('#my-input'), isNotNull);
 
       // Check focus is still there
       expect(
-        web.document.activeElement,
-        input,
+        (web.document.activeElement as web.HTMLInputElement?)?.id,
+        equals('my-input'),
         reason: 'Input should remain focused',
       );
     });

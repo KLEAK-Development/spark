@@ -4,7 +4,7 @@ library;
 import 'package:spark_vdom/vdom_web.dart';
 import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'package:test/test.dart';
-import 'package:web/web.dart' as web;
+import 'package:spark_web/spark_web.dart' as web;
 
 void main() {
   group('SVG Hydration', () {

@@ -103,6 +103,12 @@ Node wrapNode(web.Node node) {
   if ((node as JSAny?).isA<web.HTMLLIElement>()) {
     return BrowserHTMLLIElement(node as web.HTMLLIElement);
   }
+  if ((node as JSAny?).isA<web.HTMLDivElement>()) {
+    return BrowserHTMLDivElement(node as web.HTMLDivElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLSpanElement>()) {
+    return BrowserHTMLSpanElement(node as web.HTMLSpanElement);
+  }
   if ((node as JSAny?).isA<web.HTMLElement>()) {
     return BrowserHTMLElement(node as web.HTMLElement);
   }
@@ -167,6 +173,24 @@ EventTarget wrapEventTarget(web.EventTarget target) {
   }
   // TODO: Add Window support if needed
   return BrowserEventTarget(target);
+}
+
+// ---------------------------------------------------------------------------
+// HTMLCollection
+// ---------------------------------------------------------------------------
+
+class BrowserHTMLCollection implements iface.HTMLCollection {
+  final web.HTMLCollection _native;
+  BrowserHTMLCollection(this._native);
+
+  @override
+  int get length => _native.length;
+
+  @override
+  iface.Element? item(int index) {
+    final el = _native.item(index);
+    return el != null ? wrapElement(el) : null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -567,6 +591,11 @@ class BrowserElement extends BrowserNode implements iface.Element {
   @override
   NodeList querySelectorAll(String selectors) =>
       BrowserNodeList(_nativeElement.querySelectorAll(selectors));
+
+  @override
+  iface.HTMLCollection get children =>
+      BrowserHTMLCollection(_nativeElement.children);
+
   @override
   void remove() => _nativeElement.remove();
   @override
@@ -595,6 +624,13 @@ class BrowserHTMLElement extends BrowserElement implements iface.HTMLElement {
   String get title => _nativeHtml.title;
   @override
   set title(String value) => _nativeHtml.title = value;
+
+  @override
+  void focus() => _nativeHtml.focus();
+
+  @override
+  void blur() => _nativeHtml.blur();
+
   @override
   CSSStyleDeclaration get style =>
       BrowserCSSStyleDeclaration(_nativeHtml.style);
@@ -1251,6 +1287,16 @@ class BrowserHTMLLIElement extends BrowserHTMLElement
   set value(int val) => _nativeLI.value = val;
 }
 
+class BrowserHTMLDivElement extends BrowserHTMLElement
+    implements iface.HTMLDivElement {
+  BrowserHTMLDivElement(web.HTMLDivElement native) : super(native);
+}
+
+class BrowserHTMLSpanElement extends BrowserHTMLElement
+    implements iface.HTMLSpanElement {
+  BrowserHTMLSpanElement(web.HTMLSpanElement native) : super(native);
+}
+
 // ---------------------------------------------------------------------------
 // DocumentFragment
 // ---------------------------------------------------------------------------
@@ -1362,6 +1408,12 @@ class BrowserDocument extends BrowserNode implements iface.Document {
   @override
   iface.Element? getElementById(String id) {
     final el = _nativeDoc.getElementById(id);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
+  iface.Element? get activeElement {
+    final el = _nativeDoc.activeElement;
     return el != null ? wrapElement(el) : null;
   }
 

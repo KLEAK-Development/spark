@@ -92,7 +92,7 @@ void main() {
           p('Paragraph'),
           button(
             'Click',
-            onClick: () {},
+            onClick: (_) {},
           ), // onClick is ignored in toHtml but valid in DSL
         ]);
         expect(
@@ -111,7 +111,7 @@ void main() {
       });
 
       test('a helper with onClick', () {
-        final el = a('Link', href: '#', onClick: () {});
+        final el = a('Link', href: '#', onClick: (_) {});
         expect(el.toHtml(), equals('<a href="#">Link</a>'));
       });
     });

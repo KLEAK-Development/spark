@@ -1,6 +1,6 @@
 name: spark_html_dsl
 description: Virtual DOM node types and HTML DSL for building declarative HTML structures in Dart.
-version: 1.0.0-alpha.1
+version: 1.0.0-alpha.2
 resolution: workspace
 
 homepage: https://spark.kleak.dev
@@ -9,6 +9,9 @@ issue_tracker: https://github.com/KLEAK-Development/spark/issues
 
 environment:
   sdk: ^3.10.0
+
+dependencies:
+  spark_web: ^1.0.0-alpha.4
 
 dev_dependencies:
   lints: ^6.0.0

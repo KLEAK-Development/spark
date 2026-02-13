@@ -9,6 +9,18 @@ import 'collections.dart';
 import 'css.dart';
 
 // ---------------------------------------------------------------------------
+// HTMLCollection
+// ---------------------------------------------------------------------------
+
+/// A collection of [Element] objects.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection
+abstract class HTMLCollection {
+  int get length;
+  Element? item(int index);
+}
+
+// ---------------------------------------------------------------------------
 // Element
 // ---------------------------------------------------------------------------
 
@@ -38,6 +50,7 @@ abstract class Element implements Node {
 
   Element? querySelector(String selectors);
   NodeList querySelectorAll(String selectors);
+  HTMLCollection get children;
 
   void remove();
   void append(Node node);
@@ -57,6 +70,9 @@ abstract class HTMLElement implements Element {
   set hidden(bool value);
   String get title;
   set title(String value);
+
+  void focus();
+  void blur();
 
   CSSStyleDeclaration get style;
   ShadowRoot? get shadowRoot;
@@ -448,6 +464,7 @@ abstract class Document implements Node {
   DocumentFragment createDocumentFragment();
 
   Element? getElementById(String id);
+  Element? get activeElement;
   Element? querySelector(String selectors);
   NodeList querySelectorAll(String selectors);
 }

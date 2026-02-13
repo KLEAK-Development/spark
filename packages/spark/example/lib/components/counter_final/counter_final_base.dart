@@ -133,8 +133,9 @@ class CounterFinal {
           value: config.step.toInt(),
           className: 'step-input',
           onInput: (e) {
+            final target = e.target as HTMLInputElement;
             config = CounterConfig(
-              step: e,
+              step: int.tryParse(target.value) ?? 1,
               secondsOfDelay: config.secondsOfDelay,
             );
           },
@@ -146,8 +147,12 @@ class CounterFinal {
           type: 'number',
           value: config.secondsOfDelay,
           className: 'step-input',
-          onInput: (value) {
-            config = CounterConfig(step: config.step, secondsOfDelay: value);
+          onInput: (e) {
+            final target = e.target as HTMLInputElement;
+            config = CounterConfig(
+              step: config.step,
+              secondsOfDelay: num.tryParse(target.value) ?? 0,
+            );
           },
         ),
       ]),

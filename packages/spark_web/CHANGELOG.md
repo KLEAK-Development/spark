@@ -2,6 +2,16 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.4
+
+### Added
+
+- Added `BrowserHTMLDivElement` and `BrowserHTMLSpanElement` wrappers so that `createElement('div')` and `createElement('span')` return the correct typed wrappers.
+- 
+- **Feat**: Added `HTMLCollection` support and `Element.children`.
+- **Feat**: Added `activeElement` to `Document`.
+- **Feat**: Added `focus()` and `blur()` to `HTMLElement`.
+
 ## 1.0.0-alpha.3
 
 ### Fixed

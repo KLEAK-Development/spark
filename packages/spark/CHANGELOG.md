@@ -1,3 +1,9 @@
+## 1.0.0-alpha.9
+
+### Fixed
+
+- Fixed click events not working after spark_web migration. `SparkComponent.update()` now passes spark_web wrappers to the VDOM engine instead of raw `package:web` objects.
+
 ## 1.0.0-alpha.8
 
 - Extracted web API access to use spark_web.

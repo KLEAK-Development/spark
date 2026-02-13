@@ -1,19 +1,18 @@
-import 'dart:js_interop';
-import 'package:web/web.dart' as web;
 import 'package:spark_html_dsl/spark_html_dsl.dart' show Node;
 import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
+import 'package:spark_web/spark_web.dart' as web;
 import 'package:meta/meta.dart';
 
 /// Mounts a VDOM node into a parent element.
 /// Handles initial render (appendChild) vs update (patch) logic.
 void mount(dynamic parent, Node vNode) {
-  if ((parent as JSAny?).isA<web.Node>() != true) return;
-  final node = parent as web.Node;
+  if (parent is! web.Node) return;
+  final node = parent;
 
   // Check if we are mounting into an SVG
   bool isSvg = false;
-  if ((node as JSAny?).isA<web.Element>()) {
-    isSvg = (node as web.Element).namespaceURI == 'http://www.w3.org/2000/svg';
+  if (node is web.Element) {
+    isSvg = node.namespaceURI == 'http://www.w3.org/2000/svg';
   }
 
   // Find first significant child (ignore whitespace-only text caused by SSR formatting)
@@ -33,13 +32,13 @@ void mount(dynamic parent, Node vNode) {
 /// Mounts a list of VDOM nodes into a parent element.
 /// Each node is mounted sequentially.
 void mountList(dynamic parent, List<Node> vNodes) {
-  if ((parent as JSAny?).isA<web.Node>() != true) return;
-  final node = parent as web.Node;
+  if (parent is! web.Node) return;
+  final node = parent;
 
   // Check if we are mounting into an SVG
   bool isSvg = false;
-  if ((node as JSAny?).isA<web.Element>()) {
-    isSvg = (node as web.Element).namespaceURI == 'http://www.w3.org/2000/svg';
+  if (node is web.Element) {
+    isSvg = node.namespaceURI == 'http://www.w3.org/2000/svg';
   }
 
   // Find all significant children
@@ -81,9 +80,20 @@ bool _isIgnorable(web.Node node) {
 /// Patches an existing DOM element to match a Virtual DOM node.
 /// Accepts dynamic [realNode] to support build_runner (VM) compilation where types are stubs.
 void patch(dynamic realNode, Node vNode, {bool isSvg = false}) {
-  if ((realNode as JSAny?).isA<web.Node>() != true) return;
+  if (realNode is! web.Node) return;
+  final node = realNode;
 
-  final node = realNode as web.Node;
+  // Handle ShadowRoot: patch the first child if it exists, otherwise mount
+  if (node is web.ShadowRoot) {
+    if (vNode is html.Element && node.firstElementChild != null) {
+      patch(node.firstElementChild, vNode, isSvg: isSvg);
+    } else if (node.firstChild != null) {
+      patch(node.firstChild, vNode, isSvg: isSvg);
+    } else {
+      mount(node, vNode);
+    }
+    return;
+  }
 
   if (vNode is html.Text) {
     if (node.nodeType == 3) {
@@ -157,7 +167,7 @@ dynamic createNode(Node vNode, {bool isSvg = false}) {
     return el;
   } else if (vNode is html.RawHtml) {
     final span = web.document.createElement('span');
-    span.innerHTML = vNode.html.toJS;
+    span.innerHTML = vNode.html;
     return span;
   }
   return web.document.createComment('Unknown Node');
@@ -230,10 +240,9 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
         el.setAttribute(key, strVal);
       }
       // Also set the property for input value to ensure sync
-      if (key == 'value' && (el as JSAny).isA<web.HTMLInputElement>()) {
-        final input = el as web.HTMLInputElement;
-        if (input.value != strVal) {
-          input.value = strVal;
+      if (key == 'value' && el is web.HTMLInputElement) {
+        if (el.value != strVal) {
+          el.value = strVal;
         }
       }
     }
@@ -241,9 +250,8 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
 }
 
 void _cleanupNode(web.Node node) {
-  if ((node as JSAny?).isA<web.Element>()) {
-    final el = node as web.Element;
-    final id = el.getAttribute('data-spark-id');
+  if (node is web.Element) {
+    final id = node.getAttribute('data-spark-id');
     if (id != null) {
       _listenersConfig.remove(id);
     }
@@ -282,25 +290,7 @@ void _updateEvents(web.Element el, Map<String, Function> newEvents) {
         if (dbId != null) {
           final handlers = _listenersConfig[dbId];
           if (handlers != null && handlers.containsKey(event)) {
-            dynamic data = e;
-            if (target.isA<web.HTMLInputElement>()) {
-              final t = target as web.HTMLInputElement;
-              if (target.type == 'number') {
-                data = num.tryParse(t.value);
-              } else if (target.type == 'checkbox') {
-                data = t.checked;
-              } else if (target.type == 'text' ||
-                  target.type == 'password' ||
-                  target.type == 'email' ||
-                  target.type == 'search' ||
-                  target.type == 'url' ||
-                  target.type == 'tel') {
-                data = t.value;
-              } else {
-                data = {'value': t.value, 'checked': t.checked};
-              }
-            }
-            (handlers[event] as Function)(data);
+            (handlers[event] as Function)(e);
           }
         }
       }
@@ -309,7 +299,7 @@ void _updateEvents(web.Element el, Map<String, Function> newEvents) {
           ? event.substring(2).toLowerCase()
           : event.toLowerCase();
 
-      el.addEventListener(domEvent, listener.toJS);
+      el.addEventListener(domEvent, listener);
     }
   });
 

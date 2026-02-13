@@ -13,6 +13,17 @@ import 'collections.dart';
 import 'css.dart';
 
 // ---------------------------------------------------------------------------
+// HTMLCollection
+// ---------------------------------------------------------------------------
+
+class ServerHTMLCollection implements iface.HTMLCollection {
+  @override
+  int get length => 0;
+  @override
+  iface.Element? item(int index) => null;
+}
+
+// ---------------------------------------------------------------------------
 // EventTarget
 // ---------------------------------------------------------------------------
 
@@ -114,6 +125,8 @@ class ServerElement extends ServerNode implements iface.Element {
   @override
   NodeList querySelectorAll(String selectors) => ServerNodeList();
   @override
+  iface.HTMLCollection get children => ServerHTMLCollection();
+  @override
   void remove() {}
   @override
   void append(Node node) {}
@@ -136,6 +149,10 @@ class ServerHTMLElement extends ServerElement implements iface.HTMLElement {
   String get title => '';
   @override
   set title(String value) {}
+  @override
+  void focus() {}
+  @override
+  void blur() {}
   @override
   CSSStyleDeclaration get style => ServerCSSStyleDeclaration();
   @override
@@ -710,6 +727,8 @@ class ServerDocument extends ServerNode implements iface.Document {
   iface.DocumentFragment createDocumentFragment() => ServerDocumentFragment();
   @override
   iface.Element? getElementById(String id) => null;
+  @override
+  iface.Element? get activeElement => null;
   @override
   iface.Element? querySelector(String selectors) => null;
   @override

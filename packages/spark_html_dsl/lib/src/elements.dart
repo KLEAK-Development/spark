@@ -16,6 +16,7 @@
 library;
 
 import 'dart:async';
+import 'package:spark_web/spark_web.dart' as web;
 
 import 'node.dart';
 
@@ -281,10 +282,10 @@ Element div(
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-  Function? onClick,
-  Function? onDoubleClick,
-  Function? onMouseEnter,
-  Function? onMouseLeave,
+  Function(web.MouseEvent)? onClick,
+  Function(web.MouseEvent)? onDoubleClick,
+  Function(web.MouseEvent)? onMouseEnter,
+  Function(web.MouseEvent)? onMouseLeave,
 }) => _el(
   'div',
   children,
@@ -365,7 +366,7 @@ Element a(
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-  Function? onClick,
+  Function(web.MouseEvent)? onClick,
 }) => _el(
   'a',
   children,
@@ -409,7 +410,7 @@ Element span(
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-  Function? onClick,
+  Function(web.MouseEvent)? onClick,
 }) => _el(
   'span',
   children,
@@ -483,7 +484,7 @@ Element button(
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-  Function? onClick,
+  Function(web.MouseEvent)? onClick,
 }) => _el(
   'button',
   children,
@@ -516,10 +517,10 @@ Element input<T>({
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-  FutureOr<void> Function(T)? onInput,
-  Function? onChange,
-  Function? onKeyDown,
-  Function? onKeyUp,
+  FutureOr<void> Function(web.Event)? onInput,
+  Function(web.Event)? onChange,
+  Function(web.KeyboardEvent)? onKeyDown,
+  Function(web.KeyboardEvent)? onKeyUp,
 }) => h(
   'input',
   id: id,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-alpha.2
+
+- **Feat**: Added dependency on `spark_web` for isomorphic web types.
+- **Refactor**: Updated element helpers to use strict `spark_web` event types (e.g. `MouseEvent`, `InputEvent`) instead of dynamic.
+
 ## 1.0.0-alpha.1
 
 - Initial release extracted from `spark` framework package.
