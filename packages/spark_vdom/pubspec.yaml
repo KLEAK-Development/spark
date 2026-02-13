@@ -1,6 +1,6 @@
 name: spark_vdom
 description: Virtual DOM engine for Spark - browser-side mounting, patching, and hydration.
-version: 1.0.0-alpha.3
+version: 1.0.0-alpha.2
 resolution: workspace
 
 homepage: https://spark.kleak.dev
