@@ -1,4 +1,4 @@
-import '../html/node.dart';
+import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'page_request.dart';
 import 'page_response.dart';
 import '../style/style.dart';
@@ -124,7 +124,7 @@ abstract class SparkPage<T> {
   ///   ]);
   /// }
   /// ```
-  VNode render(T data, PageRequest request);
+  Node render(T data, PageRequest request);
 
   /// Returns the list of island component types used by this page.
   ///

@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:spark_framework/src/page/spark_page.dart';
 import 'package:spark_framework/src/page/page_request.dart';
 import 'package:spark_framework/src/page/page_response.dart';
-import 'package:spark_framework/src/html/node.dart';
+import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'package:shelf/shelf.dart';
 
 // Concrete implementation for testing defaults
@@ -13,7 +13,7 @@ class TestPage extends SparkPage<String> {
   }
 
   @override
-  VNode render(String data, PageRequest request) {
+  Node render(String data, PageRequest request) {
     return Text(data);
   }
 }
@@ -25,7 +25,7 @@ class CustomPage extends SparkPage<void> {
       PageData(null);
 
   @override
-  VNode render(void data, PageRequest request) => Text('');
+  Node render(void data, PageRequest request) => Text('');
 
   @override
   String title(void data, PageRequest request) => 'Custom Title';

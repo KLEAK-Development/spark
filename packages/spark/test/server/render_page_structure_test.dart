@@ -1,7 +1,7 @@
 @TestOn('vm')
 library;
 
-import 'package:spark_framework/src/html/node.dart';
+import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'package:spark_framework/src/server/render_page.dart';
 import 'package:spark_framework/src/style/style.dart';
 import 'package:test/test.dart';
@@ -132,7 +132,7 @@ void main() {
       expect(html, contains('<meta name="description" content="test">'));
     });
 
-    test('renders headContent as VNode', () {
+    test('renders headContent as Node', () {
       final vNode = Element(
         'meta',
         attributes: {'name': 'author', 'content': 'Me'},
@@ -140,7 +140,7 @@ void main() {
       );
 
       final html = renderPage(
-        title: 'VNode Head Page',
+        title: 'Node Head Page',
         content: '<div>Content</div>',
         headContent: vNode,
       );
@@ -166,7 +166,7 @@ void main() {
       expect(html, contains('<meta name="test2" content="2" />'));
     });
 
-    test('renders headContent with CSP nonce injection in VNode', () {
+    test('renders headContent with CSP nonce injection in Node', () {
       // Create a style element without nonce
       // It should pick up the nonce from the zone set by renderPage
       final styleNode = Element(

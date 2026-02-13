@@ -2,15 +2,15 @@ import 'package:spark_html_dsl/spark_html_dsl.dart';
 
 /// Stub implementation for VM/Server.
 /// No-op patch.
-void patch(dynamic realNode, VNode vNode) {
+void patch(dynamic realNode, Node vNode) {
   // No-op on server/VM.
 }
 
 /// Stub for mount.
-void mount(dynamic parent, VNode vNode) {}
+void mount(dynamic parent, Node vNode) {}
 
 /// Stub for mountList.
-void mountList(dynamic parent, List<VNode> vNodes) {}
+void mountList(dynamic parent, List<Node> vNodes) {}
 
 /// Stub for patch.
 
@@ -20,6 +20,6 @@ void mountList(dynamic parent, List<VNode> vNodes) {}
 /// Actually createNode is used for patching.
 /// On server "patching" doesn't happen. render() returns html.Node strings via toHtml().
 /// So this is likely unused on server, but needed for compilation.
-dynamic createNode(VNode vNode) {
+dynamic createNode(Node vNode) {
   return Object();
 }

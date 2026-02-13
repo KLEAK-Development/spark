@@ -1,6 +1,6 @@
 /// Spark HTML DSL - Virtual DOM node types and HTML element helpers.
 ///
-/// Provides [VNode], [Text], [RawHtml], and [Element] node types,
+/// Provides [Node], [Text], [RawHtml], and [Element] node types,
 /// plus a full set of HTML tag helpers ([div], [span], [h1], [button], etc.)
 /// for building declarative HTML structures.
 ///
