@@ -12,6 +12,8 @@ environment:
 
 dependencies:
   web: ^1.1.1
+  spark_html_dsl: ^1.0.0-alpha.1
+  spark_vdom: ^1.0.0-alpha.1
   spark_web: ^1.0.0-alpha.1
   meta: ^1.18.0
   shelf: ^1.4.2

@@ -1,3 +1,1 @@
-export 'node.dart';
-export 'elements.dart';
-export 'extensions.dart';
+export 'package:spark_html_dsl/spark_html_dsl.dart';
