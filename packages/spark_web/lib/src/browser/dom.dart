@@ -160,6 +160,15 @@ Event wrapEvent(web.Event e) {
   return BrowserEvent(e);
 }
 
+/// Wraps a native `web.EventTarget` into the appropriate spark_web EventTarget type.
+EventTarget wrapEventTarget(web.EventTarget target) {
+  if ((target as JSAny?).isA<web.Node>()) {
+    return wrapNode(target as web.Node);
+  }
+  // TODO: Add Window support if needed
+  return BrowserEventTarget(target);
+}
+
 // ---------------------------------------------------------------------------
 // EventTarget
 // ---------------------------------------------------------------------------
@@ -210,13 +219,13 @@ class BrowserEvent implements Event {
   @override
   EventTarget? get target {
     final t = _native.target;
-    return t != null ? BrowserEventTarget(t) : null;
+    return t != null ? wrapEventTarget(t) : null;
   }
 
   @override
   EventTarget? get currentTarget {
     final t = _native.currentTarget;
-    return t != null ? BrowserEventTarget(t) : null;
+    return t != null ? wrapEventTarget(t) : null;
   }
 
   @override
@@ -302,7 +311,7 @@ class BrowserFocusEvent extends BrowserEvent implements FocusEvent {
   @override
   EventTarget? get relatedTarget {
     final t = _nativeFocus.relatedTarget;
-    return t != null ? BrowserEventTarget(t) : null;
+    return t != null ? wrapEventTarget(t) : null;
   }
 }
 
@@ -1496,7 +1505,7 @@ class BrowserTouch implements Touch {
   @override
   int get identifier => _native.identifier;
   @override
-  EventTarget get target => BrowserEventTarget(_native.target);
+  EventTarget get target => wrapEventTarget(_native.target);
   @override
   double get screenX => _native.screenX;
   @override

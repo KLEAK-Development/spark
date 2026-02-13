@@ -2,6 +2,12 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.3
+
+### Fixed
+
+- Fixed `Event.target`, `Event.currentTarget`, `FocusEvent.relatedTarget`, and `Touch.target` returning generic `EventTarget` wrappers instead of specific `Node` wrappers (like `Element`). This ensures that `is Node` checks work correctly on event targets.
+
 ## 1.0.0-alpha.2
 
 ### Changed
