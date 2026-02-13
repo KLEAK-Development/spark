@@ -65,6 +65,10 @@ dependencies:
 dependency_overrides:
   spark_web:
     path: ${p.join(p.dirname(sparkPackagePath), 'spark_web')}
+  spark_html_dsl:
+    path: ${p.join(p.dirname(sparkPackagePath), 'spark_html_dsl')}
+  spark_vdom:
+    path: ${p.join(p.dirname(sparkPackagePath), 'spark_vdom')}
 ''');
     });
 
