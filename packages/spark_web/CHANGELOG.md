@@ -2,6 +2,12 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.2
+
+### Changed
+
+- Updated `Node.contains` to accept `EventTarget?` instead of `Node?`. This fixes issues where `event.target` could not be passed directly to `contains`.
+
 ## 1.0.0-alpha.1
 
 Initial release of the server-safe Web API abstraction.

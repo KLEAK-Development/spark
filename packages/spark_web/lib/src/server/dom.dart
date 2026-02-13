@@ -67,7 +67,7 @@ class ServerNode extends ServerEventTarget implements Node {
   @override
   Node cloneNode([bool deep = false]) => this;
   @override
-  bool contains(Node? other) => false;
+  bool contains(EventTarget? other) => false;
   @override
   bool hasChildNodes() => false;
 }

@@ -501,8 +501,9 @@ class BrowserNode extends BrowserEventTarget implements Node {
   @override
   Node cloneNode([bool deep = false]) => wrapNode(_nativeNode.cloneNode(deep));
   @override
-  bool contains(Node? other) =>
-      other != null && _nativeNode.contains(other.raw as web.Node?);
+  bool contains(EventTarget? other) =>
+      other is Node &&
+      _nativeNode.contains((other as BrowserNode).raw as web.Node?);
   @override
   bool hasChildNodes() => _nativeNode.hasChildNodes();
 }

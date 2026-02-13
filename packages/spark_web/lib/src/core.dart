@@ -333,7 +333,7 @@ abstract class Node implements EventTarget {
   Node insertBefore(Node newNode, Node? referenceNode);
   Node replaceChild(Node newChild, Node oldChild);
   Node cloneNode([bool deep = false]);
-  bool contains(Node? other);
+  bool contains(EventTarget? other);
   bool hasChildNodes();
 }
 
