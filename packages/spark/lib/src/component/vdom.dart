@@ -1,1 +1,1 @@
-export 'vdom_web.dart' if (dart.library.io) 'vdom_stub.dart';
+export 'package:spark_vdom/src/vdom.dart';
