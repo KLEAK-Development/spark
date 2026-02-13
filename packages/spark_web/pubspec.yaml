@@ -3,7 +3,7 @@ description: >-
   Server-safe Web API abstraction for Dart. Mirrors the MDN Web API with
   identical naming so developers can rely on MDN documentation. Works on both
   the Dart VM (server) and dart2js (browser).
-version: 1.0.0-alpha.5
+version: 1.0.0-alpha.4
 resolution: workspace
 
 homepage: https://spark.kleak.dev
