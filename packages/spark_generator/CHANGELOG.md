@@ -1,3 +1,8 @@
+## 1.0.0-alpha.13
+
+- Fix: hide top-level query/queryAll stubs from generated code imports.
+- Refactor component generator to use helper for attribute deserialization.
+
 ## 1.0.0-alpha.12
 
 - Added `notFoundPage` support to `SparkServerConfig` to correct CSP nonce handling on 404 pages.

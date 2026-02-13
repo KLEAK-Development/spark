@@ -1,3 +1,8 @@
+## 1.0.0-alpha.10
+
+- Fixed init command generated code.
+- Fix spark_cli tests: add spark_html_dsl and spark_vdom dependency overrides.
+
 ## 1.0.0-alpha.9
 
 ### Features

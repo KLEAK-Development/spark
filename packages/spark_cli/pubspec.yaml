@@ -1,6 +1,6 @@
 name: spark_cli
 description: Command-line interface for the Spark Framework. Provides project scaffolding, hot reload development server, production builds, and OpenAPI specification generation.
-version: 1.0.0-alpha.9
+version: 1.0.0-alpha.10
 resolution: workspace
 
 homepage: https://spark.kleak.dev

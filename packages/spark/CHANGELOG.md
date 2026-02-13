@@ -1,3 +1,8 @@
+## 1.0.0-alpha.8
+
+- Extracted web API access to use spark_web.
+- Moved HTML DSL and VDOM into external packages (spark_html_dsl, spark_vdom).
+
 ## 1.0.0-alpha.7
 
 ### Features
