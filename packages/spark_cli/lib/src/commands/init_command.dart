@@ -153,28 +153,28 @@ class Counter {
   @Attribute()
   String label;
 
+  Stylesheet get adoptedStyleSheets => css({
+    ':host': .typed(
+      display: .inlineBlock,
+      padding: .all(.px(16)),
+      border: CssBorder(
+        width: .px(1),
+        style: .solid,
+        color: .hex('#ccc'),
+      ),
+      borderRadius: .px(8),
+      fontFamily: .raw('sans-serif'),
+    ),
+    'button': .typed(
+      cursor: .pointer,
+      padding: .symmetric(.px(4), .px(8)),
+      margin: .symmetric(.px(4), .px(0)),
+    ),
+  });
+
+
   Element render() {
     return div([
-      style([
-        css({
-          ':host': .typed(
-            display: .inlineBlock,
-            padding: .all(.px(16)),
-            border: CssBorder(
-              width: .px(1),
-              style: .solid,
-              color: .hex('#ccc'),
-            ),
-            borderRadius: .px(8),
-            fontFamily: .raw('sans-serif'),
-          ),
-          'button': .typed(
-            cursor: .pointer,
-            padding: .symmetric(.px(4), .px(8)),
-            margin: .symmetric(.px(4), .px(0)),
-          ),
-        }).toCss(),
-      ]),
       span([label, ': ']),
       span(id: 'val', [count]),
       button(
