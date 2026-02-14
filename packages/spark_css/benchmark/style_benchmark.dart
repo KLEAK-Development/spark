@@ -1,5 +1,5 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
-import 'package:spark_framework/spark.dart';
+import 'package:spark_css/spark_css.dart';
 
 class StyleBenchmark extends BenchmarkBase {
   StyleBenchmark() : super('Style.toCss');
