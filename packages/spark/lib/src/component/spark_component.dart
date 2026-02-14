@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
-import '../style/style.dart';
-import '../style/style_registry.dart';
+import 'package:spark_css/spark_css.dart';
 import 'web_component.dart';
 import 'package:spark_vdom/vdom.dart' as vdom;
 

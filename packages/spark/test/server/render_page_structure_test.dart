@@ -3,7 +3,7 @@ library;
 
 import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'package:spark_framework/src/server/render_page.dart';
-import 'package:spark_framework/src/style/style.dart';
+import 'package:spark_css/spark_css.dart';
 import 'package:test/test.dart';
 
 void main() {

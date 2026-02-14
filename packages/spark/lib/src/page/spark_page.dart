@@ -1,7 +1,7 @@
 import 'package:spark_html_dsl/spark_html_dsl.dart';
 import 'page_request.dart';
 import 'page_response.dart';
-import '../style/style.dart';
+import 'package:spark_css/spark_css.dart';
 import 'package:shelf/shelf.dart' show Middleware;
 
 /// Abstract base class for Spark pages.

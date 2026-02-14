@@ -1,4 +1,4 @@
-import 'package:spark_framework/spark.dart';
+import 'package:spark_css/spark_css.dart';
 import 'package:test/test.dart';
 
 void main() {
