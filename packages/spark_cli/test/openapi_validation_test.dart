@@ -75,6 +75,8 @@ dependencies:
     path: $sparkPackagePath
 
 dependency_overrides:
+  spark_css:
+    path: ${p.join(p.dirname(sparkPackagePath), 'spark_css')}
   spark_web:
     path: ${p.join(p.dirname(sparkPackagePath), 'spark_web')}
   spark_html_dsl:
@@ -132,7 +134,7 @@ class ValidatedDto {
 
   @Pattern(r"^[0-9]+\$")
   final String numericString;
-  
+
   @IsBooleanString()
   final String isEnabled;
 
@@ -199,8 +201,8 @@ class Wrapper {
 }
 
 @Endpoint(
-  path: '/tags', 
-  method: 'POST', 
+  path: '/tags',
+  method: 'POST',
 )
 class TagEndpoint extends SparkEndpointWithBody<Wrapper> {
   @override

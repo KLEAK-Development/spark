@@ -83,6 +83,8 @@ dependencies:
     path: $sparkPackagePath
 
 dependency_overrides:
+  spark_css:
+    path: ${p.join(p.dirname(sparkPackagePath), 'spark_css')}
   spark_web:
     path: ${p.join(p.dirname(sparkPackagePath), 'spark_web')}
   spark_html_dsl:
@@ -209,7 +211,7 @@ class UserDto {
 }
 
 @Endpoint(
-  path: '/validate', 
+  path: '/validate',
   method: 'POST',
 )
 class ValidationEndpoint extends SparkEndpointWithBody<UserDto> {
