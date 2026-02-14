@@ -4,7 +4,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import '../style/style.dart';
+import 'package:spark_css/spark_css.dart';
 import 'package:spark_html_dsl/spark_html_dsl.dart';
 
 /// Configuration options for page rendering.

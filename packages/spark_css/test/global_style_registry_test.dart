@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:spark_framework/src/style/style_registry.dart';
+import 'package:spark_css/spark_css.dart';
 
 void main() {
   group('ComponentStyleRegistry', () {

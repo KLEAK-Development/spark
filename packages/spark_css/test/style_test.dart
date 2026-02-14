@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:spark_framework/spark.dart';
+import 'package:spark_css/spark_css.dart';
 
 void main() {
   group('Style', () {

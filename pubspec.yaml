@@ -9,6 +9,7 @@ workspace:
   - packages/spark
   - packages/spark/example
   - packages/spark_cli
+  - packages/spark_css
   - packages/spark_generator
   - packages/spark_html_dsl
   - packages/spark_vdom

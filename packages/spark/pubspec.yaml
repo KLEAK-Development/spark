@@ -1,6 +1,6 @@
 name: spark_framework
 description: Lightweight isomorphic SSR framework for Dart with Custom Elements and Declarative Shadow DOM
-version: 1.0.0-alpha.9
+version: 1.0.0-alpha.10
 resolution: workspace
 
 homepage: https://spark.kleak.dev
@@ -12,6 +12,7 @@ environment:
 
 dependencies:
   web: ^1.1.1
+  spark_css: ^1.0.0-alpha.1
   spark_html_dsl: ^1.0.0-alpha.1
   spark_vdom: ^1.0.0-alpha.1
   spark_web: ^1.0.0-alpha.1

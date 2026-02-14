@@ -1,3 +1,8 @@
+## 1.0.0-alpha.10
+
+- Extracted CSS style system into standalone `spark_css` package.
+- Added `spark_css` dependency and re-exported it for backward compatibility.
+
 ## 1.0.0-alpha.9
 
 ### Fixed
