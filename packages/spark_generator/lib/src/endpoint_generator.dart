@@ -41,6 +41,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       final className = element.name;
       final path = annotation.read('path').stringValue;
       final method = annotation.read('method').stringValue;
+      final statusCode = annotation.peek('statusCode')?.intValue;
 
       // Parse path parameters from the route pattern
       final pathParams = helpers.parsePathParams(path);
@@ -130,7 +131,7 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       buffer.writeln();
 
       // Handle response serialization
-      _generateResponseSerialization(buffer, returnType);
+      _generateResponseSerialization(buffer, returnType, statusCode);
 
       buffer.writeln('    } on SparkValidationException catch (e) {');
       buffer.writeln('      return ApiError(');
@@ -361,9 +362,16 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
   void _generateResponseSerialization(
     StringBuffer buffer,
     DartType? returnType,
+    int? statusCode,
   ) {
     if (returnType == null) {
-      buffer.writeln('    return Response.ok(result.toString());');
+      if (statusCode != null) {
+        buffer.writeln(
+          '    return Response($statusCode, body: result.toString());',
+        );
+      } else {
+        buffer.writeln('    return Response.ok(result.toString());');
+      }
       return;
     }
 
@@ -382,30 +390,54 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
     }
 
     if (innerType.isDartCoreString) {
-      buffer.writeln(
-        '    return Response.ok(result, headers: {"content-type": "text/plain"});',
-      );
+      if (statusCode != null) {
+        buffer.writeln(
+          '    return Response($statusCode, body: result, headers: {"content-type": "text/plain"});',
+        );
+      } else {
+        buffer.writeln(
+          '    return Response.ok(result, headers: {"content-type": "text/plain"});',
+        );
+      }
     } else if (innerType.isDartCoreInt ||
         innerType.isDartCoreDouble ||
         innerType.isDartCoreBool ||
         innerType.isDartCoreNum) {
-      buffer.writeln(
-        '    return Response.ok(result.toString(), headers: {"content-type": "text/plain"});',
-      );
+      if (statusCode != null) {
+        buffer.writeln(
+          '    return Response($statusCode, body: result.toString(), headers: {"content-type": "text/plain"});',
+        );
+      } else {
+        buffer.writeln(
+          '    return Response.ok(result.toString(), headers: {"content-type": "text/plain"});',
+        );
+      }
     } else if (innerType.element?.name == 'DateTime' &&
         innerType.element?.library?.name == 'dart.core') {
-      buffer.writeln(
-        '    return Response.ok(result.toIso8601String(), headers: {"content-type": "text/plain"});',
-      );
+      if (statusCode != null) {
+        buffer.writeln(
+          '    return Response($statusCode, body: result.toIso8601String(), headers: {"content-type": "text/plain"});',
+        );
+      } else {
+        buffer.writeln(
+          '    return Response.ok(result.toIso8601String(), headers: {"content-type": "text/plain"});',
+        );
+      }
     } else if (innerType is VoidType ||
         innerType.getDisplayString() == 'void') {
-      buffer.writeln('    return Response(204);');
+      buffer.writeln('    return Response(${statusCode ?? 204});');
     } else {
       // Use field-based serialization
       final serialized = _generateTypeSerialization(innerType, 'result');
-      buffer.writeln(
-        '    return Response.ok(jsonEncode($serialized), headers: {"content-type": "application/json"});',
-      );
+      if (statusCode != null) {
+        buffer.writeln(
+          '    return Response($statusCode, body: jsonEncode($serialized), headers: {"content-type": "application/json"});',
+        );
+      } else {
+        buffer.writeln(
+          '    return Response.ok(jsonEncode($serialized), headers: {"content-type": "application/json"});',
+        );
+      }
     }
   }
 

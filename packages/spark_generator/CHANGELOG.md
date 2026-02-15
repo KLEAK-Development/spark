@@ -4,6 +4,7 @@
 - Constructor parameters for non-`@Attribute` fields are now forwarded correctly.
 - Added reserved name filtering to prevent user code from conflicting with generated or inherited SparkComponent/WebComponent members.
 - Fix: skip synthetic fields created by the analyzer for explicit getter/setter declarations to avoid duplicate declaration errors.
+- Use `statusCode` from `@Endpoint` annotation for response generation on the happy path. When set (e.g., `statusCode: 201`), the generated handler returns that status code instead of the default 200.
 
 ## 1.0.0-alpha.13
 
