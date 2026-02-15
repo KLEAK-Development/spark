@@ -33,15 +33,36 @@ jobs:
     outputs:
       spark: ${{ steps.filter.outputs.spark }}
       spark_cli: ${{ steps.filter.outputs.spark_cli }}
+      spark_css: ${{ steps.filter.outputs.spark_css }}
       spark_generator: ${{ steps.filter.outputs.spark_generator }}
+      spark_html_dsl: ${{ steps.filter.outputs.spark_html_dsl }}
+      spark_vdom: ${{ steps.filter.outputs.spark_vdom }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
+            spark_css:
+              - 'packages/spark_css/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
+            spark_html_dsl:
+              - 'packages/spark_html_dsl/**'
+              - 'packages/spark_web/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
+            spark_vdom:
+              - 'packages/spark_vdom/**'
+              - 'packages/spark_html_dsl/**'
+              - 'packages/spark_web/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
             spark:
               - 'packages/spark/**'
+              - 'packages/spark_css/**'
+              - 'packages/spark_html_dsl/**'
+              - 'packages/spark_vdom/**'
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
               - '.github/workflows/ci.yaml'
@@ -52,6 +73,9 @@ jobs:
             spark_generator:
               - 'packages/spark_generator/**'
               - 'packages/spark/**'
+              - 'packages/spark_css/**'
+              - 'packages/spark_html_dsl/**'
+              - 'packages/spark_vdom/**'
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
               - '.github/workflows/ci.yaml'
@@ -76,6 +100,69 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark
+          dart test
+          dart test -p chrome
+
+  test_spark_css:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark_css == 'true' }}
+    name: Test Spark CSS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.7"
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: |
+          cd packages/spark_css
+          dart test
+
+  test_spark_html_dsl:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark_html_dsl == 'true' }}
+    name: Test Spark HTML DSL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.7"
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: |
+          cd packages/spark_html_dsl
+          dart test
+
+  test_spark_vdom:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark_vdom == 'true' }}
+    name: Test Spark VDOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.7"
+
+      - uses: browser-actions/setup-chrome@v1
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: |
+          cd packages/spark_vdom
           dart test
           dart test -p chrome
 
