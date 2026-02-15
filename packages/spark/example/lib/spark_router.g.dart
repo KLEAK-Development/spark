@@ -106,7 +106,11 @@ Future<Response> _$handleHelloEndpoint(Request request) async {
 
       final result = await endpoint.handler(sparkRequest);
 
-      return Response.ok(result, headers: {"content-type": "text/plain"});
+      return Response(
+        200,
+        body: result,
+        headers: {"content-type": "text/plain"},
+      );
     } on SparkValidationException catch (e) {
       return ApiError(
         message: e.message,
@@ -184,8 +188,9 @@ Future<Response> _$handleEchoUserEndpoint(Request request) async {
       }
       final result = await endpoint.handler(sparkRequest, body);
 
-      return Response.ok(
-        jsonEncode({'name': result.name}),
+      return Response(
+        201,
+        body: jsonEncode({'name': result.name}),
         headers: {"content-type": "application/json"},
       );
     } on SparkValidationException catch (e) {
@@ -386,8 +391,9 @@ Future<Response> _$handleReproEndpoint(Request request) async {
 
       final result = await endpoint.handler(sparkRequest);
 
-      return Response.ok(
-        jsonEncode({
+      return Response(
+        200,
+        body: jsonEncode({
           if (result.nextTier != null)
             'next_tier': result.nextTier!.map((k, v) => MapEntry(k, v)),
         }),
