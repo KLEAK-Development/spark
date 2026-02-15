@@ -1,3 +1,10 @@
+## 1.0.0-alpha.14
+
+- Preserve user code in generated `.impl.dart` files: non-`@Attribute` fields, user-defined getters, and user-defined setters are now carried over into the generated class.
+- Constructor parameters for non-`@Attribute` fields are now forwarded correctly.
+- Added reserved name filtering to prevent user code from conflicting with generated or inherited SparkComponent/WebComponent members.
+- Fix: skip synthetic fields created by the analyzer for explicit getter/setter declarations to avoid duplicate declaration errors.
+
 ## 1.0.0-alpha.13
 
 - Fix: hide top-level query/queryAll stubs from generated code imports.
