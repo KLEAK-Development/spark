@@ -196,6 +196,9 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       final fieldName = field.name;
       if (fieldName == null) continue;
       if (field.isStatic) continue;
+      // Skip synthetic fields created by the analyzer for explicit
+      // getter/setter declarations — those are copied separately.
+      if (field.isOriginGetterSetter) continue;
       if (attributes.containsKey(fieldName)) continue;
       if (reservedFields.contains(fieldName)) continue;
 
