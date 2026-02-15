@@ -1037,6 +1037,99 @@ void main() {
       );
     });
 
+    test('does not emit synthetic field for explicit getter', () async {
+      await resolveSources(
+        {
+          'spark|lib/src/annotations/component.dart': '''
+            class Component {
+              final String tag;
+              const Component({required this.tag});
+            }
+            class Attribute {
+              final String? name;
+              final bool observable;
+              const Attribute({this.name, this.observable = false});
+            }
+          ''',
+          'spark|lib/src/component/spark_component.dart': '''
+            abstract class SparkComponent {
+              void syncAttributes() {}
+              void scheduleUpdate() {}
+              void setAttr(String name, String value) {}
+              Map<String, String> get dumpedAttributes;
+              List<String> get observedAttributes => const [];
+              void attributeChangedCallback(String name, String? oldValue, String? newValue) {}
+              String get tagName;
+            }
+          ''',
+          'spark|lib/server.dart': '''
+            library spark;
+            export 'src/annotations/component.dart';
+            export 'src/component/spark_component.dart';
+          ''',
+          'a|lib/test_lib_base.dart': '''
+            library a;
+            import 'package:spark/server.dart';
+
+            @Component(tag: 'my-widget')
+            class MyWidget {
+              static const tag = 'my-widget';
+
+              @Attribute()
+              int value = 0;
+
+              String get displayText => 'hello';
+
+              Element render() {
+                return div([]);
+              }
+            }
+
+            class Element {}
+            Element div(List children) => Element();
+          ''',
+        },
+        (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib_base.dart'),
+          );
+
+          final widgetClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'MyWidget');
+
+          final annotations = widgetClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Component';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = ComponentGenerator();
+          final output = generator.generateForAnnotatedElement(
+            widgetClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
+          );
+
+          // Should NOT emit a bare field declaration for a getter-backed property
+          // The analyzer creates synthetic FieldElement for explicit getters, and
+          // the generator must skip those to avoid "already declared" errors.
+          expect(
+            output,
+            isNot(contains('String displayText;')),
+            reason: 'Should not emit synthetic field for explicit getter',
+          );
+
+          // Should still generate the class correctly
+          expect(output, contains('class MyWidget extends SparkComponent'));
+        },
+      );
+    });
+
     test('regex pattern matches method declarations, not method calls', () {
       // This is a unit test for the fix where method calls like _handleSubmit()
       // inside other methods were incorrectly being matched as method definitions
