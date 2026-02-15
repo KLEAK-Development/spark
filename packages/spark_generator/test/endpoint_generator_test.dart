@@ -1400,5 +1400,369 @@ void main() {
         },
       );
     });
+    test('uses custom statusCode from annotation for string response', () async {
+      await resolveSources(
+        {
+          'spark|lib/src/annotations/endpoint.dart': '''
+            class Endpoint {
+              final String path;
+              final String method;
+              final String? summary;
+              final String? description;
+              final List<String>? tags;
+              final Map<int, dynamic>? responses;
+              final bool? deprecated;
+              final List<Map<String, List<String>>>? security;
+              final String? operationId;
+              final dynamic externalDocs;
+              final List<dynamic>? parameters;
+              final dynamic requestBody;
+              final List<String>? contentTypes;
+              final int? statusCode;
+
+            const Endpoint({required this.path, required this.method, this.summary, this.description, this.tags, this.responses, this.deprecated, this.security, this.operationId, this.externalDocs, this.parameters, this.requestBody, this.contentTypes, this.statusCode});
+            }
+          ''',
+          'spark|lib/src/endpoint/spark_endpoint.dart': '''
+            abstract class SparkEndpoint {
+              Future<dynamic> handler(dynamic request);
+              List<dynamic> get middleware => [];
+            }
+
+            abstract class SparkEndpointWithBody<T> {
+              Future<dynamic> handler(dynamic request, T body);
+              List<dynamic> get middleware => [];
+            }
+          ''',
+          'spark|lib/spark.dart': '''
+             library spark;
+             export 'src/annotations/endpoint.dart';
+             export 'src/endpoint/spark_endpoint.dart';
+             export 'src/errors/errors.dart';
+          ''',
+          'spark|lib/src/errors/errors.dart': '''
+            class SparkValidationException implements Exception {
+              final Map<String, dynamic> errors;
+              final String message;
+              SparkValidationException(this.errors, {this.message = 'Validation Failed'});
+            }
+            class SparkHttpException implements Exception {
+              final int statusCode;
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              SparkHttpException(this.statusCode, this.message, {this.code = 'HTTP_ERROR', this.details});
+            }
+            class ApiError {
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              ApiError({required this.message, required this.code, this.details});
+              Response toResponse(int statusCode) => Response(statusCode);
+            }
+            class Response {
+               static Response ok(String body, {Map<String, dynamic>? headers}) => Response(200);
+               Response(int statusCode, {String? body, Map<String, dynamic>? headers});
+            }
+          ''',
+          'a|lib/test_lib.dart': '''
+            library a;
+            import 'package:spark/spark.dart';
+
+            class Request {
+               Future<String> readAsString() async => '';
+            }
+
+            class SparkRequest {
+              final Request shelfRequest;
+              final Map<String, String> pathParams;
+              SparkRequest({required this.shelfRequest, required this.pathParams});
+            }
+
+            @Endpoint(path: '/api/users', method: 'POST', statusCode: 201)
+            class CreateUserEndpoint extends SparkEndpoint {
+              @override
+              Future<String> handler(SparkRequest request) async {
+                return 'created';
+              }
+            }
+          ''',
+        },
+        (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib.dart'),
+          );
+
+          final createUserClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'CreateUserEndpoint');
+
+          final annotations = createUserClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Endpoint';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = EndpointGenerator();
+          final output = generator.generateForAnnotatedElement(
+            createUserClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib.dart')),
+          );
+
+          // Should use custom status code 201 instead of Response.ok
+          expect(output, contains('Response(201,'));
+          expect(output, isNot(contains('Response.ok(')));
+          expect(output, contains('"content-type": "text/plain"'));
+        },
+      );
+    });
+
+    test('uses custom statusCode from annotation for JSON response', () async {
+      await resolveSources(
+        {
+          'spark|lib/src/annotations/endpoint.dart': '''
+            class Endpoint {
+              final String path;
+              final String method;
+              final String? summary;
+              final String? description;
+              final List<String>? tags;
+              final Map<int, dynamic>? responses;
+              final bool? deprecated;
+              final List<Map<String, List<String>>>? security;
+              final String? operationId;
+              final dynamic externalDocs;
+              final List<dynamic>? parameters;
+              final dynamic requestBody;
+              final List<String>? contentTypes;
+              final int? statusCode;
+
+            const Endpoint({required this.path, required this.method, this.summary, this.description, this.tags, this.responses, this.deprecated, this.security, this.operationId, this.externalDocs, this.parameters, this.requestBody, this.contentTypes, this.statusCode});
+            }
+          ''',
+          'spark|lib/src/endpoint/spark_endpoint.dart': '''
+            abstract class SparkEndpoint {
+              Future<dynamic> handler(dynamic request);
+              List<dynamic> get middleware => [];
+            }
+
+            abstract class SparkEndpointWithBody<T> {
+              Future<dynamic> handler(dynamic request, T body);
+              List<dynamic> get middleware => [];
+            }
+          ''',
+          'spark|lib/spark.dart': '''
+             library spark;
+             export 'src/annotations/endpoint.dart';
+             export 'src/endpoint/spark_endpoint.dart';
+             export 'src/errors/errors.dart';
+          ''',
+          'spark|lib/src/errors/errors.dart': '''
+            class SparkValidationException implements Exception {
+              final Map<String, dynamic> errors;
+              final String message;
+              SparkValidationException(this.errors, {this.message = 'Validation Failed'});
+            }
+            class SparkHttpException implements Exception {
+              final int statusCode;
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              SparkHttpException(this.statusCode, this.message, {this.code = 'HTTP_ERROR', this.details});
+            }
+            class ApiError {
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              ApiError({required this.message, required this.code, this.details});
+              Response toResponse(int statusCode) => Response(statusCode);
+            }
+            class Response {
+               static Response ok(String body, {Map<String, dynamic>? headers}) => Response(200);
+               Response(int statusCode, {String? body, Map<String, dynamic>? headers});
+            }
+          ''',
+          'a|lib/test_lib.dart': '''
+            library a;
+            import 'package:spark/spark.dart';
+
+            class Request {
+               Future<String> readAsString() async => '';
+            }
+
+            class SparkRequest {
+              final Request shelfRequest;
+              final Map<String, String> pathParams;
+              SparkRequest({required this.shelfRequest, required this.pathParams});
+            }
+
+            class UserDto {
+              final String name;
+              UserDto({required this.name});
+            }
+
+            @Endpoint(path: '/api/users', method: 'POST', statusCode: 201)
+            class CreateUserDtoEndpoint extends SparkEndpointWithBody<UserDto> {
+              @override
+              Future<UserDto> handler(SparkRequest request, UserDto body) async {
+                return body;
+              }
+            }
+          ''',
+        },
+        (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib.dart'),
+          );
+
+          final createUserClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'CreateUserDtoEndpoint');
+
+          final annotations = createUserClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Endpoint';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = EndpointGenerator();
+          final output = generator.generateForAnnotatedElement(
+            createUserClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib.dart')),
+          );
+
+          // Should use custom status code 201 instead of Response.ok for JSON
+          expect(output, contains('Response(201,'));
+          expect(output, isNot(contains('Response.ok(')));
+          expect(output, contains('"content-type": "application/json"'));
+        },
+      );
+    });
+
+    test('uses default status code when statusCode not set in annotation', () async {
+      await resolveSources(
+        {
+          'spark|lib/src/annotations/endpoint.dart': '''
+            class Endpoint {
+              final String path;
+              final String method;
+              final String? summary;
+              final String? description;
+              final List<String>? tags;
+              final Map<int, dynamic>? responses;
+              final bool? deprecated;
+              final List<Map<String, List<String>>>? security;
+              final String? operationId;
+              final dynamic externalDocs;
+              final List<dynamic>? parameters;
+              final dynamic requestBody;
+              final List<String>? contentTypes;
+              final int? statusCode;
+
+            const Endpoint({required this.path, required this.method, this.summary, this.description, this.tags, this.responses, this.deprecated, this.security, this.operationId, this.externalDocs, this.parameters, this.requestBody, this.contentTypes, this.statusCode});
+            }
+          ''',
+          'spark|lib/src/endpoint/spark_endpoint.dart': '''
+            abstract class SparkEndpoint {
+              Future<dynamic> handler(dynamic request);
+              List<dynamic> get middleware => [];
+            }
+          ''',
+          'spark|lib/spark.dart': '''
+             library spark;
+             export 'src/annotations/endpoint.dart';
+             export 'src/endpoint/spark_endpoint.dart';
+             export 'src/errors/errors.dart';
+          ''',
+          'spark|lib/src/errors/errors.dart': '''
+            class SparkValidationException implements Exception {
+              final Map<String, dynamic> errors;
+              final String message;
+              SparkValidationException(this.errors, {this.message = 'Validation Failed'});
+            }
+            class SparkHttpException implements Exception {
+              final int statusCode;
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              SparkHttpException(this.statusCode, this.message, {this.code = 'HTTP_ERROR', this.details});
+            }
+            class ApiError {
+              final String message;
+              final String code;
+              final Map<String, dynamic>? details;
+              ApiError({required this.message, required this.code, this.details});
+              Response toResponse(int statusCode) => Response(statusCode);
+            }
+            class Response {
+               static Response ok(String body, {Map<String, dynamic>? headers}) => Response(200);
+               Response(int statusCode, {String? body, Map<String, dynamic>? headers});
+            }
+          ''',
+          'a|lib/test_lib.dart': '''
+            library a;
+            import 'package:spark/spark.dart';
+
+            class Request {
+               Future<String> readAsString() async => '';
+            }
+
+            class SparkRequest {
+              final Request shelfRequest;
+              final Map<String, String> pathParams;
+              SparkRequest({required this.shelfRequest, required this.pathParams});
+            }
+
+            @Endpoint(path: '/api/users', method: 'GET')
+            class GetUsersEndpoint extends SparkEndpoint {
+              @override
+              Future<String> handler(SparkRequest request) async {
+                return 'users';
+              }
+            }
+          ''',
+        },
+        (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib.dart'),
+          );
+
+          final getUsersClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'GetUsersEndpoint');
+
+          final annotations = getUsersClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Endpoint';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = EndpointGenerator();
+          final output = generator.generateForAnnotatedElement(
+            getUsersClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib.dart')),
+          );
+
+          // Should still use Response.ok when no statusCode is set
+          expect(output, contains('Response.ok('));
+          expect(output, contains('"content-type": "text/plain"'));
+        },
+      );
+    });
   });
 }
