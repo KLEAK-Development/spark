@@ -42,11 +42,7 @@ final class _CssOutlineShorthand extends CssOutline {
   final CssBorderStyle? style;
   final CssColor? color;
 
-  const _CssOutlineShorthand({
-    this.width,
-    this.style,
-    this.color,
-  }) : super._();
+  const _CssOutlineShorthand({this.width, this.style, this.color}) : super._();
 
   @override
   String toCss() {
