@@ -25,7 +25,8 @@ sealed class CssBackgroundSize implements CssValue {
       _CssBackgroundSizeMultiple;
 
   /// CSS variable reference.
-  factory CssBackgroundSize.variable(String varName) = _CssBackgroundSizeVariable;
+  factory CssBackgroundSize.variable(String varName) =
+      _CssBackgroundSizeVariable;
 
   /// Raw CSS value escape hatch.
   factory CssBackgroundSize.raw(String value) = _CssBackgroundSizeRaw;
