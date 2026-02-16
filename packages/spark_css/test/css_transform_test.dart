@@ -30,16 +30,28 @@ void main() {
     });
 
     test('translateX', () {
-      expect(CssTransform.translateX(CssLength.px(10)).toCss(), 'translateX(10px)');
-      expect(CssTransform.translateX(CssLength.percent(50)).toCss(), 'translateX(50%)');
+      expect(
+        CssTransform.translateX(CssLength.px(10)).toCss(),
+        'translateX(10px)',
+      );
+      expect(
+        CssTransform.translateX(CssLength.percent(50)).toCss(),
+        'translateX(50%)',
+      );
     });
 
     test('translateY', () {
-      expect(CssTransform.translateY(CssLength.px(20)).toCss(), 'translateY(20px)');
+      expect(
+        CssTransform.translateY(CssLength.px(20)).toCss(),
+        'translateY(20px)',
+      );
     });
 
     test('translate', () {
-      expect(CssTransform.translate(CssLength.px(10)).toCss(), 'translate(10px)');
+      expect(
+        CssTransform.translate(CssLength.px(10)).toCss(),
+        'translate(10px)',
+      );
       expect(
         CssTransform.translate(CssLength.px(10), CssLength.px(20)).toCss(),
         'translate(10px, 20px)',
@@ -98,7 +110,10 @@ void main() {
     });
 
     test('variable', () {
-      expect(CssTransform.variable('transform-var').toCss(), 'var(--transform-var)');
+      expect(
+        CssTransform.variable('transform-var').toCss(),
+        'var(--transform-var)',
+      );
     });
 
     test('raw', () {

@@ -85,14 +85,8 @@ sealed class CssTransform implements CssValue {
   factory CssTransform.skew(CssAngle x, [CssAngle? y]) = _CssTransformSkew;
 
   /// `matrix` function.
-  factory CssTransform.matrix(
-    num a,
-    num b,
-    num c,
-    num d,
-    num tx,
-    num ty,
-  ) = _CssTransformMatrix;
+  factory CssTransform.matrix(num a, num b, num c, num d, num tx, num ty) =
+      _CssTransformMatrix;
 
   /// Multiple transforms.
   factory CssTransform.list(List<CssTransform> transforms) = _CssTransformList;
@@ -215,14 +209,8 @@ final class _CssTransformSkew extends CssTransform {
 
 final class _CssTransformMatrix extends CssTransform {
   final num a, b, c, d, tx, ty;
-  const _CssTransformMatrix(
-    this.a,
-    this.b,
-    this.c,
-    this.d,
-    this.tx,
-    this.ty,
-  ) : super._();
+  const _CssTransformMatrix(this.a, this.b, this.c, this.d, this.tx, this.ty)
+    : super._();
 
   @override
   String toCss() => 'matrix($a, $b, $c, $d, $tx, $ty)';
