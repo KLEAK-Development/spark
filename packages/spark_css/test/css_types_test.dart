@@ -387,7 +387,7 @@ void main() {
   });
 
   group('CssTransition', () {
-    test('none outputs correct CSS', () {
+    test('keywords output correct CSS', () {
       expect(CssTransition.none.toCss(), equals('none'));
     });
 
@@ -545,7 +545,7 @@ void main() {
           style: CssBorderStyle.solid,
           color: CssColor.variable('border-color'),
         ),
-        borderRadius: CssLength.px(8),
+        borderRadius: CssBorderRadius.all(CssLength.px(8)),
       );
       expect(style.toCss(), contains('border: 1px solid var(--border-color);'));
       expect(style.toCss(), contains('border-radius: 8px;'));
@@ -564,10 +564,15 @@ void main() {
       expect(style.toCss(), contains('cursor: pointer;'));
     });
 
-    test('renders string-based complex properties', () {
+    test('renders complex properties', () {
       final style = Style.typed(
-        transform: 'translateY(-2px)',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        transform: CssTransform.translateY(CssLength.px(-2)),
+        boxShadow: CssBoxShadow(
+          x: CssLength.zero,
+          y: CssLength.px(4),
+          blur: CssLength.px(6),
+          color: CssColor.rgba(0, 0, 0, 0.1),
+        ),
         gridTemplateColumns: 'repeat(3, 1fr)',
       );
       expect(style.toCss(), contains('transform: translateY(-2px);'));
@@ -576,6 +581,50 @@ void main() {
         contains('box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);'),
       );
       expect(style.toCss(), contains('grid-template-columns: repeat(3, 1fr);'));
+    });
+
+    test('renders new typed properties', () {
+      final style = Style.typed(
+        textShadow: CssTextShadow(
+          x: CssLength.px(1),
+          y: CssLength.px(1),
+          color: CssColor.black,
+        ),
+        filter: CssFilter.blur(CssLength.px(5)),
+        backdropFilter: CssFilter.brightness(0.5),
+        flex: CssFlexShorthand(grow: 1),
+        outline: CssOutline(
+          width: CssLength.px(2),
+          style: CssBorderStyle.dashed,
+          color: CssColor.red,
+        ),
+        outlineOffset: CssLength.px(2),
+      );
+      expect(style.toCss(), contains('text-shadow: 1px 1px black;'));
+      expect(style.toCss(), contains('filter: blur(5px);'));
+      expect(style.toCss(), contains('backdrop-filter: brightness(0.5);'));
+      expect(style.toCss(), contains('flex: 1;'));
+      expect(style.toCss(), contains('outline: 2px dashed red;'));
+      expect(style.toCss(), contains('outline-offset: 2px;'));
+    });
+
+    test('renders background properties', () {
+      final style = Style.typed(
+        backgroundImage: CssBackgroundImage.url('bg.png'),
+        backgroundSize: CssBackgroundSize.cover,
+        backgroundPosition: CssBackgroundPosition.center,
+        backgroundRepeat: CssBackgroundRepeat.noRepeat,
+        backgroundClip: CssBackgroundClip.paddingBox,
+        backgroundOrigin: CssBackgroundOrigin.contentBox,
+        backgroundAttachment: CssBackgroundAttachment.fixed,
+      );
+      expect(style.toCss(), contains('background-image: url(bg.png);'));
+      expect(style.toCss(), contains('background-size: cover;'));
+      expect(style.toCss(), contains('background-position: center;'));
+      expect(style.toCss(), contains('background-repeat: no-repeat;'));
+      expect(style.toCss(), contains('background-clip: padding-box;'));
+      expect(style.toCss(), contains('background-origin: content-box;'));
+      expect(style.toCss(), contains('background-attachment: fixed;'));
     });
 
     test('add method still works with v2', () {
