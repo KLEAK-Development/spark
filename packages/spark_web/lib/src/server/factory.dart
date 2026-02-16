@@ -31,8 +31,7 @@ iface.CSSStyleSheet createCSSStyleSheet() => ServerCSSStyleSheet();
 iface.Notification createNotification(
   String title, [
   iface.NotificationOptions? options,
-]) =>
-    ServerNotification(title, options);
+]) => ServerNotification(title, options);
 
 /// Returns the notification permission on server (always `'default'`).
 iface.NotificationPermission get notificationPermission =>

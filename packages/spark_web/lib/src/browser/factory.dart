@@ -34,8 +34,7 @@ iface.CSSStyleSheet createCSSStyleSheet() =>
 iface.Notification createNotification(
   String title, [
   iface.NotificationOptions? options,
-]) =>
-    BrowserNotification(title, options);
+]) => BrowserNotification(title, options);
 
 /// Returns the current notification permission state.
 ///
