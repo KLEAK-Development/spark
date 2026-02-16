@@ -148,7 +148,10 @@ void main() {
         final gradient = CssBackgroundImage.radialGradient(
           shape: CssRadialShape.circle,
           size: CssRadialSize.size(CssLength.px(50)),
-          position: CssBackgroundPosition.topLeft,
+          position: CssBackgroundPosition.parts([
+            CssBackgroundPosition.top,
+            CssBackgroundPosition.left,
+          ]),
           stops: [
             CssGradientStop(CssColor.red),
             CssGradientStop(CssColor.blue),
@@ -162,10 +165,10 @@ void main() {
 
       test('with position coordinates', () {
         final gradient = CssBackgroundImage.radialGradient(
-          position: CssBackgroundPosition.xy(
+          position: CssBackgroundPosition.parts([
             CssLength.percent(50),
             CssLength.percent(50),
-          ),
+          ]),
           stops: [
             CssGradientStop(CssColor.red),
             CssGradientStop(CssColor.blue),
