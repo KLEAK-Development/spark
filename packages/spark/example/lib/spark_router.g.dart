@@ -19,6 +19,7 @@ import 'package:spark_example/endpoints/repro_endpoint.dart';
 import 'package:spark_example/pages/home_page.dart';
 import 'package:spark_example/pages/no_component/no_component_page.dart';
 import 'package:spark_example/pages/not_found_page.dart';
+import 'package:spark_example/pages/notification/notification_page.dart';
 import 'package:spark_example/pages/test/test_page.dart';
 import 'package:spark_example/pages/test_inheritance/test2_page.dart';
 
@@ -696,6 +697,60 @@ Future<Response> _$handleTest2Page(Request request) async {
   return pipeline.addHandler(handler)(request);
 }
 
+Future<Response> _$handleNotificationPage(Request request) async {
+  final page = NotificationPage();
+  var pipeline = const Pipeline();
+  for (final middleware in page.middleware) {
+    pipeline = pipeline.addMiddleware(middleware);
+  }
+
+  final handler = (Request req) async {
+    final pageRequest = PageRequest(shelfRequest: req, pathParams: {});
+
+    final response = await page.loader(pageRequest);
+
+    return switch (response) {
+      PageData(
+        :final data,
+        :final statusCode,
+        :final headers,
+        :final cookies,
+      ) =>
+        _$renderPageResponse(
+          page,
+          data,
+          pageRequest,
+          statusCode,
+          headers,
+          cookies,
+          'notification/notification_page.dart.js',
+          req.context['spark.nonce'] as String?,
+        ),
+      PageRedirect(
+        :final location,
+        :final statusCode,
+        :final headers,
+        :final cookies,
+      ) =>
+        Response(
+          statusCode,
+          headers: {
+            ...headers,
+            'location': location,
+            if (cookies.isNotEmpty)
+              HttpHeaders.setCookieHeader: cookies
+                  .map((c) => c.toString())
+                  .toList(),
+          },
+        ),
+      PageError(:final message, :final statusCode, :final cookies) =>
+        _$renderErrorResponse(message, statusCode, cookies),
+    };
+  };
+
+  return pipeline.addHandler(handler)(request);
+}
+
 /// Creates a router with all registered Spark pages.
 ///
 /// This router contains handlers for:
@@ -709,6 +764,7 @@ Future<Response> _$handleTest2Page(Request request) async {
 /// - `/no-component` -> NoComponentPage
 /// - `/404` -> NotFoundPage
 /// - `/test` -> TestPage
+/// - `/notification` -> NotificationPage
 /// - `/test2` -> Test2Page
 Router createSparkRouter() {
   final router = Router();
@@ -724,6 +780,7 @@ Router createSparkRouter() {
   router.get('/api/repro', _$handleReproEndpoint);
   router.get('/', _$handleHomePage);
   router.get('/no-component', _$handleNoComponentPage);
+  router.get('/notification', _$handleNotificationPage);
   router.get('/404', _$handleNotFoundPage);
   router.get('/test', _$handleTestPage);
   router.get('/test2', _$handleTest2Page);
