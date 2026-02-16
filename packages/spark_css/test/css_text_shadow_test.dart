@@ -9,10 +9,7 @@ void main() {
     });
 
     test('single shadow with x and y', () {
-      final shadow = CssTextShadow(
-        x: CssLength.px(1),
-        y: CssLength.px(2),
-      );
+      final shadow = CssTextShadow(x: CssLength.px(1), y: CssLength.px(2));
       expect(shadow.toCss(), '1px 2px');
     });
 
@@ -47,9 +44,15 @@ void main() {
     test('multiple shadows', () {
       final shadow = CssTextShadow.multiple([
         CssTextShadow(
-            x: CssLength.px(1), y: CssLength.px(1), color: CssColor.red),
+          x: CssLength.px(1),
+          y: CssLength.px(1),
+          color: CssColor.red,
+        ),
         CssTextShadow(
-            x: CssLength.px(2), y: CssLength.px(2), color: CssColor.blue),
+          x: CssLength.px(2),
+          y: CssLength.px(2),
+          color: CssColor.blue,
+        ),
       ]);
       expect(shadow.toCss(), '1px 1px red, 2px 2px blue');
     });
