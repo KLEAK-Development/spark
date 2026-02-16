@@ -18,7 +18,7 @@ class BrowserNotification extends BrowserEventTarget
 
   /// Creates a browser notification by constructing the native JS Notification.
   BrowserNotification(String title, [iface.NotificationOptions? options])
-      : this._wrap(_createNative(title, options));
+    : this._wrap(_createNative(title, options));
 
   /// Wraps an existing native [web.Notification].
   BrowserNotification._wrap(this._native) : super(_native);
@@ -46,17 +46,15 @@ class BrowserNotification extends BrowserEventTarget
     if (options.timestamp != null) webOptions.timestamp = options.timestamp!;
 
     if (options.vibrate != null) {
-      webOptions.vibrate =
-          options.vibrate!.map((v) => v.toJS).toList().toJS;
+      webOptions.vibrate = options.vibrate!.map((v) => v.toJS).toList().toJS;
     }
 
     if (options.actions != null) {
       webOptions.actions = options.actions!
           .map(
-            (a) => web.NotificationAction(
-              action: a.action,
-              title: a.title,
-            )..icon = a.icon ?? '',
+            (a) =>
+                web.NotificationAction(action: a.action, title: a.title)
+                  ..icon = a.icon ?? '',
           )
           .toList()
           .toJS;
@@ -121,8 +119,7 @@ class BrowserNotification extends BrowserEventTarget
   List<int>? get vibrate {
     final raw = (_native as JSObject)['vibrate'];
     if (raw == null) return null;
-    return (raw as JSArray)
-        .toDart
+    return (raw as JSArray).toDart
         .map((e) => (e as JSNumber).toDartInt)
         .toList();
   }
@@ -131,8 +128,7 @@ class BrowserNotification extends BrowserEventTarget
   List<iface.NotificationAction> get actions {
     final raw = (_native as JSObject)['actions'];
     if (raw == null) return const [];
-    return (raw as JSArray<web.NotificationAction>)
-        .toDart
+    return (raw as JSArray<web.NotificationAction>).toDart
         .map(
           (a) => iface.NotificationAction(
             action: a.action,
@@ -164,8 +160,7 @@ int getNotificationMaxActions() {
 }
 
 /// Requests permission to show notifications.
-Future<iface.NotificationPermission>
-    browserRequestNotificationPermission() =>
-        web.Notification.requestPermission().toDart.then(
-          (js) => iface.NotificationPermission(js.toDart),
-        );
+Future<iface.NotificationPermission> browserRequestNotificationPermission() =>
+    web.Notification.requestPermission().toDart.then(
+      (js) => iface.NotificationPermission(js.toDart),
+    );

@@ -17,7 +17,7 @@ class NotificationPage extends SparkPage<void> {
         'This page demonstrates the ',
         strong(['spark_web Notification API']),
         '. Use the controls below to test permission handling, '
-        'notification creation, and notification properties.',
+            'notification creation, and notification properties.',
       ]),
       NotificationDemo().render(),
     ]);

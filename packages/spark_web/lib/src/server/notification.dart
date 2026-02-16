@@ -18,7 +18,7 @@ class ServerNotification extends ServerEventTarget
   final iface.NotificationOptions _options;
 
   ServerNotification(this._title, [iface.NotificationOptions? options])
-      : _options = options ?? const iface.NotificationOptions();
+    : _options = options ?? const iface.NotificationOptions();
 
   @override
   String get title => _title;
@@ -63,8 +63,7 @@ class ServerNotification extends ServerEventTarget
   List<int>? get vibrate => _options.vibrate;
 
   @override
-  List<iface.NotificationAction> get actions =>
-      _options.actions ?? const [];
+  List<iface.NotificationAction> get actions => _options.actions ?? const [];
 
   @override
   void close() {}

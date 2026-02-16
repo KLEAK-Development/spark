@@ -67,10 +67,7 @@ class NotificationDemo {
       backgroundColor: .hex('#d4edda'),
       color: .hex('#155724'),
     ),
-    '.denied': .typed(
-      backgroundColor: .hex('#f8d7da'),
-      color: .hex('#721c24'),
-    ),
+    '.denied': .typed(backgroundColor: .hex('#f8d7da'), color: .hex('#721c24')),
     '.default': .typed(
       backgroundColor: .hex('#fff3cd'),
       color: .hex('#856404'),
@@ -95,24 +92,13 @@ class NotificationDemo {
       transition: .raw('background-color 0.2s, transform 0.1s'),
     ),
     'button:active': .typed(transform: 'scale(0.97)'),
-    '.btn-primary': .typed(
-      backgroundColor: .hex('#2196f3'),
-      color: .white,
-    ),
+    '.btn-primary': .typed(backgroundColor: .hex('#2196f3'), color: .white),
     '.btn-primary:hover': .typed(backgroundColor: .hex('#1976d2')),
-    '.btn-success': .typed(
-      backgroundColor: .hex('#4caf50'),
-      color: .white,
-    ),
+    '.btn-success': .typed(backgroundColor: .hex('#4caf50'), color: .white),
     '.btn-success:hover': .typed(backgroundColor: .hex('#388e3c')),
-    '.btn-danger': .typed(
-      backgroundColor: .hex('#f44336'),
-      color: .white,
-    ),
+    '.btn-danger': .typed(backgroundColor: .hex('#f44336'), color: .white),
     '.btn-danger:hover': .typed(backgroundColor: .hex('#d32f2f')),
-    '.form-group': .typed(
-      marginBottom: .px(10),
-    ),
+    '.form-group': .typed(marginBottom: .px(10)),
     '.form-group label': .typed(
       display: .block,
       fontSize: .px(13),
@@ -228,10 +214,7 @@ class NotificationDemo {
             onClick: (_) {
               _lastNotification = createNotification(
                 notifTitle,
-                NotificationOptions(
-                  body: notifBody,
-                  tag: notifTag,
-                ),
+                NotificationOptions(body: notifBody, tag: notifTag),
               );
               statusMessage =
                   'Notification sent: "${_lastNotification!.title}" '
