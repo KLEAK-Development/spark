@@ -33,7 +33,10 @@ void main() {
       expect(CssBackgroundClip.global(CssGlobal.initial).toCss(), 'initial');
       expect(CssBackgroundClip.global(CssGlobal.unset).toCss(), 'unset');
       expect(CssBackgroundClip.global(CssGlobal.revert).toCss(), 'revert');
-      expect(CssBackgroundClip.global(CssGlobal.revertLayer).toCss(), 'revert-layer');
+      expect(
+        CssBackgroundClip.global(CssGlobal.revertLayer).toCss(),
+        'revert-layer',
+      );
     });
   });
 }
