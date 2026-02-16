@@ -2,6 +2,22 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.5
+
+### Added
+
+- **Feat**: Added complete Notification Web API support (`notification.dart`).
+  - `Notification` abstract interface with properties: `title`, `body`, `tag`, `icon`, `dir`, `lang`, `badge`, `requireInteraction`, `silent`, `timestamp`, `data`, and `close()`.
+  - `NotificationOptions` data class for configuring notifications.
+  - `NotificationPermission` enum (`granted`, `denied`, `defaultValue`).
+  - `NotificationDirection` enum (`auto`, `ltr`, `rtl`).
+  - `createNotification()` factory function (platform-aware).
+  - `requestNotificationPermission()` async permission request.
+  - `notificationPermission` getter for current permission state.
+  - `notificationMaxActions` getter.
+  - Server implementation returns safe defaults; browser implementation wraps the native `window.Notification` API.
+- Added notification example page in the example app (`/notification`) for manual testing of the Notification API.
+
 ## 1.0.0-alpha.4
 
 ### Added
