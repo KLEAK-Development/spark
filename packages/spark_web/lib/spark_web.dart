@@ -38,11 +38,19 @@ export 'src/core.dart';
 export 'src/dom.dart';
 export 'src/collections.dart';
 export 'src/css.dart';
+export 'src/notification.dart';
 export 'src/window.dart';
 
 // Re-export factory functions (platform-aware constructors).
 export 'src/api.dart'
-    show createMutationObserver, createEvent, createCSSStyleSheet;
+    show
+        createMutationObserver,
+        createEvent,
+        createCSSStyleSheet,
+        createNotification,
+        notificationPermission,
+        notificationMaxActions,
+        requestNotificationPermission;
 
 // ---------------------------------------------------------------------------
 // Global singletons — matching the browser's global objects.
