@@ -16,7 +16,10 @@ void main() {
     test('brightness', () {
       expect(CssFilter.brightness(0.5).toCss(), equals('brightness(0.5)'));
       expect(CssFilter.brightness(1).toCss(), equals('brightness(1)'));
-      expect(CssFilter.brightnessPercent(50).toCss(), equals('brightness(50%)'));
+      expect(
+        CssFilter.brightnessPercent(50).toCss(),
+        equals('brightness(50%)'),
+      );
     });
 
     test('contrast', () {
@@ -61,12 +64,18 @@ void main() {
 
     test('grayscale', () {
       expect(CssFilter.grayscale(0.5).toCss(), equals('grayscale(0.5)'));
-      expect(CssFilter.grayscalePercent(100).toCss(), equals('grayscale(100%)'));
+      expect(
+        CssFilter.grayscalePercent(100).toCss(),
+        equals('grayscale(100%)'),
+      );
     });
 
     test('hueRotate', () {
       expect(CssFilter.hueRotate(90).toCss(), equals('hue-rotate(90deg)'));
-      expect(CssFilter.hueRotateRaw('0.5turn').toCss(), equals('hue-rotate(0.5turn)'));
+      expect(
+        CssFilter.hueRotateRaw('0.5turn').toCss(),
+        equals('hue-rotate(0.5turn)'),
+      );
     });
 
     test('invert', () {
@@ -104,7 +113,10 @@ void main() {
     });
 
     test('variable', () {
-      expect(CssFilter.variable('my-filter').toCss(), equals('var(--my-filter)'));
+      expect(
+        CssFilter.variable('my-filter').toCss(),
+        equals('var(--my-filter)'),
+      );
     });
 
     test('raw', () {
