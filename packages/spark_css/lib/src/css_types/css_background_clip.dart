@@ -5,22 +5,30 @@ sealed class CssBackgroundClip implements CssValue {
   const CssBackgroundClip._();
 
   /// The background extends to the outside edge of the border.
-  static const CssBackgroundClip borderBox = _CssBackgroundClipKeyword('border-box');
+  static const CssBackgroundClip borderBox = _CssBackgroundClipKeyword(
+    'border-box',
+  );
 
   /// The background extends to the outside edge of the padding.
-  static const CssBackgroundClip paddingBox = _CssBackgroundClipKeyword('padding-box');
+  static const CssBackgroundClip paddingBox = _CssBackgroundClipKeyword(
+    'padding-box',
+  );
 
   /// The background extends to the outside edge of the content.
-  static const CssBackgroundClip contentBox = _CssBackgroundClipKeyword('content-box');
+  static const CssBackgroundClip contentBox = _CssBackgroundClipKeyword(
+    'content-box',
+  );
 
   /// The background is clipped to the foreground text.
   static const CssBackgroundClip text = _CssBackgroundClipKeyword('text');
 
   /// Multiple background-clip values for multiple background images.
-  factory CssBackgroundClip.multiple(List<CssBackgroundClip> values) = _CssBackgroundClipMultiple;
+  factory CssBackgroundClip.multiple(List<CssBackgroundClip> values) =
+      _CssBackgroundClipMultiple;
 
   /// CSS variable reference.
-  factory CssBackgroundClip.variable(String varName) = _CssBackgroundClipVariable;
+  factory CssBackgroundClip.variable(String varName) =
+      _CssBackgroundClipVariable;
 
   /// Raw CSS value escape hatch.
   factory CssBackgroundClip.raw(String value) = _CssBackgroundClipRaw;
