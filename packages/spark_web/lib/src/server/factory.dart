@@ -4,9 +4,11 @@ library;
 import '../core.dart';
 import '../css.dart' as iface;
 import '../dom.dart' as iface;
+import '../notification.dart' as iface;
 import '../window.dart' as iface;
 import 'css.dart';
 import 'dom.dart';
+import 'notification.dart';
 import 'window.dart';
 
 /// Creates a server-side [Window] instance.
@@ -24,6 +26,24 @@ Event createEvent(String type) => ServerEvent(type);
 
 /// Creates a server-side [CSSStyleSheet] (no-op).
 iface.CSSStyleSheet createCSSStyleSheet() => ServerCSSStyleSheet();
+
+/// Creates a server-side [Notification] (no-op).
+iface.Notification createNotification(
+  String title, [
+  iface.NotificationOptions? options,
+]) =>
+    ServerNotification(title, options);
+
+/// Returns the notification permission on server (always `'default'`).
+iface.NotificationPermission get notificationPermission =>
+    iface.NotificationPermission.defaultValue;
+
+/// Returns the max actions on server (always `0`).
+int get notificationMaxActions => 0;
+
+/// Requests notification permission on server (always returns `'default'`).
+Future<iface.NotificationPermission> requestNotificationPermission() async =>
+    iface.NotificationPermission.defaultValue;
 
 // ---------------------------------------------------------------------------
 // Server-side Event implementations

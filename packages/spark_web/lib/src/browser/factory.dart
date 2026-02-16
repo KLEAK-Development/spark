@@ -6,9 +6,11 @@ import 'package:web/web.dart' as web;
 import '../core.dart';
 import '../css.dart' as iface;
 import '../dom.dart' as iface;
+import '../notification.dart' as iface;
 import '../window.dart' as iface;
 import 'css.dart';
 import 'dom.dart';
+import 'notification.dart';
 import 'window.dart';
 
 /// Creates a browser [Window] wrapping the global window.
@@ -27,3 +29,27 @@ Event createEvent(String type) => BrowserEvent(web.Event(type));
 /// Creates a browser [CSSStyleSheet] via the constructable stylesheets API.
 iface.CSSStyleSheet createCSSStyleSheet() =>
     BrowserCSSStyleSheet(web.CSSStyleSheet(web.CSSStyleSheetInit()));
+
+/// Creates a browser [Notification].
+iface.Notification createNotification(
+  String title, [
+  iface.NotificationOptions? options,
+]) =>
+    BrowserNotification(title, options);
+
+/// Returns the current notification permission state.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/Notification/permission_static
+iface.NotificationPermission get notificationPermission =>
+    getNotificationPermission();
+
+/// Returns the maximum number of actions supported by the device/user agent.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/Notification/maxActions_static
+int get notificationMaxActions => getNotificationMaxActions();
+
+/// Requests permission to show notifications.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static
+Future<iface.NotificationPermission> requestNotificationPermission() =>
+    browserRequestNotificationPermission();
