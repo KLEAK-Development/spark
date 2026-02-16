@@ -16,18 +16,12 @@ void main() {
         CssBackgroundSize.size(CssLength.percent(50)).toCss(),
         equals('50%'),
       );
-      expect(
-        CssBackgroundSize.size(CssLength.auto).toCss(),
-        equals('auto'),
-      );
+      expect(CssBackgroundSize.size(CssLength.auto).toCss(), equals('auto'));
     });
 
     test('size factory outputs correct CSS with two values', () {
       expect(
-        CssBackgroundSize.size(
-          CssLength.percent(50),
-          CssLength.auto,
-        ).toCss(),
+        CssBackgroundSize.size(CssLength.percent(50), CssLength.auto).toCss(),
         equals('50% auto'),
       );
       expect(
@@ -65,10 +59,7 @@ void main() {
     });
 
     test('raw outputs value as-is', () {
-      expect(
-        CssBackgroundSize.raw('100% 100%').toCss(),
-        equals('100% 100%'),
-      );
+      expect(CssBackgroundSize.raw('100% 100%').toCss(), equals('100% 100%'));
     });
 
     test('global outputs correct CSS', () {
