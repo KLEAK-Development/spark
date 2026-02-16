@@ -148,10 +148,7 @@ void main() {
         final gradient = CssBackgroundImage.radialGradient(
           shape: CssRadialShape.circle,
           size: CssRadialSize.size(CssLength.px(50)),
-          position: CssBackgroundPosition.parts([
-            CssBackgroundPosition.top,
-            CssBackgroundPosition.left,
-          ]),
+          position: CssBackgroundPosition.topLeft,
           stops: [
             CssGradientStop(CssColor.red),
             CssGradientStop(CssColor.blue),
@@ -165,10 +162,10 @@ void main() {
 
       test('with position coordinates', () {
         final gradient = CssBackgroundImage.radialGradient(
-          position: CssBackgroundPosition.parts([
+          position: CssBackgroundPosition.xy(
             CssLength.percent(50),
             CssLength.percent(50),
-          ]),
+          ),
           stops: [
             CssGradientStop(CssColor.red),
             CssGradientStop(CssColor.blue),
@@ -219,6 +216,61 @@ void main() {
       expect(
         CssBackgroundImage.global(CssGlobal.inherit).toCss(),
         equals('inherit'),
+      );
+    });
+  });
+
+  group('CssBackgroundPosition', () {
+    test('constants', () {
+      expect(CssBackgroundPosition.left.toCss(), equals('left'));
+      expect(CssBackgroundPosition.center.toCss(), equals('center'));
+      expect(CssBackgroundPosition.right.toCss(), equals('right'));
+      expect(CssBackgroundPosition.top.toCss(), equals('top'));
+      expect(CssBackgroundPosition.bottom.toCss(), equals('bottom'));
+      expect(CssBackgroundPosition.topLeft.toCss(), equals('top left'));
+      expect(CssBackgroundPosition.topRight.toCss(), equals('top right'));
+      expect(CssBackgroundPosition.bottomLeft.toCss(), equals('bottom left'));
+      expect(CssBackgroundPosition.bottomRight.toCss(), equals('bottom right'));
+    });
+
+    test('xy', () {
+      expect(
+        CssBackgroundPosition.xy(
+          CssLength.px(10),
+          CssLength.percent(50),
+        ).toCss(),
+        equals('10px 50%'),
+      );
+    });
+
+    test('x', () {
+      expect(CssBackgroundPosition.x(CssLength.px(10)).toCss(), equals('10px'));
+    });
+
+    test('y', () {
+      expect(
+        CssBackgroundPosition.y(CssLength.percent(50)).toCss(),
+        equals('center 50%'),
+      );
+    });
+
+    test('parts', () {
+      expect(
+        CssBackgroundPosition.parts([
+          CssBackgroundPosition.left,
+          CssLength.px(10),
+        ]).toCss(),
+        equals('left 10px'),
+      );
+    });
+
+    test('multiple', () {
+      expect(
+        CssBackgroundPosition.multiple([
+          CssBackgroundPosition.left,
+          CssBackgroundPosition.xy(CssLength.px(10), CssLength.px(20)),
+        ]).toCss(),
+        equals('left, 10px 20px'),
       );
     });
   });

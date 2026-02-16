@@ -1,3 +1,4 @@
+import 'css_length.dart';
 import 'css_value.dart';
 
 /// CSS background-position property values.
@@ -18,6 +19,35 @@ sealed class CssBackgroundPosition implements CssValue {
   static const CssBackgroundPosition bottom = _CssBackgroundPositionKeyword(
     'bottom',
   );
+
+  /// Top left position (`top left`).
+  static const CssBackgroundPosition topLeft = _CssBackgroundPositionKeyword(
+    'top left',
+  );
+
+  /// Top right position (`top right`).
+  static const CssBackgroundPosition topRight = _CssBackgroundPositionKeyword(
+    'top right',
+  );
+
+  /// Bottom left position (`bottom left`).
+  static const CssBackgroundPosition bottomLeft = _CssBackgroundPositionKeyword(
+    'bottom left',
+  );
+
+  /// Bottom right position (`bottom right`).
+  static const CssBackgroundPosition bottomRight =
+      _CssBackgroundPositionKeyword('bottom right');
+
+  /// Creates a position from x and y coordinates.
+  factory CssBackgroundPosition.xy(CssLength x, CssLength y) =
+      _CssBackgroundPositionXY;
+
+  /// Creates a position from x coordinate (y defaults to center).
+  factory CssBackgroundPosition.x(CssLength x) = _CssBackgroundPositionX;
+
+  /// Creates a position from y coordinate (x defaults to center).
+  factory CssBackgroundPosition.y(CssLength y) = _CssBackgroundPositionY;
 
   /// Creates a position from one to four values (keywords or lengths).
   ///
@@ -61,6 +91,31 @@ final class _CssBackgroundPositionKeyword extends CssBackgroundPosition {
 
   @override
   String toCss() => keyword;
+}
+
+final class _CssBackgroundPositionXY extends CssBackgroundPosition {
+  final CssLength x;
+  final CssLength y;
+  const _CssBackgroundPositionXY(this.x, this.y) : super._();
+
+  @override
+  String toCss() => '${x.toCss()} ${y.toCss()}';
+}
+
+final class _CssBackgroundPositionX extends CssBackgroundPosition {
+  final CssLength x;
+  const _CssBackgroundPositionX(this.x) : super._();
+
+  @override
+  String toCss() => x.toCss();
+}
+
+final class _CssBackgroundPositionY extends CssBackgroundPosition {
+  final CssLength y;
+  const _CssBackgroundPositionY(this.y) : super._();
+
+  @override
+  String toCss() => 'center ${y.toCss()}';
 }
 
 final class _CssBackgroundPositionParts extends CssBackgroundPosition {
