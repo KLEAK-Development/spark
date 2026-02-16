@@ -215,7 +215,7 @@ class Style implements CssStyle {
   ///   // margin: CssSpacing.trbl(top, right, bottom, left),
   ///   backgroundColor: CssColor.hex('f5f5f5'),
   ///   color: CssColor.variable('text-primary'),
-  ///   borderRadius: CssLength.px(8),
+  ///   borderRadius: CssBorderRadius.all(CssLength.px(8)),
   /// )
   /// ```
   Style.typed({
@@ -260,6 +260,7 @@ class Style implements CssStyle {
     CssNumber? flexGrow,
     CssNumber? flexShrink,
     CssLength? gap,
+    CssFlexShorthand? flex,
     // Typography
     CssLength? fontSize,
     CssFontWeight? fontWeight,
@@ -272,13 +273,16 @@ class Style implements CssStyle {
     CssWordBreak? wordBreak,
     CssNumber? lineHeight,
     CssLength? letterSpacing,
+    CssTextShadow? textShadow,
     // Borders
     CssBorder? border,
     CssBorder? borderTop,
     CssBorder? borderRight,
     CssBorder? borderBottom,
     CssBorder? borderLeft,
-    CssLength? borderRadius,
+    CssBorderRadius? borderRadius,
+    CssOutline? outline,
+    CssLength? outlineOffset,
     // Visual
     CssNumber? opacity,
     CssOverflow? overflow,
@@ -286,14 +290,22 @@ class Style implements CssStyle {
     CssOverflow? overflowY,
     CssZIndex? zIndex,
     CssCursor? cursor,
+    CssBoxShadow? boxShadow,
+    CssFilter? filter,
+    CssFilter? backdropFilter,
+    // Backgrounds
+    CssBackgroundImage? backgroundImage,
+    CssBackgroundSize? backgroundSize,
+    CssBackgroundPosition? backgroundPosition,
+    CssBackgroundRepeat? backgroundRepeat,
+    CssBackgroundClip? backgroundClip,
+    CssBackgroundOrigin? backgroundOrigin,
+    CssBackgroundAttachment? backgroundAttachment,
     // Effects
     CssTransition? transition,
+    CssTransform? transform,
     // Complex properties (keep as String for flexibility)
-    String? transform,
-    String? boxShadow,
-    String? backdropFilter,
     String? background,
-    String? flex,
     String? gridTemplateColumns,
     Stylesheet? css,
   }) : stylesheet = css {
@@ -357,6 +369,7 @@ class Style implements CssStyle {
     if (flexGrow != null) _properties['flex-grow'] = flexGrow.toCss();
     if (flexShrink != null) _properties['flex-shrink'] = flexShrink.toCss();
     if (gap != null) _properties['gap'] = gap.toCss();
+    if (flex != null) _properties['flex'] = flex.toCss();
 
     // Typography
     if (fontSize != null) _properties['font-size'] = fontSize.toCss();
@@ -376,6 +389,7 @@ class Style implements CssStyle {
     if (letterSpacing != null) {
       _properties['letter-spacing'] = letterSpacing.toCss();
     }
+    if (textShadow != null) _properties['text-shadow'] = textShadow.toCss();
 
     // Borders
     if (border != null) _properties['border'] = border.toCss();
@@ -388,6 +402,10 @@ class Style implements CssStyle {
     if (borderRadius != null) {
       _properties['border-radius'] = borderRadius.toCss();
     }
+    if (outline != null) _properties['outline'] = outline.toCss();
+    if (outlineOffset != null) {
+      _properties['outline-offset'] = outlineOffset.toCss();
+    }
 
     // Visual
     if (opacity != null) _properties['opacity'] = opacity.toCss();
@@ -396,16 +414,41 @@ class Style implements CssStyle {
     if (overflowY != null) _properties['overflow-y'] = overflowY.toCss();
     if (zIndex != null) _properties['z-index'] = zIndex.toCss();
     if (cursor != null) _properties['cursor'] = cursor.toCss();
+    if (boxShadow != null) _properties['box-shadow'] = boxShadow.toCss();
+    if (filter != null) _properties['filter'] = filter.toCss();
+    if (backdropFilter != null) {
+      _properties['backdrop-filter'] = backdropFilter.toCss();
+    }
+
+    // Backgrounds
+    if (backgroundImage != null) {
+      _properties['background-image'] = backgroundImage.toCss();
+    }
+    if (backgroundSize != null) {
+      _properties['background-size'] = backgroundSize.toCss();
+    }
+    if (backgroundPosition != null) {
+      _properties['background-position'] = backgroundPosition.toCss();
+    }
+    if (backgroundRepeat != null) {
+      _properties['background-repeat'] = backgroundRepeat.toCss();
+    }
+    if (backgroundClip != null) {
+      _properties['background-clip'] = backgroundClip.toCss();
+    }
+    if (backgroundOrigin != null) {
+      _properties['background-origin'] = backgroundOrigin.toCss();
+    }
+    if (backgroundAttachment != null) {
+      _properties['background-attachment'] = backgroundAttachment.toCss();
+    }
 
     // Effects
     if (transition != null) _properties['transition'] = transition.toCss();
+    if (transform != null) _properties['transform'] = transform.toCss();
 
     // Complex properties (string-based)
-    if (transform != null) _properties['transform'] = transform;
-    if (boxShadow != null) _properties['box-shadow'] = boxShadow;
-    if (backdropFilter != null) _properties['backdrop-filter'] = backdropFilter;
     if (background != null) _properties['background'] = background;
-    if (flex != null) _properties['flex'] = flex;
     if (gridTemplateColumns != null) {
       _properties['grid-template-columns'] = gridTemplateColumns;
     }
