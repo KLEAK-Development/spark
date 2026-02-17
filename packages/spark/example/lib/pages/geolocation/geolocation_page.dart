@@ -2,8 +2,6 @@ import 'package:spark_framework/spark.dart';
 
 import '../../components/geolocation_demo/geolocation_demo.dart';
 
-part 'geolocation_page.g.dart';
-
 @Page(path: '/geolocation')
 class GeolocationPage extends SparkPage<void> {
   @override
