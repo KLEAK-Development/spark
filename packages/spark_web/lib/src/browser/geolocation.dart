@@ -21,17 +21,32 @@ class BrowserGeolocation implements iface.Geolocation {
     iface.PositionErrorCallback? errorCallback,
     iface.PositionOptions? options,
   ]) {
-    _native.getCurrentPosition(
-      ((web.GeolocationPosition pos) => successCallback(
-        BrowserGeolocationPosition(pos),
-      )).toJS,
-      errorCallback == null
-          ? null
-          : ((web.GeolocationPositionError err) => errorCallback(
-              BrowserGeolocationPositionError(err),
-            )).toJS,
-      _createNativeOptions(options),
-    );
+    final nativeOptions = _createNativeOptions(options);
+
+    if (nativeOptions != null) {
+      _native.getCurrentPosition(
+        ((web.GeolocationPosition pos) => successCallback(
+          BrowserGeolocationPosition(pos),
+        )).toJS,
+        errorCallback == null
+            ? null
+            : ((web.GeolocationPositionError err) => errorCallback(
+                BrowserGeolocationPositionError(err),
+              )).toJS,
+        nativeOptions,
+      );
+    } else {
+      _native.getCurrentPosition(
+        ((web.GeolocationPosition pos) => successCallback(
+          BrowserGeolocationPosition(pos),
+        )).toJS,
+        errorCallback == null
+            ? null
+            : ((web.GeolocationPositionError err) => errorCallback(
+                BrowserGeolocationPositionError(err),
+              )).toJS,
+      );
+    }
   }
 
   @override
@@ -40,17 +55,32 @@ class BrowserGeolocation implements iface.Geolocation {
     iface.PositionErrorCallback? errorCallback,
     iface.PositionOptions? options,
   ]) {
-    return _native.watchPosition(
-      ((web.GeolocationPosition pos) => successCallback(
-        BrowserGeolocationPosition(pos),
-      )).toJS,
-      errorCallback == null
-          ? null
-          : ((web.GeolocationPositionError err) => errorCallback(
-              BrowserGeolocationPositionError(err),
-            )).toJS,
-      _createNativeOptions(options),
-    );
+    final nativeOptions = _createNativeOptions(options);
+
+    if (nativeOptions != null) {
+      return _native.watchPosition(
+        ((web.GeolocationPosition pos) => successCallback(
+          BrowserGeolocationPosition(pos),
+        )).toJS,
+        errorCallback == null
+            ? null
+            : ((web.GeolocationPositionError err) => errorCallback(
+                BrowserGeolocationPositionError(err),
+              )).toJS,
+        nativeOptions,
+      );
+    } else {
+      return _native.watchPosition(
+        ((web.GeolocationPosition pos) => successCallback(
+          BrowserGeolocationPosition(pos),
+        )).toJS,
+        errorCallback == null
+            ? null
+            : ((web.GeolocationPositionError err) => errorCallback(
+                BrowserGeolocationPositionError(err),
+              )).toJS,
+      );
+    }
   }
 
   @override
