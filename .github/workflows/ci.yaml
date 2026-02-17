@@ -37,6 +37,7 @@ jobs:
       spark_generator: ${{ steps.filter.outputs.spark_generator }}
       spark_html_dsl: ${{ steps.filter.outputs.spark_html_dsl }}
       spark_vdom: ${{ steps.filter.outputs.spark_vdom }}
+      spark_web: ${{ steps.filter.outputs.spark_web }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -70,6 +71,10 @@ jobs:
               - 'packages/spark_cli/**'
               - 'pubspec.yaml'
               - '.github/workflows/ci.yaml'
+            spark_web:
+              - 'packages/spark_web/**'
+              - 'pubspec.yaml'
+              - '.github/workflows/ci.yaml'
             spark_generator:
               - 'packages/spark_generator/**'
               - 'packages/spark/**'
@@ -100,8 +105,15 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark
-          dart test
-          dart test -p chrome
+          dart test --coverage=coverage
+          dart test -p chrome --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark/coverage
+          flags: spark_framework
 
   test_spark_css:
     needs: changes
@@ -121,7 +133,14 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark_css
-          dart test
+          dart test --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark_css/coverage
+          flags: spark_css
 
   test_spark_html_dsl:
     needs: changes
@@ -141,7 +160,14 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark_html_dsl
-          dart test
+          dart test --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark_html_dsl/coverage
+          flags: spark_html_dsl
 
   test_spark_vdom:
     needs: changes
@@ -163,8 +189,15 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark_vdom
-          dart test
-          dart test -p chrome
+          dart test --coverage=coverage
+          dart test -p chrome --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark_vdom/coverage
+          flags: spark_vdom
 
   test_spark_cli:
     needs: changes
@@ -184,7 +217,41 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark_cli
-          dart test
+          dart test --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark_cli/coverage
+          flags: spark_cli
+
+  test_spark_web:
+    needs: changes
+    if: ${{ needs.changes.outputs.spark_web == 'true' }}
+    name: Test Spark Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.7"
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: |
+          cd packages/spark_web
+          dart test --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark_web/coverage
+          flags: spark_web
 
   test_spark_generator:
     needs: changes
@@ -204,4 +271,11 @@ jobs:
       - name: Run tests
         run: |
           cd packages/spark_generator
-          dart test
+          dart test --coverage=coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages/spark_generator/coverage
+          flags: spark_generator
