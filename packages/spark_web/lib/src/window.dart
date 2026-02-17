@@ -3,6 +3,7 @@ library;
 
 import 'core.dart';
 import 'dom.dart';
+import 'geolocation.dart';
 
 // ---------------------------------------------------------------------------
 // Window
@@ -114,6 +115,7 @@ abstract class Navigator {
   List<String> get languages;
   bool get onLine;
   Clipboard get clipboard;
+  Geolocation get geolocation;
 }
 
 // ---------------------------------------------------------------------------
