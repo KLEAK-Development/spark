@@ -3,6 +3,8 @@
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
 library;
 
+import 'dart:async';
+
 // ---------------------------------------------------------------------------
 // Callbacks
 // ---------------------------------------------------------------------------
@@ -152,4 +154,10 @@ abstract class Geolocation {
 
   /// usage: clearWatch(id)
   void clearWatch(int watchId);
+
+  /// Idiomatic Dart wrapper for [getCurrentPosition].
+  Future<GeolocationPosition> getPosition([PositionOptions? options]);
+
+  /// Idiomatic Dart wrapper for [watchPosition].
+  Stream<GeolocationPosition> onPositionChanged([PositionOptions? options]);
 }

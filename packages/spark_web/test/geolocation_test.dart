@@ -37,5 +37,29 @@ void main() {
       );
       expect(errorCalled, isTrue);
     });
+
+    test('getPosition reports error on server', () async {
+      try {
+        await web.window.navigator.geolocation.getPosition();
+        fail('Should not succeed on server');
+      } catch (error) {
+        expect(error, isA<web.GeolocationPositionError>());
+        final posErr = error as web.GeolocationPositionError;
+        expect(posErr.code, equals(2)); // POSITION_UNAVAILABLE
+        expect(posErr.message, contains('not supported on the server'));
+      }
+    });
+
+    test('onPositionChanged reports error on server', () async {
+      try {
+        await web.window.navigator.geolocation.onPositionChanged().first;
+        fail('Should not succeed on server');
+      } catch (error) {
+        expect(error, isA<web.GeolocationPositionError>());
+        final posErr = error as web.GeolocationPositionError;
+        expect(posErr.code, equals(2)); // POSITION_UNAVAILABLE
+        expect(posErr.message, contains('not supported on the server'));
+      }
+    });
   });
 }

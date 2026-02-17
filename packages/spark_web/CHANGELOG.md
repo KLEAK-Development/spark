@@ -2,6 +2,15 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.6
+
+### Added
+
+- **Feat**: Added idiomatic Dart API for `Geolocation`.
+  - Added `Future<GeolocationPosition> getPosition([PositionOptions? options])`.
+  - Added `Stream<GeolocationPosition> onPositionChanged([PositionOptions? options])`.
+  - Implementation provided for both Browser and Server (server returns appropriate errors).
+
 ## 1.0.0-alpha.5
 
 ### Added

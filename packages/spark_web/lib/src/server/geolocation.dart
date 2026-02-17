@@ -49,6 +49,30 @@ class ServerGeolocation implements iface.Geolocation {
   void clearWatch(int watchId) {
     // No-op
   }
+
+  @override
+  Future<iface.GeolocationPosition> getPosition([
+    iface.PositionOptions? options,
+  ]) {
+    return Future.error(
+      ServerGeolocationPositionError(
+        iface.GeolocationPositionError.POSITION_UNAVAILABLE,
+        'Geolocation is not supported on the server.',
+      ),
+    );
+  }
+
+  @override
+  Stream<iface.GeolocationPosition> onPositionChanged([
+    iface.PositionOptions? options,
+  ]) {
+    return Stream.error(
+      ServerGeolocationPositionError(
+        iface.GeolocationPositionError.POSITION_UNAVAILABLE,
+        'Geolocation is not supported on the server.',
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

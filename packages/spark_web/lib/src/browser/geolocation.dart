@@ -1,6 +1,7 @@
 /// Browser implementation of the Geolocation API wrapping `package:web`.
 library;
 
+import 'dart:async';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
@@ -85,6 +86,44 @@ class BrowserGeolocation implements iface.Geolocation {
 
   @override
   void clearWatch(int watchId) => _native.clearWatch(watchId);
+
+  @override
+  Future<iface.GeolocationPosition> getPosition([
+    iface.PositionOptions? options,
+  ]) {
+    final completer = Completer<iface.GeolocationPosition>();
+    getCurrentPosition(
+      (pos) => completer.complete(pos),
+      (err) => completer.completeError(err),
+      options,
+    );
+    return completer.future;
+  }
+
+  @override
+  Stream<iface.GeolocationPosition> onPositionChanged([
+    iface.PositionOptions? options,
+  ]) {
+    late StreamController<iface.GeolocationPosition> controller;
+    int? watchId;
+
+    controller = StreamController<iface.GeolocationPosition>(
+      onListen: () {
+        watchId = watchPosition(
+          (pos) => controller.add(pos),
+          (err) => controller.addError(err),
+          options,
+        );
+      },
+      onCancel: () {
+        if (watchId != null) {
+          clearWatch(watchId!);
+        }
+      },
+    );
+
+    return controller.stream;
+  }
 
   static web.PositionOptions? _createNativeOptions(
     iface.PositionOptions? options,

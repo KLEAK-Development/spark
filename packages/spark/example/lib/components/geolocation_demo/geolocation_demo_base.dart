@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:spark_framework/spark.dart';
 
 @Component(tag: GeolocationDemo.tag)
@@ -6,7 +7,7 @@ class GeolocationDemo {
 
   int? _watchId;
 
-  GeolocationDemo();
+  GeolocationDemo({this.status = 'Ready', this.coords = '', this.error = ''});
 
   @Attribute()
   String status = 'Ready';
@@ -125,48 +126,85 @@ class GeolocationDemo {
     ]);
   }
 
-  void _getCurrentPosition() {
-    status = 'Requesting position...';
+  Future<void> _getCurrentPosition({bool highAccuracy = true}) async {
+    status = highAccuracy
+        ? 'Requesting position (High Accuracy)...'
+        : 'Requesting position (Low Accuracy)...';
     error = '';
 
-    window.navigator.geolocation.getCurrentPosition(
-      (position) {
-        status = 'Position retrieved';
-        coords = _formatPosition(position);
-      },
-      (e) {
-        status = 'Error';
+    try {
+      final position = await window.navigator.geolocation.getPosition(
+        PositionOptions(
+          enableHighAccuracy: highAccuracy,
+          timeout: 15000,
+          maximumAge: 0,
+        ),
+      );
+      status = 'Position retrieved';
+      coords = _formatPosition(position);
+    } catch (e) {
+      if (e is GeolocationPositionError && highAccuracy && e.code == 2) {
+        // Firefox sometimes fails with code 2 (POSITION_UNAVAILABLE) when
+        // enableHighAccuracy is true on systems without a GPS.
+        // Fallback to low accuracy in this case.
+        return _getCurrentPosition(highAccuracy: false);
+      }
+      status = 'Error';
+      if (e is GeolocationPositionError) {
         error = '[${e.code}] ${e.message}';
-      },
-      PositionOptions(enableHighAccuracy: true, timeout: 5000, maximumAge: 0),
-    );
+      } else {
+        error = e.toString();
+      }
+    }
   }
 
-  void _startWatch() {
+  void _startWatch({bool highAccuracy = true}) {
     if (_watchId != null) return;
 
-    status = 'Watching position...';
+    status = highAccuracy
+        ? 'Watching position (High Accuracy)...'
+        : 'Watching position (Low Accuracy)...';
     error = '';
 
-    _watchId = window.navigator.geolocation.watchPosition(
+    final stream = window.navigator.geolocation.onPositionChanged(
+      PositionOptions(enableHighAccuracy: highAccuracy),
+    );
+
+    // We still use _watchId internally to track if we're watching,
+    // though the implementation now uses a Stream.
+    _watchId = 1; // Dummy ID
+
+    final subscription = stream.listen(
       (position) {
-        status = 'Position updated (Watch ID: $_watchId)';
+        status = 'Position updated';
         coords = _formatPosition(position);
       },
-      (e) {
+      onError: (e) {
+        if (e is GeolocationPositionError && highAccuracy && e.code == 2) {
+          _stopWatch();
+          _startWatch(highAccuracy: false);
+          return;
+        }
         status = 'Watch Error';
-        error = '[${e.code}] ${e.message}';
+        if (e is GeolocationPositionError) {
+          error = '[${e.code}] ${e.message}';
+        } else {
+          error = e.toString();
+        }
       },
-      PositionOptions(enableHighAccuracy: true),
     );
+
+    // Store subscription in a way we can cancel it
+    _subscription = subscription;
   }
 
+  StreamSubscription? _subscription;
+
   void _stopWatch() {
-    if (_watchId != null) {
-      window.navigator.geolocation.clearWatch(_watchId!);
-      _watchId = null;
-      status = 'Watch stopped';
-    }
+    _subscription?.cancel();
+    _subscription = null;
+    _watchId = null;
+    status = 'Watch stopped';
   }
 
   String _formatPosition(GeolocationPosition pos) {

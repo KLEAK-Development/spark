@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// dart format width=80
 
 // **************************************************************************
 // ComponentGenerator
@@ -10,6 +9,7 @@
 // ignore_for_file: unused_import
 
 import 'package:spark_framework/spark.dart' hide query, queryAll;
+import 'dart:async';
 
 /// Generated reactive implementation of [GeolocationDemo].
 class GeolocationDemo extends SparkComponent {
@@ -19,8 +19,17 @@ class GeolocationDemo extends SparkComponent {
   late String _coords;
   late String _error;
   int? _watchId;
+  StreamSubscription? _subscription;
 
-  GeolocationDemo();
+  GeolocationDemo({
+    String status = 'Ready',
+    String coords = '',
+    String error = '',
+  }) {
+    _status = status;
+    _coords = coords;
+    _error = error;
+  }
 
   String get status => _status;
   set status(String v) {
@@ -46,7 +55,7 @@ class GeolocationDemo extends SparkComponent {
     }
   }
 
-  @override
+@override
   Element build() {
     return div([
       h2('Geolocation API Demo'),
@@ -89,48 +98,15 @@ class GeolocationDemo extends SparkComponent {
     ]);
   }
 
-  void _getCurrentPosition() {
-    status = 'Requesting position...';
-    error = '';
+  Future<void> _getCurrentPosition({bool highAccuracy = true}
 
-    window.navigator.geolocation.getCurrentPosition(
-      (position) {
-        status = 'Position retrieved';
-        coords = _formatPosition(position);
-      },
-      (e) {
-        status = 'Error';
-        error = '[${e.code}] ${e.message}';
-      },
-      PositionOptions(enableHighAccuracy: true, timeout: 5000, maximumAge: 0),
-    );
-  }
-
-  void _startWatch() {
-    if (_watchId != null) return;
-
-    status = 'Watching position...';
-    error = '';
-
-    _watchId = window.navigator.geolocation.watchPosition(
-      (position) {
-        status = 'Position updated (Watch ID: $_watchId)';
-        coords = _formatPosition(position);
-      },
-      (e) {
-        status = 'Watch Error';
-        error = '[${e.code}] ${e.message}';
-      },
-      PositionOptions(enableHighAccuracy: true),
-    );
-  }
+  void _startWatch({bool highAccuracy = true}
 
   void _stopWatch() {
-    if (_watchId != null) {
-      window.navigator.geolocation.clearWatch(_watchId!);
-      _watchId = null;
-      status = 'Watch stopped';
-    }
+    _subscription?.cancel();
+    _subscription = null;
+    _watchId = null;
+    status = 'Watch stopped';
   }
 
   String _formatPosition(GeolocationPosition pos) {
@@ -174,11 +150,7 @@ class GeolocationDemo extends SparkComponent {
   };
 
   @override
-  void attributeChangedCallback(
-    String name,
-    String? oldValue,
-    String? newValue,
-  ) {
+  void attributeChangedCallback(String name, String? oldValue, String? newValue) {
     switch (name) {
       case 'status':
         _status = newValue ?? '';
@@ -192,7 +164,6 @@ class GeolocationDemo extends SparkComponent {
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
-
   @override
   Stylesheet get adoptedStyleSheets => css({
     ':host': .typed(
@@ -259,4 +230,5 @@ class GeolocationDemo extends SparkComponent {
       overflowX: .auto,
     ),
   });
+
 }
