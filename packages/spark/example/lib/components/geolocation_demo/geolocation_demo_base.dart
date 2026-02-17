@@ -6,6 +6,7 @@ class GeolocationDemo {
   static const tag = 'geolocation-demo';
 
   int? _watchId;
+  StreamSubscription? _subscription;
 
   GeolocationDemo({this.status = 'Ready', this.coords = '', this.error = ''});
 
@@ -197,8 +198,6 @@ class GeolocationDemo {
     // Store subscription in a way we can cancel it
     _subscription = subscription;
   }
-
-  StreamSubscription? _subscription;
 
   void _stopWatch() {
     _subscription?.cancel();

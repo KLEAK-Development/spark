@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
@@ -755,7 +756,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     // Copy render method
     final renderMethod = classElement.getMethod('render');
     if (renderMethod != null) {
-      final methodSource = _getMethodSource(renderMethod, sourceFilePath);
+      final methodSource = getMethodSource(renderMethod, sourceFilePath);
       if (methodSource != null && methodSource.isNotEmpty) {
         buffer.writeln('@override');
         buffer.writeln(methodSource.replaceFirst('render', 'build'));
@@ -772,7 +773,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
 
     final onMountMethod = classElement.getMethod('onMount');
     if (onMountMethod != null) {
-      final methodSource = _getMethodSource(onMountMethod, sourceFilePath);
+      final methodSource = getMethodSource(onMountMethod, sourceFilePath);
       if (methodSource != null && methodSource.isNotEmpty) {
         buffer.writeln('@override');
         buffer.writeln(
@@ -791,7 +792,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       if (method.isStatic || name == null) continue;
       if (_reservedMethodNames.contains(name)) continue;
 
-      final methodSource = _getMethodSource(method, sourceFilePath);
+      final methodSource = getMethodSource(method, sourceFilePath);
       if (methodSource != null && methodSource.isNotEmpty) {
         buffer.writeln(methodSource);
         buffer.writeln();
@@ -846,7 +847,8 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
 
   /// Extracts method source code from a method element.
   /// Finds the method by name and extracts from the previous declaration boundary.
-  String? _getMethodSource(MethodElement method, String sourceFilePath) {
+  @visibleForTesting
+  String? getMethodSource(MethodElement method, String sourceFilePath) {
     final methodName = method.name;
     if (methodName == null) return null;
 
@@ -881,8 +883,19 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
           start++;
         }
 
-        // Find opening brace or arrow after method signature
+        // Find the matching closing parenthesis of the parameter list
         int pos = match.end;
+        int parenCount = 1;
+        while (pos < contents.length && parenCount > 0) {
+          if (contents[pos] == '(') {
+            parenCount++;
+          } else if (contents[pos] == ')') {
+            parenCount--;
+          }
+          pos++;
+        }
+
+        // Find opening brace or arrow after method signature
         bool isArrowFunction = false;
         while (pos < contents.length &&
             contents[pos] != '{' &&

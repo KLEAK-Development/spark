@@ -1,3 +1,8 @@
+## 1.0.0-alpha.15
+
+- Fix: improve method body extraction in `ComponentGenerator` to correctly handle methods with named parameters and default values.
+- Internal: Made `getMethodSource` visible for testing.
+
 ## 1.0.0-alpha.14
 
 - Preserve user code in generated `.impl.dart` files: non-`@Attribute` fields, user-defined getters, and user-defined setters are now carried over into the generated class.

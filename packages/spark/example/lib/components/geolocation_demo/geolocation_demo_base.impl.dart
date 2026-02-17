@@ -1,4 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // ComponentGenerator
@@ -55,7 +56,7 @@ class GeolocationDemo extends SparkComponent {
     }
   }
 
-@override
+  @override
   Element build() {
     return div([
       h2('Geolocation API Demo'),
@@ -98,9 +99,77 @@ class GeolocationDemo extends SparkComponent {
     ]);
   }
 
-  Future<void> _getCurrentPosition({bool highAccuracy = true}
+  Future<void> _getCurrentPosition({bool highAccuracy = true}) async {
+    status = highAccuracy
+        ? 'Requesting position (High Accuracy)...'
+        : 'Requesting position (Low Accuracy)...';
+    error = '';
 
-  void _startWatch({bool highAccuracy = true}
+    try {
+      final position = await window.navigator.geolocation.getPosition(
+        PositionOptions(
+          enableHighAccuracy: highAccuracy,
+          timeout: 15000,
+          maximumAge: 0,
+        ),
+      );
+      status = 'Position retrieved';
+      coords = _formatPosition(position);
+    } catch (e) {
+      if (e is GeolocationPositionError && highAccuracy && e.code == 2) {
+        // Firefox sometimes fails with code 2 (POSITION_UNAVAILABLE) when
+        // enableHighAccuracy is true on systems without a GPS.
+        // Fallback to low accuracy in this case.
+        return _getCurrentPosition(highAccuracy: false);
+      }
+      status = 'Error';
+      if (e is GeolocationPositionError) {
+        error = '[${e.code}] ${e.message}';
+      } else {
+        error = e.toString();
+      }
+    }
+  }
+
+  void _startWatch({bool highAccuracy = true}) {
+    if (_watchId != null) return;
+
+    status = highAccuracy
+        ? 'Watching position (High Accuracy)...'
+        : 'Watching position (Low Accuracy)...';
+    error = '';
+
+    final stream = window.navigator.geolocation.onPositionChanged(
+      PositionOptions(enableHighAccuracy: highAccuracy),
+    );
+
+    // We still use _watchId internally to track if we're watching,
+    // though the implementation now uses a Stream.
+    _watchId = 1; // Dummy ID
+
+    final subscription = stream.listen(
+      (position) {
+        status = 'Position updated';
+        coords = _formatPosition(position);
+      },
+      onError: (e) {
+        if (e is GeolocationPositionError && highAccuracy && e.code == 2) {
+          _stopWatch();
+          _startWatch(highAccuracy: false);
+          return;
+        }
+        status = 'Watch Error';
+        if (e is GeolocationPositionError) {
+          error = '[${e.code}] ${e.message}';
+        } else {
+          error = e.toString();
+        }
+      },
+    );
+
+    // Store subscription in a way we can cancel it
+    _subscription = subscription;
+  }
 
   void _stopWatch() {
     _subscription?.cancel();
@@ -150,7 +219,11 @@ class GeolocationDemo extends SparkComponent {
   };
 
   @override
-  void attributeChangedCallback(String name, String? oldValue, String? newValue) {
+  void attributeChangedCallback(
+    String name,
+    String? oldValue,
+    String? newValue,
+  ) {
     switch (name) {
       case 'status':
         _status = newValue ?? '';
@@ -164,6 +237,7 @@ class GeolocationDemo extends SparkComponent {
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
+
   @override
   Stylesheet get adoptedStyleSheets => css({
     ':host': .typed(
@@ -230,5 +304,4 @@ class GeolocationDemo extends SparkComponent {
       overflowX: .auto,
     ),
   });
-
 }
