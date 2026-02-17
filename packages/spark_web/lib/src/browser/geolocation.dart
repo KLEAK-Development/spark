@@ -22,14 +22,14 @@ class BrowserGeolocation implements iface.Geolocation {
     iface.PositionOptions? options,
   ]) {
     _native.getCurrentPosition(
-      ((web.GeolocationPosition pos) =>
-              successCallback(BrowserGeolocationPosition(pos)))
-          .toJS,
+      ((web.GeolocationPosition pos) => successCallback(
+        BrowserGeolocationPosition(pos),
+      )).toJS,
       errorCallback == null
           ? null
-          : ((web.GeolocationPositionError err) =>
-                  errorCallback(BrowserGeolocationPositionError(err)))
-              .toJS,
+          : ((web.GeolocationPositionError err) => errorCallback(
+              BrowserGeolocationPositionError(err),
+            )).toJS,
       _createNativeOptions(options),
     );
   }
@@ -41,14 +41,14 @@ class BrowserGeolocation implements iface.Geolocation {
     iface.PositionOptions? options,
   ]) {
     return _native.watchPosition(
-      ((web.GeolocationPosition pos) =>
-              successCallback(BrowserGeolocationPosition(pos)))
-          .toJS,
+      ((web.GeolocationPosition pos) => successCallback(
+        BrowserGeolocationPosition(pos),
+      )).toJS,
       errorCallback == null
           ? null
-          : ((web.GeolocationPositionError err) =>
-                  errorCallback(BrowserGeolocationPositionError(err)))
-              .toJS,
+          : ((web.GeolocationPositionError err) => errorCallback(
+              BrowserGeolocationPositionError(err),
+            )).toJS,
       _createNativeOptions(options),
     );
   }
