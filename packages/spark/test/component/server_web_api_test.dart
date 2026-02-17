@@ -4,7 +4,6 @@ import 'package:test/test.dart';
 void main() {
   test('Crypto generates UUID', () {
     final uuid = window.crypto.randomUUID();
-    print('UUID: $uuid');
     expect(uuid, isNotEmpty);
     expect(uuid.length, 36);
   });
@@ -28,6 +27,12 @@ void main() {
   });
 
   test('Navigator properties', () {
-    expect(window.navigator.userAgent, equals('Spark Server'));
+    if (identical(0, 0.0)) {
+      // Browser
+      expect(window.navigator.userAgent, contains('Mozilla'));
+    } else {
+      // VM
+      expect(window.navigator.userAgent, equals('Spark Server'));
+    }
   });
 }

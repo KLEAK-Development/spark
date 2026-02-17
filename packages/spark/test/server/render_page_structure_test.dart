@@ -122,6 +122,43 @@ void main() {
       expect(html, contains('</style>'));
     });
 
+    test('renders default styles with nonce when inlineStyles is missing', () {
+      final html = renderPage(
+        title: 'Default Style Page',
+        content: '<div>Content</div>',
+        nonce: 'test-nonce',
+      );
+
+      expect(html, contains('<style nonce="test-nonce">'));
+      expect(html, contains('font-family: system-ui'));
+    });
+
+    test('renders default styles with empty nonce when inlineStyles is missing', () {
+      final html = renderPage(
+        title: 'Default Style Page',
+        content: '<div>Content</div>',
+        nonce: '',
+      );
+
+      expect(html, contains('<style>'));
+      expect(html, isNot(contains('nonce=""')));
+    });
+
+    test('renders scriptName with nonce', () {
+      final html = renderPage(
+        title: 'Script Nonce',
+        content: 'Content',
+        scriptName: 'app.js',
+        nonce: 'n',
+      );
+      expect(html, contains('<script defer src="/app.js" nonce="n"></script>'));
+    });
+
+    test('ignores empty scriptName', () {
+      final html = renderPage(title: 'T', content: 'C', scriptName: '');
+      expect(html, isNot(contains('<script')));
+    });
+
     test('renders headContent as String', () {
       final html = renderPage(
         title: 'Head Content Page',

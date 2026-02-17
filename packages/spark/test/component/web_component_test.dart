@@ -55,5 +55,23 @@ void main() {
       final component = TestComponent();
       expect(component.queryAll('.any'), isEmpty);
     });
+
+    test('attribute manipulation methods do not crash on server', () {
+      final component = TestComponent();
+      expect(() => component.setAttr('foo', 'bar'), returnsNormally);
+      expect(() => component.removeAttr('foo'), returnsNormally);
+      expect(component.hasAttr('foo'), isFalse);
+      expect(component.toggleAttr('foo'), isFalse);
+    });
+
+    test('top-level query stubs return null/empty', () {
+      expect(query('.any'), isNull);
+      expect(queryAll('.any'), isEmpty);
+    });
+
+    test('shadowRoot returns null on server', () {
+      final component = TestComponent();
+      expect(component.shadowRoot, isNull);
+    });
   });
 }

@@ -18,6 +18,15 @@ void main() {
       expect(request.clientIp, '1.2.3.4');
     });
 
+    test('returns ip from x-real-ip header', () {
+      final request = Request(
+        'GET',
+        Uri.parse('http://localhost/'),
+        headers: {'x-real-ip': '1.1.1.1'},
+      );
+      expect(request.clientIp, '1.1.1.1');
+    });
+
     test('returns null if x-forwarded-for is empty', () {
       final request = Request(
         'GET',

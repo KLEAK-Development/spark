@@ -111,6 +111,11 @@ void main() {
         final req = _makeRequest('http://localhost/');
         expect(req.queryParam('sort'), '');
       });
+
+      test('returns defaultValue when parameter is missing explicitly', () {
+        final req = _makeRequest('http://localhost/');
+        expect(req.queryParam('missing', 'fallback'), 'fallback');
+      });
     });
 
     group('queryParamInt', () {
@@ -127,6 +132,11 @@ void main() {
       test('returns default for non-integer value', () {
         final req = _makeRequest('http://localhost/?page=abc');
         expect(req.queryParamInt('page', 1), 1);
+      });
+
+      test('hits line 134 with actual parse', () {
+        final req = _makeRequest('http://localhost/?val=10');
+        expect(req.queryParamInt('val'), 10);
       });
     });
 
@@ -211,6 +221,7 @@ void main() {
           headers: {'content-type': 'application/json'},
         );
         expect(req.header('content-type'), 'application/json');
+        expect(req.header('Content-Type'), 'application/json');
       });
 
       test('returns null for missing header', () {
@@ -226,6 +237,14 @@ void main() {
           headers: {'cookie': 'session=abc123'},
         );
         expect(req.cookies, {'session': 'abc123'});
+      });
+
+      test('handles malformed cookie header', () {
+        final req = _makeRequest(
+          'http://localhost/',
+          headers: {'cookie': 'malformed'},
+        );
+        expect(req.cookies['malformed'], '');
       });
 
       test('parses multiple cookies', () {
