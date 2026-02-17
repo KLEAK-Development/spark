@@ -11,6 +11,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
+  meta: ^1.11.0
   build: ^4.0.4
   source_gen: ^4.1.2
   analyzer: ^10.0.1
