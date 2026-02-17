@@ -45,20 +45,38 @@ void main() {
       expect(getPropsBool({'a': '1'}, 'a'), isTrue);
       expect(getPropsBool({'a': 'false'}, 'a'), isFalse);
       expect(getPropsBool({'a': '0'}, 'a'), isFalse);
-      expect(getPropsBool({'a': 'not-bool'}, 'a', true), isFalse); // matches actual behavior
+      expect(
+        getPropsBool({'a': 'not-bool'}, 'a', true),
+        isFalse,
+      ); // matches actual behavior
       expect(getPropsBool({'a': []}, 'a', true), isTrue);
       expect(getPropsBool({}, 'missing', true), isTrue);
     });
 
     test('getPropsList comprehensive', () {
-      expect(getPropsList<int>({'a': [1, 2]}, 'a'), [1, 2]);
-      expect(getPropsList<int>({'a': [1, '2']}, 'a'), [1]);
+      expect(
+        getPropsList<int>({
+          'a': [1, 2],
+        }, 'a'),
+        [1, 2],
+      );
+      expect(
+        getPropsList<int>({
+          'a': [1, '2'],
+        }, 'a'),
+        [1],
+      );
       expect(getPropsList<int>({'a': 'not-list'}, 'a'), isEmpty);
       expect(getPropsList<int>({}, 'missing'), isEmpty);
     });
 
     test('getPropsMap comprehensive', () {
-      expect(getPropsMap({'a': {'b': 1}}, 'a'), {'b': 1});
+      expect(
+        getPropsMap({
+          'a': {'b': 1},
+        }, 'a'),
+        {'b': 1},
+      );
       expect(getPropsMap({'a': 'not-map'}, 'a'), isEmpty);
       expect(getPropsMap({}, 'missing'), isEmpty);
     });
@@ -70,7 +88,7 @@ void main() {
         'd': 1.1,
         'b': true,
         'l': [1],
-        'm': {'x': 1}
+        'm': {'x': 1},
       };
       final props = Props(data);
       expect(props.getString('s'), 'str');

@@ -24,33 +24,42 @@ void main() {
 
       packageConfig = candidates
           .map((path) => File(path))
-          .firstWhere((f) => f.existsSync(),
-              orElse: () => throw StateError('Could not find package_config.json'));
+          .firstWhere(
+            (f) => f.existsSync(),
+            orElse: () =>
+                throw StateError('Could not find package_config.json'),
+          );
     });
 
     tearDown(() async {
       await tempDir.delete(recursive: true);
     });
 
-    test('injects live reload script when SPARK_DEV_RELOAD_PORT is set', () async {
-      await script.writeAsString('''
+    test(
+      'injects live reload script when SPARK_DEV_RELOAD_PORT is set',
+      () async {
+        await script.writeAsString('''
         import 'package:spark_framework/src/server/render_page.dart';
         void main() {
           print(renderPage(title: 'Test', content: 'Content'));
         }
       ''');
 
-      final result = await Process.run('dart', [
-        'run',
-        '--packages=${packageConfig.absolute.path}',
-        script.path,
-      ], environment: {'SPARK_DEV_RELOAD_PORT': '1234'});
+        final result = await Process.run(
+          'dart',
+          ['run', '--packages=${packageConfig.absolute.path}', script.path],
+          environment: {'SPARK_DEV_RELOAD_PORT': '1234'},
+        );
 
-      if (result.exitCode != 0) {
-        fail('Script failed: ${result.stderr}');
-      }
+        if (result.exitCode != 0) {
+          fail('Script failed: ${result.stderr}');
+        }
 
-      expect(result.stdout.toString(), contains("new WebSocket('ws://localhost:1234')"));
-    });
+        expect(
+          result.stdout.toString(),
+          contains("new WebSocket('ws://localhost:1234')"),
+        );
+      },
+    );
   });
 }

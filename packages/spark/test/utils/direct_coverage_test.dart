@@ -19,8 +19,8 @@ void main() {
       // Line 120
       expect(req.queryParam('a'), '1');
       expect(req.queryParam('missing', 'fallback'), 'fallback');
-      expect(req.queryParam('missing'), ''); 
-      
+      expect(req.queryParam('missing'), '');
+
       // Line 132, 134
       expect(req.queryParamInt('a'), 1);
       expect(req.queryParamInt('missing', 5), 5);

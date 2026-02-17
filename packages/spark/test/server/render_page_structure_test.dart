@@ -133,16 +133,19 @@ void main() {
       expect(html, contains('font-family: system-ui'));
     });
 
-    test('renders default styles with empty nonce when inlineStyles is missing', () {
-      final html = renderPage(
-        title: 'Default Style Page',
-        content: '<div>Content</div>',
-        nonce: '',
-      );
+    test(
+      'renders default styles with empty nonce when inlineStyles is missing',
+      () {
+        final html = renderPage(
+          title: 'Default Style Page',
+          content: '<div>Content</div>',
+          nonce: '',
+        );
 
-      expect(html, contains('<style>'));
-      expect(html, isNot(contains('nonce=""')));
-    });
+        expect(html, contains('<style>'));
+        expect(html, isNot(contains('nonce=""')));
+      },
+    );
 
     test('renders scriptName with nonce', () {
       final html = renderPage(

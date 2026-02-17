@@ -97,13 +97,16 @@ void main() {
         expect(response.headers['content-type'], 'application/octet-stream');
       });
 
-      test('serves application/octet-stream for file without extension', () async {
-        await writeFile('noextension', 'content');
-        final handler = createStaticHandler(tempDir.path);
-        final response = await handler(request('noextension'));
+      test(
+        'serves application/octet-stream for file without extension',
+        () async {
+          await writeFile('noextension', 'content');
+          final handler = createStaticHandler(tempDir.path);
+          final response = await handler(request('noextension'));
 
-        expect(response.headers['content-type'], 'application/octet-stream');
-      });
+          expect(response.headers['content-type'], 'application/octet-stream');
+        },
+      );
 
       test('returns 404 for non-existent file', () async {
         final handler = createStaticHandler(tempDir.path);
