@@ -30,7 +30,7 @@ class CounterFinal {
       display: .block,
       padding: .all(.px(16)),
       border: CssBorder(width: .px(1), style: .solid, color: .hex('#e0e0e0')),
-      borderRadius: .px(8),
+      borderRadius: .all(.px(8)),
       maxWidth: .px(200),
       fontFamily: .raw('system-ui, -apple-system, sans-serif'),
     ),
@@ -55,7 +55,7 @@ class CounterFinal {
       fontSize: .px(18),
       border: .none,
 
-      borderRadius: .px(4),
+      borderRadius: .all(.px(4)),
       cursor: .pointer,
       transition: .raw('background-color 0.2s'),
     ),
@@ -63,7 +63,7 @@ class CounterFinal {
     '.decrement:hover': .typed(backgroundColor: .hex('#d32f2f')),
     '.increment': .typed(backgroundColor: .hex('#4caf50'), color: .white),
     '.increment:hover': .typed(backgroundColor: .hex('#388e3c')),
-    'button:active': .typed(transform: 'scale(0.95)'),
+    'button:active': .typed(transform: CssTransform.scale(0.95)),
     'button:disabled': .typed(
       opacity: CssNumber(0.6),
       cursor: .raw('not-allowed'),
@@ -80,7 +80,7 @@ class CounterFinal {
       width: .px(50),
       padding: .all(.px(4)),
       border: CssBorder(width: .px(1), style: .solid, color: .hex('#cccccc')),
-      borderRadius: .px(4),
+      borderRadius: .all(.px(4)),
     ),
   });
 

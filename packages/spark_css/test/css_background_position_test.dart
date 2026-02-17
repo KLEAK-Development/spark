@@ -1,5 +1,4 @@
 import 'package:spark_css/spark_css.dart';
-import 'package:spark_css/src/css_types/css_background_position.dart';
 import 'package:test/test.dart';
 
 void main() {
