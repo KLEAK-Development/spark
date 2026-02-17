@@ -18,10 +18,12 @@ class ServerGeolocation implements iface.Geolocation {
   ]) {
     // Immediately report that geolocation is unavailable on the server.
     if (errorCallback != null) {
-      errorCallback(ServerGeolocationPositionError(
-        iface.GeolocationPositionError.POSITION_UNAVAILABLE,
-        'Geolocation is not supported on the server.',
-      ));
+      errorCallback(
+        ServerGeolocationPositionError(
+          iface.GeolocationPositionError.POSITION_UNAVAILABLE,
+          'Geolocation is not supported on the server.',
+        ),
+      );
     }
   }
 
@@ -33,10 +35,12 @@ class ServerGeolocation implements iface.Geolocation {
   ]) {
     // Immediately report that geolocation is unavailable on the server.
     if (errorCallback != null) {
-      errorCallback(ServerGeolocationPositionError(
-        iface.GeolocationPositionError.POSITION_UNAVAILABLE,
-        'Geolocation is not supported on the server.',
-      ));
+      errorCallback(
+        ServerGeolocationPositionError(
+          iface.GeolocationPositionError.POSITION_UNAVAILABLE,
+          'Geolocation is not supported on the server.',
+        ),
+      );
     }
     return 0;
   }
