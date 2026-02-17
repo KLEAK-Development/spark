@@ -16,6 +16,7 @@ import 'package:spark_framework/spark.dart';
 
 import 'package:spark_example/endpoints/endpoints.dart';
 import 'package:spark_example/endpoints/repro_endpoint.dart';
+import 'package:spark_example/pages/geolocation/geolocation_page.dart';
 import 'package:spark_example/pages/home_page.dart';
 import 'package:spark_example/pages/no_component/no_component_page.dart';
 import 'package:spark_example/pages/not_found_page.dart';
@@ -427,6 +428,60 @@ Future<Response> _$handleReproEndpoint(Request request) async {
   return pipeline.addHandler(handler)(request);
 }
 
+Future<Response> _$handleGeolocationPage(Request request) async {
+  final page = GeolocationPage();
+  var pipeline = const Pipeline();
+  for (final middleware in page.middleware) {
+    pipeline = pipeline.addMiddleware(middleware);
+  }
+
+  final handler = (Request req) async {
+    final pageRequest = PageRequest(shelfRequest: req, pathParams: {});
+
+    final response = await page.loader(pageRequest);
+
+    return switch (response) {
+      PageData(
+        :final data,
+        :final statusCode,
+        :final headers,
+        :final cookies,
+      ) =>
+        _$renderPageResponse(
+          page,
+          data,
+          pageRequest,
+          statusCode,
+          headers,
+          cookies,
+          'geolocation/geolocation_page.dart.js',
+          req.context['spark.nonce'] as String?,
+        ),
+      PageRedirect(
+        :final location,
+        :final statusCode,
+        :final headers,
+        :final cookies,
+      ) =>
+        Response(
+          statusCode,
+          headers: {
+            ...headers,
+            'location': location,
+            if (cookies.isNotEmpty)
+              HttpHeaders.setCookieHeader: cookies
+                  .map((c) => c.toString())
+                  .toList(),
+          },
+        ),
+      PageError(:final message, :final statusCode, :final cookies) =>
+        _$renderErrorResponse(message, statusCode, cookies),
+    };
+  };
+
+  return pipeline.addHandler(handler)(request);
+}
+
 Future<Response> _$handleHomePage(Request request) async {
   final page = HomePage();
   var pipeline = const Pipeline();
@@ -760,6 +815,7 @@ Future<Response> _$handleTest2Page(Request request) async {
 /// - `/api/check` -> CheckMwEndpoint
 /// - `/api/users/<id>` -> GetUserEndpoint
 /// - `/api/repro` -> ReproEndpoint
+/// - `/geolocation` -> GeolocationPage
 /// - `/` -> HomePage
 /// - `/no-component` -> NoComponentPage
 /// - `/404` -> NotFoundPage
@@ -778,6 +834,7 @@ Router createSparkRouter() {
     (Request request, String id) => _$handleGetUserEndpoint(request, id),
   );
   router.get('/api/repro', _$handleReproEndpoint);
+  router.get('/geolocation', _$handleGeolocationPage);
   router.get('/', _$handleHomePage);
   router.get('/no-component', _$handleNoComponentPage);
   router.get('/404', _$handleNotFoundPage);

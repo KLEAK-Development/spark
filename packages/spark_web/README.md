@@ -301,7 +301,7 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | `structuredClone()` | ❌ TODO | |
 | `queueMicrotask()` | ❌ TODO | |
 | `Notification` | ❌ TODO | |
-| `Geolocation` | ❌ TODO | |
+| `Geolocation` | ✅ Done | |
 | `Permissions` | ❌ TODO | |
 | `FullScreen API` | ❌ TODO | `requestFullscreen()`, `exitFullscreen()` |
 

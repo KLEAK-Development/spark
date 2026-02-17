@@ -6,8 +6,10 @@ import 'package:web/web.dart' as web;
 
 import '../core.dart';
 import '../dom.dart' as iface;
+import '../geolocation.dart' as iface;
 import '../window.dart' as iface;
 import 'dom.dart';
+import 'geolocation.dart';
 
 // ---------------------------------------------------------------------------
 // Window
@@ -178,6 +180,8 @@ class BrowserNavigator implements iface.Navigator {
   bool get onLine => _native.onLine;
   @override
   iface.Clipboard get clipboard => BrowserClipboard(_native.clipboard);
+  @override
+  iface.Geolocation get geolocation => BrowserGeolocation(_native.geolocation);
 }
 
 // ---------------------------------------------------------------------------
