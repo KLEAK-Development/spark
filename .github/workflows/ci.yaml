@@ -102,17 +102,21 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark
           dart test --coverage=coverage
           dart test -p chrome --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark/coverage
+          file: packages/spark/coverage/lcov.info
           flags: spark_framework
 
   test_spark_css:
@@ -130,16 +134,20 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark_css
           dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark_css/coverage
+          file: packages/spark_css/coverage/lcov.info
           flags: spark_css
 
   test_spark_html_dsl:
@@ -157,16 +165,20 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark_html_dsl
           dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark_html_dsl/coverage
+          file: packages/spark_html_dsl/coverage/lcov.info
           flags: spark_html_dsl
 
   test_spark_vdom:
@@ -186,17 +198,21 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark_vdom
           dart test --coverage=coverage
           dart test -p chrome --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark_vdom/coverage
+          file: packages/spark_vdom/coverage/lcov.info
           flags: spark_vdom
 
   test_spark_cli:
@@ -214,16 +230,20 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark_cli
           dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark_cli/coverage
+          file: packages/spark_cli/coverage/lcov.info
           flags: spark_cli
 
   test_spark_web:
@@ -241,16 +261,20 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark_web
           dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark_web/coverage
+          file: packages/spark_web/coverage/lcov.info
           flags: spark_web
 
   test_spark_generator:
@@ -268,14 +292,18 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Install coverage tool
+        run: dart pub global activate coverage
+
       - name: Run tests
         run: |
           cd packages/spark_generator
           dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/spark_generator/coverage
+          file: packages/spark_generator/coverage/lcov.info
           flags: spark_generator
