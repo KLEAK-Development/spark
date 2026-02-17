@@ -203,7 +203,6 @@ class CounterFinal extends SparkComponent {
       padding: .all(.px(16)),
       border: CssBorder(width: .px(1), style: .solid, color: .hex('#e0e0e0')),
       borderRadius: .all(.px(8)),
-      maxWidth: .px(200),
       fontFamily: .raw('system-ui, -apple-system, sans-serif'),
     ),
     '.counter-display': .typed(

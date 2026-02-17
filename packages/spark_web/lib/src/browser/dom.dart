@@ -1351,7 +1351,10 @@ class BrowserShadowRoot extends BrowserDocumentFragment
       BrowserNodeList(_nativeShadowRoot.querySelectorAll(selectors));
 
   @override
-  List<CSSStyleSheet> get adoptedStyleSheets => [];
+  List<CSSStyleSheet> get adoptedStyleSheets {
+    final nativeSheets = _nativeShadowRoot.adoptedStyleSheets.toDart;
+    return nativeSheets.map((s) => BrowserCSSStyleSheet(s)).toList();
+  }
 
   @override
   set adoptedStyleSheets(List<CSSStyleSheet> sheets) {

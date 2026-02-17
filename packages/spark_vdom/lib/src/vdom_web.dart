@@ -39,6 +39,8 @@ void mountList(dynamic parent, List<Node> vNodes) {
   bool isSvg = false;
   if (node is web.Element) {
     isSvg = node.namespaceURI == 'http://www.w3.org/2000/svg';
+  } else if (node is web.ShadowRoot) {
+    // Shadow root might have children with SVG tags
   }
 
   // Find all significant children

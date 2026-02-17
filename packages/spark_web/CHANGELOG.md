@@ -2,6 +2,16 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.7
+
+### Added
+
+- **Feat**: Implemented `adoptedStyleSheets` getter for `ShadowRoot` on browser. This allows reading back applied stylesheets, which is necessary for correct hydration of styled components.
+
+### Fixed
+
+- Improved stability of node wrapping by ensuring consistent wrapper types for various element classes.
+
 ## 1.0.0-alpha.6
 
 ### Added

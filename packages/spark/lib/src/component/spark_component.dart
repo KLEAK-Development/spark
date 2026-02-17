@@ -23,9 +23,9 @@ import 'package:spark_vdom/vdom.dart' as vdom;
 ///
 /// ```dart
 /// @Component(tag: 'my-counter')
-/// class Counter extends SparkComponent with _$CounterSync {
-///   @Attribute(observable: true)
-///   int _value = 0;  // Private backing field
+/// class Counter {
+///   @Attribute())
+///   int value = 0;
 ///
 ///   @override
 ///   html.Element build() {
@@ -77,6 +77,12 @@ abstract class SparkComponent extends WebComponent {
   /// instead to define your component's content.
   @override
   html.Element render() {
+    if (kIsBrowser) {
+      // On the browser, we only want the host element.
+      // The hydration process will handle the shadow root and its content.
+      return html.element(tagName, [], attributes: dumpedAttributes);
+    }
+
     final children = _buildWithStyles();
     return html.element(tagName, [
       html.template(shadowrootmode: 'open', children),
@@ -105,7 +111,9 @@ abstract class SparkComponent extends WebComponent {
 
   /// Forces a re-render of the component.
   void update() {
-    if (!isHydrated) return;
+    if (!isHydrated) {
+      return;
+    }
 
     // On the browser, styles are already applied via adoptedStyleSheets in onMount().
     // We only need the build() result, not the style element, to avoid CSP issues
@@ -129,6 +137,9 @@ abstract class SparkComponent extends WebComponent {
     } else {
       vdom.mountList(element, newVdom);
     }
+
+    // After patching the DOM, we need to hydrate any newly added components.
+    hydrateAll();
   }
 
   Function _wrapHandler(Function original) {

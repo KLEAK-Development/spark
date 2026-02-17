@@ -1,3 +1,18 @@
+## 1.0.0-alpha.11
+
+### Features
+
+- **Nested Web Components**: Added full support for nesting web components within other web components.
+  - Implemented recursive hydration in `WebComponent.hydrateAll` to discover components inside Shadow Roots.
+  - Added automatic hydration trigger in `SparkComponent.update` after Virtual DOM patches to support dynamically added components.
+  - Added `WebComponent.hydrate()` public method for manual hydration of specific elements.
+
+### Bug Fixes
+
+- Fixed styling issues for dynamically added components by ensuring a Shadow Root is automatically attached during hydration if one doesn't exist.
+- Optimized `SparkComponent.render()` on the browser to return only the host element, preventing parent components from incorrectly injecting SSR templates into the light DOM.
+- Improved hydration tracking reliability using native JS nodes as identity keys.
+
 ## 1.0.0-alpha.10
 
 - Extracted CSS style system into standalone `spark_css` package.

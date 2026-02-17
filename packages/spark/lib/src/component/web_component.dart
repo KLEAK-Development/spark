@@ -137,6 +137,9 @@ abstract class WebComponent {
   bool get isHydrated => _element != null;
 
   /// Hydrates this component with the given DOM element.
+  void hydrate(web.HTMLElement element) => _hydrate(element);
+
+  /// Hydrates this component with the given DOM element.
   ///
   /// This is called internally by [hydrateComponents] and should not
   /// be called directly.
@@ -145,8 +148,15 @@ abstract class WebComponent {
     // Try to get the shadow root (may be attached via Declarative Shadow DOM)
     try {
       _shadowRoot = element.shadowRoot;
+
+      // If no shadow root exists (dynamic component), create one.
+      if (_shadowRoot == null && web.kIsBrowser) {
+        _shadowRoot = element.attachShadow(
+          const web.ShadowRootInit(mode: 'open'),
+        );
+      }
     } catch (_) {
-      // Shadow root may not be available
+      // Shadow root may not be available or supported
     }
 
     // Set up attribute observation if needed
@@ -375,6 +385,11 @@ typedef ComponentFactory = Function;
 /// Registry of component factories by tag name.
 final Map<String, ComponentFactory> _componentRegistry = {};
 
+/// Map of elements to their hydrated component instance.
+final Expando<WebComponent> _hydratedComponents = Expando<WebComponent>();
+
+bool _isHydrating = false;
+
 /// Registers a component factory for hydration.
 void registerComponent(String tagName, ComponentFactory factory) {
   _componentRegistry[tagName.toLowerCase()] = factory;
@@ -382,24 +397,56 @@ void registerComponent(String tagName, ComponentFactory factory) {
 
 /// Hydrates all registered components found in the DOM.
 void hydrateAll() {
-  if (!web.kIsBrowser) return;
+  if (!web.kIsBrowser || _isHydrating) return;
 
-  for (final entry in _componentRegistry.entries) {
-    final tagName = entry.key;
-    final factory = entry.value;
+  _isHydrating = true;
+  try {
+    _hydrateRecursive(web.document);
+  } finally {
+    _isHydrating = false;
+  }
+}
 
-    final elements = web.document.querySelectorAll(tagName);
-    for (var i = 0; i < elements.length; i++) {
-      final element = elements.item(i);
-      if (element != null) {
+void _hydrateRecursive(web.Node root) {
+  if (root is web.Document) {
+    final docEl = root.documentElement;
+    if (docEl != null) {
+      _hydrateRecursive(docEl);
+    }
+  } else if (root is web.Element) {
+    // Check if this element is already hydrated
+    final native = root.raw;
+    if (native != null && _hydratedComponents[native] == null) {
+      // Check if this element itself is a component
+      final tagName = root.tagName.toLowerCase();
+      final factory = _componentRegistry[tagName];
+      if (factory != null) {
         final component = factory();
-
-        if (component is! WebComponent) {
-          continue;
+        if (component is WebComponent) {
+          _hydratedComponents[native] = component;
+          component._hydrate(root as web.HTMLElement);
         }
-
-        component._hydrate(element as web.HTMLElement);
       }
+    }
+
+    // Check for shadow root to recurse into
+    final shadow = root is web.HTMLElement ? root.shadowRoot : null;
+    if (shadow != null) {
+      _hydrateRecursive(shadow);
+    }
+
+    _hydrateChildren(root);
+  } else if (root is web.DocumentFragment) {
+    _hydrateChildren(root);
+  }
+}
+
+void _hydrateChildren(web.Node parent) {
+  final children = parent.childNodes;
+  for (var i = 0; i < children.length; i++) {
+    final child = children.item(i);
+    if (child != null) {
+      _hydrateRecursive(child);
     }
   }
 }

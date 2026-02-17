@@ -22,12 +22,16 @@ void main() {
       final htmlNode = component.render();
       final html = htmlNode.toHtml();
 
-      expect(html, contains('<simple-comp data-test="true">'));
-      expect(html, contains('<template shadowrootmode="open">'));
-      expect(html, contains('<style>'));
-      expect(html, contains(':host {'));
-      expect(html, contains('display: block;'));
-      expect(html, contains('<div>Hello</div>'));
+      if (kIsBrowser) {
+        expect(html, equals('<simple-comp data-test="true"></simple-comp>'));
+      } else {
+        expect(html, contains('<simple-comp data-test="true">'));
+        expect(html, contains('<template shadowrootmode="open">'));
+        expect(html, contains('<style>'));
+        expect(html, contains(':host {'));
+        expect(html, contains('display: block;'));
+        expect(html, contains('<div>Hello</div>'));
+      }
     });
 
     test('scheduleUpdate does nothing on server', () {

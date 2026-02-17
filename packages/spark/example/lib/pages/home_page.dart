@@ -10,6 +10,7 @@ library;
 import 'package:spark_framework/spark.dart';
 
 import '../components/counter_final/counter_final.dart';
+import '../components/nested_demo/nested_demo.dart';
 
 /// Home page data model.
 ///
@@ -66,6 +67,8 @@ class HomePage extends SparkPage<HomePageData> {
 
       CounterFinal(value: data.counterStart).render(),
 
+      NestedDemo().render(),
+
       p([
         strong(['Try it:']),
         ' The counter works immediately (declarative shadow DOM) and becomes interactive after hydration.',
@@ -77,7 +80,7 @@ class HomePage extends SparkPage<HomePageData> {
   String title(HomePageData data, PageRequest request) => data.title;
 
   @override
-  List<Type> get components => [CounterFinal];
+  List<Type> get components => [CounterFinal, NestedDemo];
 
   @override
   Stylesheet? get inlineStyles => css({

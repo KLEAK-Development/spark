@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-alpha.3
+
+### Added
+
+- Added explicit handling for `ShadowRoot` in `mount` and `mountList` to support mounting Virtual DOM trees directly into component shadow roots.
+
 ## 1.0.0-alpha.2
 
 ### Fixed
