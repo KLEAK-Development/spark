@@ -1,3 +1,6 @@
+@TestOn('browser')
+library;
+
 import 'package:spark_framework/src/component/web_component.dart';
 import 'package:spark_framework/src/component/spark_component.dart';
 import 'package:spark_html_dsl/spark_html_dsl.dart' as html;
