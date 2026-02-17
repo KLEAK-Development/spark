@@ -14,7 +14,7 @@ class MockMethodElement implements MethodElement {
   @override
   final String? name;
   MockMethodElement(this.name);
-  
+
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
@@ -45,9 +45,17 @@ class Test {
 }
 ''');
 
-      final source = generator.testGetMethodSource('_getCurrentPosition', sourceFile.path);
-      
-      expect(source, contains("Future<void> _getCurrentPosition({bool highAccuracy = true}) async {"));
+      final source = generator.testGetMethodSource(
+        '_getCurrentPosition',
+        sourceFile.path,
+      );
+
+      expect(
+        source,
+        contains(
+          "Future<void> _getCurrentPosition({bool highAccuracy = true}) async {",
+        ),
+      );
       expect(source, contains("print('body');"));
       expect(source, contains("}"));
       // Ensure it has the full body and closing brace
@@ -66,9 +74,15 @@ class Test {
 }
 ''');
 
-      final source = generator.testGetMethodSource('complexMethod', sourceFile.path);
-      
-      expect(source, contains("void complexMethod({Map m = const {'a': 1}}) {"));
+      final source = generator.testGetMethodSource(
+        'complexMethod',
+        sourceFile.path,
+      );
+
+      expect(
+        source,
+        contains("void complexMethod({Map m = const {'a': 1}}) {"),
+      );
       expect(source, contains("print('nested');"));
       expect(source?.trim().endsWith('}'), isTrue);
       // Count braces: one for Map, one for if, one for method = 3 opening, 3 closing.
@@ -84,12 +98,15 @@ class Test {
 ''');
 
       final source = generator.testGetMethodSource('format', sourceFile.path);
-      
-      expect(source, contains("String format({String prefix = ''}) => '\$prefix: value';"));
+
+      expect(
+        source,
+        contains("String format({String prefix = ''}) => '\$prefix: value';"),
+      );
     });
   });
 }
 
-// Mocking MethodElement properly to avoid type errors if possible, 
+// Mocking MethodElement properly to avoid type errors if possible,
 // or just use dynamic if the generator uses it dynamically.
 // Looking at the generator, it uses method.name.
