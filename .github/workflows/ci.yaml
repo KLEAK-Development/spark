@@ -47,17 +47,20 @@ jobs:
             spark_css:
               - 'packages/spark_css/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
             spark_html_dsl:
               - 'packages/spark_html_dsl/**'
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
             spark_vdom:
               - 'packages/spark_vdom/**'
               - 'packages/spark_html_dsl/**'
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
             spark:
               - 'packages/spark/**'
@@ -66,14 +69,17 @@ jobs:
               - 'packages/spark_vdom/**'
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
             spark_cli:
               - 'packages/spark_cli/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
             spark_web:
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
             spark_generator:
               - 'packages/spark_generator/**'
@@ -83,6 +89,7 @@ jobs:
               - 'packages/spark_vdom/**'
               - 'packages/spark_web/**'
               - 'pubspec.yaml'
+              - 'codecov.yml'
               - '.github/workflows/ci.yaml'
 
   test_spark:

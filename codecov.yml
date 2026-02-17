@@ -1,0 +1,38 @@
+# Codecov configuration for Spark monorepo
+# Enables Carryforward flags to handle partial CI runs (only changed packages)
+
+coverage:
+  status:
+    project:
+      default:
+        # Use carryforward to maintain coverage across partial runs
+        informational: true
+    patch:
+      default:
+        informational: true
+
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: spark_framework
+      paths:
+        - packages/spark/
+    - name: spark_cli
+      paths:
+        - packages/spark_cli/
+    - name: spark_css
+      paths:
+        - packages/spark_css/
+    - name: spark_generator
+      paths:
+        - packages/spark_generator/
+    - name: spark_html_dsl
+      paths:
+        - packages/spark_html_dsl/
+    - name: spark_vdom
+      paths:
+        - packages/spark_vdom/
+    - name: spark_web
+      paths:
+        - packages/spark_web/
