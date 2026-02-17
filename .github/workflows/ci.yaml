@@ -110,7 +110,7 @@ jobs:
           cd packages/spark
           dart test --coverage=coverage
           dart test -p chrome --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -141,7 +141,7 @@ jobs:
         run: |
           cd packages/spark_css
           dart test --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -172,7 +172,7 @@ jobs:
         run: |
           cd packages/spark_html_dsl
           dart test --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -206,7 +206,7 @@ jobs:
           cd packages/spark_vdom
           dart test --coverage=coverage
           dart test -p chrome --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -237,7 +237,7 @@ jobs:
         run: |
           cd packages/spark_cli
           dart test --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -268,7 +268,7 @@ jobs:
         run: |
           cd packages/spark_web
           dart test --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -299,7 +299,7 @@ jobs:
         run: |
           cd packages/spark_generator
           dart test --coverage=coverage
-          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=../../.dart_tool/package_config.json --report-on=lib
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
