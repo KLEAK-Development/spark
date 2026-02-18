@@ -1,5 +1,4 @@
 import 'package:test/test.dart';
-import 'package:spark_html_dsl/spark_html_dsl.dart';
 
 import 'package:spark_vdom/spark_vdom.dart';
 
