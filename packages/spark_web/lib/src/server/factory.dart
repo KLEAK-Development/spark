@@ -24,6 +24,39 @@ MutationObserver createMutationObserver(MutationCallback callback) =>
 /// Creates a server-side [Event].
 Event createEvent(String type) => ServerEvent(type);
 
+/// Creates a server-side [MouseEvent].
+MouseEvent createMouseEvent(String type) => ServerMouseEvent(type);
+
+/// Creates a server-side [KeyboardEvent].
+KeyboardEvent createKeyboardEvent(String type) => ServerKeyboardEvent(type);
+
+/// Creates a server-side [FocusEvent].
+FocusEvent createFocusEvent(String type) => ServerFocusEvent(type);
+
+/// Creates a server-side [InputEvent].
+InputEvent createInputEvent(String type) => ServerInputEvent(type);
+
+/// Creates a server-side [WheelEvent].
+WheelEvent createWheelEvent(String type) => ServerWheelEvent(type);
+
+/// Creates a server-side [PointerEvent].
+PointerEvent createPointerEvent(String type) => ServerPointerEvent(type);
+
+/// Creates a server-side [TouchEvent].
+TouchEvent createTouchEvent(String type) => ServerTouchEvent(type);
+
+/// Creates a server-side [DragEvent].
+DragEvent createDragEvent(String type) => ServerDragEvent(type);
+
+/// Creates a server-side [AnimationEvent].
+AnimationEvent createAnimationEvent(String type) => ServerAnimationEvent(type);
+
+/// Creates a server-side [TransitionEvent].
+TransitionEvent createTransitionEvent(String type) => ServerTransitionEvent(type);
+
+/// Creates a server-side [CustomEvent].
+CustomEvent createCustomEvent(String type, [Object? detail]) => ServerCustomEvent(type, detail);
+
 /// Creates a server-side [CSSStyleSheet] (no-op).
 iface.CSSStyleSheet createCSSStyleSheet() => ServerCSSStyleSheet();
 
@@ -99,6 +132,36 @@ class ServerMouseEvent extends ServerEvent implements MouseEvent {
   bool get shiftKey => false;
 }
 
+class ServerKeyboardEvent extends ServerEvent implements KeyboardEvent {
+  ServerKeyboardEvent([String type = 'keydown']) : super(type);
+  @override
+  String get key => '';
+  @override
+  String get code => '';
+  @override
+  bool get altKey => false;
+  @override
+  bool get ctrlKey => false;
+  @override
+  bool get metaKey => false;
+  @override
+  bool get shiftKey => false;
+  @override
+  bool get repeat => false;
+  @override
+  int get location => 0;
+}
+
+class ServerInputEvent extends ServerEvent implements InputEvent {
+  ServerInputEvent([String type = 'input']) : super(type);
+  @override
+  String? get data => null;
+  @override
+  String get inputType => '';
+  @override
+  bool get isComposing => false;
+}
+
 class ServerFocusEvent extends ServerEvent implements FocusEvent {
   ServerFocusEvent([String type = 'focus']) : super(type);
   @override
@@ -106,7 +169,7 @@ class ServerFocusEvent extends ServerEvent implements FocusEvent {
 }
 
 class ServerWheelEvent extends ServerMouseEvent implements WheelEvent {
-  ServerWheelEvent() : super('wheel');
+  ServerWheelEvent([String type = 'wheel']) : super(type);
   @override
   double get deltaX => 0;
   @override
@@ -162,7 +225,7 @@ class ServerTouchEvent extends ServerEvent implements TouchEvent {
 class ServerDragEvent extends ServerMouseEvent implements DragEvent {
   ServerDragEvent([String type = 'drag']) : super(type);
   @override
-  DataTransfer? get dataTransfer => null;
+  DataTransfer? get dataTransfer => ServerDataTransfer();
 }
 
 class ServerAnimationEvent extends ServerEvent implements AnimationEvent {
@@ -186,9 +249,10 @@ class ServerTransitionEvent extends ServerEvent implements TransitionEvent {
 }
 
 class ServerCustomEvent extends ServerEvent implements CustomEvent {
-  ServerCustomEvent([String type = 'custom']) : super(type);
+  final Object? _detail;
+  ServerCustomEvent([String type = 'custom', this._detail]) : super(type);
   @override
-  Object? get detail => null;
+  Object? get detail => _detail;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 /// Browser-side factory for creating platform implementations.
 library;
 
+import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 import '../core.dart';
@@ -25,6 +26,40 @@ MutationObserver createMutationObserver(MutationCallback callback) =>
 
 /// Creates a browser [Event].
 Event createEvent(String type) => BrowserEvent(web.Event(type));
+
+/// Creates a browser [MouseEvent].
+MouseEvent createMouseEvent(String type) => BrowserMouseEvent(web.MouseEvent(type));
+
+/// Creates a browser [KeyboardEvent].
+KeyboardEvent createKeyboardEvent(String type) => BrowserKeyboardEvent(web.KeyboardEvent(type));
+
+/// Creates a browser [FocusEvent].
+FocusEvent createFocusEvent(String type) => BrowserFocusEvent(web.FocusEvent(type));
+
+/// Creates a browser [InputEvent].
+InputEvent createInputEvent(String type) => BrowserInputEvent(web.InputEvent(type));
+
+/// Creates a browser [WheelEvent].
+WheelEvent createWheelEvent(String type) => BrowserWheelEvent(web.WheelEvent(type));
+
+/// Creates a browser [PointerEvent].
+PointerEvent createPointerEvent(String type) => BrowserPointerEvent(web.PointerEvent(type));
+
+/// Creates a browser [TouchEvent].
+TouchEvent createTouchEvent(String type) => BrowserTouchEvent(web.TouchEvent(type));
+
+/// Creates a browser [DragEvent].
+DragEvent createDragEvent(String type) => BrowserDragEvent(web.DragEvent(type));
+
+/// Creates a browser [AnimationEvent].
+AnimationEvent createAnimationEvent(String type) => BrowserAnimationEvent(web.AnimationEvent(type));
+
+/// Creates a browser [TransitionEvent].
+TransitionEvent createTransitionEvent(String type) => BrowserTransitionEvent(web.TransitionEvent(type));
+
+/// Creates a browser [CustomEvent].
+CustomEvent createCustomEvent(String type, [Object? detail]) =>
+    BrowserCustomEvent(web.CustomEvent(type, web.CustomEventInit(detail: detail.jsify())));
 
 /// Creates a browser [CSSStyleSheet] via the constructable stylesheets API.
 iface.CSSStyleSheet createCSSStyleSheet() =>

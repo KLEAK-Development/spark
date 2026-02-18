@@ -318,18 +318,18 @@ abstract class HTMLIFrameElement implements HTMLElement {
 abstract class HTMLTableElement implements HTMLElement {
   HTMLElement? get caption;
   set caption(HTMLElement? val);
-  HTMLElement? get tHead;
-  set tHead(HTMLElement? val);
-  HTMLElement? get tFoot;
-  set tFoot(HTMLElement? val);
-  HTMLElement createTBody();
-  HTMLElement insertRow([int index = -1]);
+  HTMLTableSectionElement? get tHead;
+  set tHead(HTMLTableSectionElement? val);
+  HTMLTableSectionElement? get tFoot;
+  set tFoot(HTMLTableSectionElement? val);
+  HTMLTableSectionElement createTBody();
+  HTMLTableRowElement insertRow([int index = -1]);
   void deleteRow(int index);
 }
 
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableSectionElement
 abstract class HTMLTableSectionElement implements HTMLElement {
-  HTMLElement insertRow([int index = -1]);
+  HTMLTableRowElement insertRow([int index = -1]);
   void deleteRow(int index);
 }
 
@@ -337,7 +337,7 @@ abstract class HTMLTableSectionElement implements HTMLElement {
 abstract class HTMLTableRowElement implements HTMLElement {
   int get rowIndex;
   int get sectionRowIndex;
-  HTMLElement insertCell([int index = -1]);
+  HTMLTableCellElement insertCell([int index = -1]);
   void deleteCell(int index);
 }
 

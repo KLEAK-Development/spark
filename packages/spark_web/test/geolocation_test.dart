@@ -4,6 +4,23 @@ import 'package:test/test.dart';
 
 void main() {
   group('Geolocation (Server)', () {
+    test('constants', () {
+      expect(web.GeolocationPositionError.PERMISSION_DENIED, 1);
+      expect(web.GeolocationPositionError.POSITION_UNAVAILABLE, 2);
+      expect(web.GeolocationPositionError.TIMEOUT, 3);
+    });
+
+    test('PositionOptions constructor', () {
+      const options = web.PositionOptions(
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 1000,
+      );
+      expect(options.enableHighAccuracy, isTrue);
+      expect(options.timeout, 5000);
+      expect(options.maximumAge, 1000);
+    });
+
     test('is available on navigator', () {
       expect(web.window.navigator.geolocation, isNotNull);
     });

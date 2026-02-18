@@ -82,6 +82,9 @@ Node wrapNode(web.Node node) {
   if ((node as JSAny?).isA<web.HTMLTableElement>()) {
     return BrowserHTMLTableElement(node as web.HTMLTableElement);
   }
+  if ((node as JSAny?).isA<web.HTMLTableSectionElement>()) {
+    return BrowserHTMLTableSectionElement(node as web.HTMLTableSectionElement);
+  }
   if ((node as JSAny?).isA<web.HTMLTableRowElement>()) {
     return BrowserHTMLTableRowElement(node as web.HTMLTableRowElement);
   }
@@ -102,6 +105,24 @@ Node wrapNode(web.Node node) {
   }
   if ((node as JSAny?).isA<web.HTMLLIElement>()) {
     return BrowserHTMLLIElement(node as web.HTMLLIElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLParagraphElement>()) {
+    return BrowserHTMLParagraphElement(node as web.HTMLParagraphElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLHeadingElement>()) {
+    return BrowserHTMLHeadingElement(node as web.HTMLHeadingElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLUListElement>()) {
+    return BrowserHTMLUListElement(node as web.HTMLUListElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLPreElement>()) {
+    return BrowserHTMLPreElement(node as web.HTMLPreElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLHRElement>()) {
+    return BrowserHTMLHRElement(node as web.HTMLHRElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLBRElement>()) {
+    return BrowserHTMLBRElement(node as web.HTMLBRElement);
   }
   if ((node as JSAny?).isA<web.HTMLDivElement>()) {
     return BrowserHTMLDivElement(node as web.HTMLDivElement);
@@ -1112,31 +1133,43 @@ class BrowserHTMLTableElement extends BrowserHTMLElement
   set caption(iface.HTMLElement? val) =>
       _nativeTable.caption = val?.raw as web.HTMLTableCaptionElement?;
   @override
-  iface.HTMLElement? get tHead {
+  iface.HTMLTableSectionElement? get tHead {
     final h = _nativeTable.tHead;
-    return h != null ? BrowserHTMLElement(h) : null;
+    return h != null ? BrowserHTMLTableSectionElement(h) : null;
   }
 
   @override
-  set tHead(iface.HTMLElement? val) =>
+  set tHead(iface.HTMLTableSectionElement? val) =>
       _nativeTable.tHead = val?.raw as web.HTMLTableSectionElement?;
   @override
-  iface.HTMLElement? get tFoot {
+  iface.HTMLTableSectionElement? get tFoot {
     final f = _nativeTable.tFoot;
-    return f != null ? BrowserHTMLElement(f) : null;
+    return f != null ? BrowserHTMLTableSectionElement(f) : null;
   }
 
   @override
-  set tFoot(iface.HTMLElement? val) =>
+  set tFoot(iface.HTMLTableSectionElement? val) =>
       _nativeTable.tFoot = val?.raw as web.HTMLTableSectionElement?;
   @override
-  iface.HTMLElement createTBody() =>
-      BrowserHTMLElement(_nativeTable.createTBody());
+  iface.HTMLTableSectionElement createTBody() =>
+      BrowserHTMLTableSectionElement(_nativeTable.createTBody());
   @override
-  iface.HTMLElement insertRow([int index = -1]) =>
-      BrowserHTMLElement(_nativeTable.insertRow(index));
+  iface.HTMLTableRowElement insertRow([int index = -1]) =>
+      BrowserHTMLTableRowElement(_nativeTable.insertRow(index));
   @override
   void deleteRow(int index) => _nativeTable.deleteRow(index);
+}
+
+class BrowserHTMLTableSectionElement extends BrowserHTMLElement
+    implements iface.HTMLTableSectionElement {
+  final web.HTMLTableSectionElement _nativeSection;
+  BrowserHTMLTableSectionElement(this._nativeSection) : super(_nativeSection);
+
+  @override
+  iface.HTMLTableRowElement insertRow([int index = -1]) =>
+      BrowserHTMLTableRowElement(_nativeSection.insertRow(index));
+  @override
+  void deleteRow(int index) => _nativeSection.deleteRow(index);
 }
 
 class BrowserHTMLTableRowElement extends BrowserHTMLElement
@@ -1151,8 +1184,8 @@ class BrowserHTMLTableRowElement extends BrowserHTMLElement
   @override
   int get sectionRowIndex => _nativeRow.sectionRowIndex;
   @override
-  iface.HTMLElement insertCell([int index = -1]) =>
-      BrowserHTMLElement(_nativeRow.insertCell(index));
+  iface.HTMLTableCellElement insertCell([int index = -1]) =>
+      BrowserHTMLTableCellElement(_nativeRow.insertCell(index));
   @override
   void deleteCell(int index) => _nativeRow.deleteCell(index);
 }
@@ -1285,6 +1318,36 @@ class BrowserHTMLLIElement extends BrowserHTMLElement
   int get value => _nativeLI.value;
   @override
   set value(int val) => _nativeLI.value = val;
+}
+
+class BrowserHTMLParagraphElement extends BrowserHTMLElement
+    implements iface.HTMLParagraphElement {
+  BrowserHTMLParagraphElement(web.HTMLParagraphElement native) : super(native);
+}
+
+class BrowserHTMLHeadingElement extends BrowserHTMLElement
+    implements iface.HTMLHeadingElement {
+  BrowserHTMLHeadingElement(web.HTMLHeadingElement native) : super(native);
+}
+
+class BrowserHTMLUListElement extends BrowserHTMLElement
+    implements iface.HTMLUListElement {
+  BrowserHTMLUListElement(web.HTMLUListElement native) : super(native);
+}
+
+class BrowserHTMLPreElement extends BrowserHTMLElement
+    implements iface.HTMLPreElement {
+  BrowserHTMLPreElement(web.HTMLPreElement native) : super(native);
+}
+
+class BrowserHTMLHRElement extends BrowserHTMLElement
+    implements iface.HTMLHRElement {
+  BrowserHTMLHRElement(web.HTMLHRElement native) : super(native);
+}
+
+class BrowserHTMLBRElement extends BrowserHTMLElement
+    implements iface.HTMLBRElement {
+  BrowserHTMLBRElement(web.HTMLBRElement native) : super(native);
 }
 
 class BrowserHTMLDivElement extends BrowserHTMLElement

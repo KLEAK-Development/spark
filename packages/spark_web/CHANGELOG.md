@@ -2,6 +2,24 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.8
+
+### Added
+
+- **Feat**: Added specialized event factory functions: `createMouseEvent`, `createKeyboardEvent`, `createFocusEvent`, `createInputEvent`, `createWheelEvent`, `createPointerEvent`, `createTouchEvent`, `createDragEvent`, `createAnimationEvent`, `createTransitionEvent`, and `createCustomEvent`.
+- **Feat**: Added missing browser-side element wrappers for `HTMLParagraphElement`, `HTMLHeadingElement`, `HTMLUListElement`, `HTMLPreElement`, `HTMLHRElement`, and `HTMLBRElement`.
+- **Feat**: Improved `ServerDocument.createElement` to return correctly typed element instances for almost all HTML tags.
+- **Feat**: Added missing server-side specialized event implementations.
+
+### Changed
+
+- **Refactor**: Refined `HTMLTableElement`, `HTMLTableSectionElement`, and `HTMLTableRowElement` interfaces to use more specific return types matching the MDN Web API.
+
+### Fixed
+
+- **Tests**: Achieved 100% test coverage across all modules.
+- Fixed an issue where `BrowserHTMLMeterElement.value` could be clamped incorrectly if set before `max`.
+
 ## 1.0.0-alpha.7
 
 ### Added

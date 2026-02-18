@@ -262,6 +262,15 @@ class ServerHTMLOptionElement extends ServerHTMLElement
   set selected(bool val) {}
 }
 
+class ServerHTMLDivElement extends ServerHTMLElement
+    implements iface.HTMLDivElement {}
+
+class ServerHTMLSpanElement extends ServerHTMLElement
+    implements iface.HTMLSpanElement {}
+
+class ServerHTMLParagraphElement extends ServerHTMLElement
+    implements iface.HTMLParagraphElement {}
+
 class ServerHTMLAnchorElement extends ServerHTMLElement
     implements iface.HTMLAnchorElement {
   @override
@@ -515,17 +524,17 @@ class ServerHTMLTableElement extends ServerHTMLElement
   @override
   set caption(iface.HTMLElement? val) {}
   @override
-  iface.HTMLElement? get tHead => null;
+  iface.HTMLTableSectionElement? get tHead => null;
   @override
-  set tHead(iface.HTMLElement? val) {}
+  set tHead(iface.HTMLTableSectionElement? val) {}
   @override
-  iface.HTMLElement? get tFoot => null;
+  iface.HTMLTableSectionElement? get tFoot => null;
   @override
-  set tFoot(iface.HTMLElement? val) {}
+  set tFoot(iface.HTMLTableSectionElement? val) {}
   @override
-  iface.HTMLElement createTBody() => ServerHTMLElement();
+  iface.HTMLTableSectionElement createTBody() => ServerHTMLTableSectionElement();
   @override
-  iface.HTMLElement insertRow([int index = -1]) => ServerHTMLElement();
+  iface.HTMLTableRowElement insertRow([int index = -1]) => ServerHTMLTableRowElement();
   @override
   void deleteRow(int index) {}
 }
@@ -533,7 +542,7 @@ class ServerHTMLTableElement extends ServerHTMLElement
 class ServerHTMLTableSectionElement extends ServerHTMLElement
     implements iface.HTMLTableSectionElement {
   @override
-  iface.HTMLElement insertRow([int index = -1]) => ServerHTMLElement();
+  iface.HTMLTableRowElement insertRow([int index = -1]) => ServerHTMLTableRowElement();
   @override
   void deleteRow(int index) {}
 }
@@ -545,7 +554,7 @@ class ServerHTMLTableRowElement extends ServerHTMLElement
   @override
   int get sectionRowIndex => -1;
   @override
-  iface.HTMLElement insertCell([int index = -1]) => ServerHTMLElement();
+  iface.HTMLTableCellElement insertCell([int index = -1]) => ServerHTMLTableCellElement();
   @override
   void deleteCell(int index) {}
 }
@@ -715,10 +724,83 @@ class ServerDocument extends ServerNode implements iface.Document {
   @override
   iface.HTMLElement? get head => null;
   @override
-  iface.Element createElement(String tagName) => ServerElement();
+  iface.Element createElement(String tagName) {
+    switch (tagName.toLowerCase()) {
+      case 'div':
+        return ServerHTMLDivElement();
+      case 'span':
+        return ServerHTMLSpanElement();
+      case 'input':
+        return ServerHTMLInputElement();
+      case 'button':
+        return ServerHTMLButtonElement();
+      case 'textarea':
+        return ServerHTMLTextAreaElement();
+      case 'select':
+        return ServerHTMLSelectElement();
+      case 'option':
+        return ServerHTMLOptionElement();
+      case 'a':
+        return ServerHTMLAnchorElement();
+      case 'img':
+        return ServerHTMLImageElement();
+      case 'form':
+        return ServerHTMLFormElement();
+      case 'label':
+        return ServerHTMLLabelElement();
+      case 'template':
+        return ServerHTMLTemplateElement();
+      case 'canvas':
+        return ServerHTMLCanvasElement();
+      case 'video':
+        return ServerHTMLVideoElement();
+      case 'audio':
+        return ServerHTMLAudioElement();
+      case 'dialog':
+        return ServerHTMLDialogElement();
+      case 'details':
+        return ServerHTMLDetailsElement();
+      case 'slot':
+        return ServerHTMLSlotElement();
+      case 'iframe':
+        return ServerHTMLIFrameElement();
+      case 'table':
+        return ServerHTMLTableElement();
+      case 'ol':
+        return ServerHTMLOListElement();
+      case 'li':
+        return ServerHTMLLIElement();
+      case 'p':
+        return ServerHTMLParagraphElement();
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        return ServerHTMLHeadingElement();
+      case 'ul':
+        return ServerHTMLUListElement();
+      case 'pre':
+        return ServerHTMLPreElement();
+      case 'hr':
+        return ServerHTMLHRElement();
+      case 'br':
+        return ServerHTMLBRElement();
+      case 'progress':
+        return ServerHTMLProgressElement();
+      case 'meter':
+        return ServerHTMLMeterElement();
+      case 'output':
+        return ServerHTMLOutputElement();
+      default:
+        return ServerHTMLElement();
+    }
+  }
+
   @override
   iface.Element createElementNS(String? namespace, String qualifiedName) =>
-      ServerElement();
+      createElement(qualifiedName);
   @override
   iface.Text createTextNode(String data) => ServerText(data);
   @override
