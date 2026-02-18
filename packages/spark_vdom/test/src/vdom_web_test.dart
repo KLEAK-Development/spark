@@ -236,9 +236,12 @@ void main() {
       patch(element, vNode);
 
       // Verify it is NOT closed
-      expect(element.open, isTrue,
-          reason:
-              'VDOM should not close a modal dialog by removing open attribute');
+      expect(
+        element.open,
+        isTrue,
+        reason:
+            'VDOM should not close a modal dialog by removing open attribute',
+      );
       expect(element.hasAttribute('open'), isTrue);
     });
 
@@ -254,22 +257,31 @@ void main() {
       expect(element.hasAttribute('open'), isFalse);
     });
 
-    test('preserves open attribute on details element when toggled by user', () {
-      final vNode = html.details([html.summary(['Click me']), 'Content']);
-      final element = createNode(vNode) as web.HTMLDetailsElement;
+    test(
+      'preserves open attribute on details element when toggled by user',
+      () {
+        final vNode = html.details([
+          html.summary(['Click me']),
+          'Content',
+        ]);
+        final element = createNode(vNode) as web.HTMLDetailsElement;
 
-      expect(element.open, isFalse);
+        expect(element.open, isFalse);
 
-      // Simulate user toggle
-      element.open = true;
-      expect(element.hasAttribute('open'), isTrue);
+        // Simulate user toggle
+        element.open = true;
+        expect(element.hasAttribute('open'), isTrue);
 
-      // Patch
-      patch(element, vNode);
+        // Patch
+        patch(element, vNode);
 
-      expect(element.open, isTrue,
-          reason: 'VDOM should not close details when toggled by user');
-    });
+        expect(
+          element.open,
+          isTrue,
+          reason: 'VDOM should not close details when toggled by user',
+        );
+      },
+    );
 
     test('syncs checkbox checked property even if attribute is missing', () {
       final vNode = html.input(type: 'checkbox');
@@ -283,9 +295,12 @@ void main() {
       // Patch with same node
       patch(element, vNode);
 
-      expect(element.checked, isTrue,
-          reason:
-              'VDOM should not uncheck a box if attribute is not explicitly false');
+      expect(
+        element.checked,
+        isTrue,
+        reason:
+            'VDOM should not uncheck a box if attribute is not explicitly false',
+      );
     });
 
     test('syncs value property for textarea and select', () {
@@ -305,12 +320,13 @@ void main() {
       final elSelect = createNode(vSelect) as web.HTMLSelectElement;
       expect(elSelect.value, '2');
 
-      final vSelectUpdated = html.select([
-        html.option('One', value: '1', selected: true),
-        html.option('Two', value: '2'),
-      ], attributes: {
-        'value': '1'
-      }); // In DSL we often set value on select itself
+      final vSelectUpdated = html.select(
+        [
+          html.option('One', value: '1', selected: true),
+          html.option('Two', value: '2'),
+        ],
+        attributes: {'value': '1'},
+      ); // In DSL we often set value on select itself
 
       patch(elSelect, vSelectUpdated);
       expect(elSelect.value, '1');
