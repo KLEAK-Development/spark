@@ -23,10 +23,10 @@ void main() {
       // Setup: <div><!-- comment -->  </div>
       parent.appendChild(web.document.createComment('comment'));
       parent.appendChild(web.document.createTextNode('   '));
-      
+
       final vNode = html.div(['new content']);
       mount(parent, vNode);
-      
+
       // Should have appended a new child because all existing children were ignorable
       // Wait, mount says:
       // if (targetNode == null) { node.appendChild(...) }
@@ -37,12 +37,14 @@ void main() {
 
     test('mountList handles SVG detection for ShadowRoot', () {
       final div = web.document.createElement('div');
-      final shadow = (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open')) as web.ShadowRoot;
-      
+      final shadow =
+          (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
+              as web.ShadowRoot;
+
       // Just to trigger the branch in mountList:
       // else if (node is web.ShadowRoot) { }
       mountList(shadow, [html.h('circle')]);
-      
+
       final circle = shadow.firstChild as web.Element;
       // It won't be SVG namespace because the branch is empty in vdom_web.dart
       // but it triggers the coverage.
@@ -56,26 +58,32 @@ void main() {
       expect(textNode.textContent, 'standalone');
     });
 
-    test('patch replaces element node with text when mismatch and has parent', () {
-      final el = web.document.createElement('div');
-      parent.appendChild(el);
-      patch(el, html.Text('new text'));
-      expect(parent.firstChild, isA<web.Text>());
-    });
+    test(
+      'patch replaces element node with text when mismatch and has parent',
+      () {
+        final el = web.document.createElement('div');
+        parent.appendChild(el);
+        patch(el, html.Text('new text'));
+        expect(parent.firstChild, isA<web.Text>());
+      },
+    );
 
-    test('patch replaces text node with element when mismatch and has parent', () {
-      final text = web.document.createTextNode('text');
-      parent.appendChild(text);
-      patch(text, html.div(['new div']));
-      expect(parent.firstChild, isA<web.Element>());
-    });
+    test(
+      'patch replaces text node with element when mismatch and has parent',
+      () {
+        final text = web.document.createTextNode('text');
+        parent.appendChild(text);
+        patch(text, html.div(['new div']));
+        expect(parent.firstChild, isA<web.Element>());
+      },
+    );
 
     test('_patchElement removes extra nodes', () {
       final vNode1 = html.div([html.span('1'), html.span('2')]);
       mount(parent, vNode1);
       final div = parent.firstChild as web.Element;
       expect(div.childNodes.length, 2);
-      
+
       final vNode2 = html.div([html.span('1')]);
       patch(div, vNode2);
       expect(div.childNodes.length, 1);
@@ -98,7 +106,7 @@ void main() {
       final vNode1 = html.div([html.span('1'), html.span('2'), html.span('3')]);
       mount(parent, vNode1);
       final div = parent.firstChild as web.Element;
-      
+
       final vNode2 = html.div([html.span('1')]);
       patch(div, vNode2);
       expect(div.childNodes.length, 1);
@@ -120,7 +128,7 @@ void main() {
     test('_updateAttributes skips update when value matches', () {
       final el = web.document.createElement('div');
       el.setAttribute('title', 'test');
-      
+
       // This should hit the 'if (el.getAttribute(key) != strVal)' branch (false)
       patch(el, html.div([], attributes: {'title': 'test'}));
       expect(el.getAttribute('title'), 'test');
@@ -128,10 +136,14 @@ void main() {
 
     test('_updateEvents handles events not starting with "on"', () {
       bool called = false;
-      final vNode = html.h('div', children: [], events: {'click': (_) => called = true});
+      final vNode = html.h(
+        'div',
+        children: [],
+        events: {'click': (_) => called = true},
+      );
       final el = createNode(vNode) as web.HTMLElement;
       parent.appendChild(el);
-      
+
       el.dispatchEvent(web.createMouseEvent('click'));
       expect(called, isTrue);
     });
@@ -141,22 +153,26 @@ void main() {
       final vNode = html.div([], onClick: (_) => called = true);
       final el = createNode(vNode) as web.HTMLElement;
       parent.appendChild(el);
-      
+
       // Manually remove the ID
       el.removeAttribute('data-spark-id');
-      
+
       el.dispatchEvent(web.createMouseEvent('click'));
       expect(called, isFalse); // Should not crash, but also not call handler
     });
 
     test('_updateEvents listener handles non-existent ID gracefully', () {
       bool called = false;
-      final vNode = html.h('div', children: [], events: {'click': (_) => called = true});
+      final vNode = html.h(
+        'div',
+        children: [],
+        events: {'click': (_) => called = true},
+      );
       final el = createNode(vNode) as web.HTMLElement;
       parent.appendChild(el);
-      
+
       el.setAttribute('data-spark-id', 'non-existent');
-      
+
       el.dispatchEvent(web.createMouseEvent('click'));
       expect(called, isFalse);
     });
@@ -164,7 +180,7 @@ void main() {
     test('_updateAttributes skips input value sync when already matching', () {
       final input = web.document.createElement('input') as web.HTMLInputElement;
       input.value = 'match';
-      
+
       // Should hit 'if (el.value != strVal)' branch (false)
       patch(input, html.input(value: 'match'));
       expect(input.value, 'match');
@@ -172,26 +188,32 @@ void main() {
 
     test('patch ShadowRoot with Text node when empty', () {
       final div = web.document.createElement('div');
-      final shadow = (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open')) as web.ShadowRoot;
-      
+      final shadow =
+          (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
+              as web.ShadowRoot;
+
       patch(shadow, html.Text('hello'));
       expect(shadow.firstChild!.textContent, 'hello');
     });
 
     test('patch ShadowRoot with Text node when not empty', () {
       final div = web.document.createElement('div');
-      final shadow = (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open')) as web.ShadowRoot;
+      final shadow =
+          (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
+              as web.ShadowRoot;
       shadow.appendChild(web.document.createTextNode('initial'));
-      
+
       patch(shadow, html.Text('updated'));
       expect(shadow.firstChild!.textContent, 'updated');
     });
 
     test('patch ShadowRoot with Element when it only has Text node', () {
       final div = web.document.createElement('div');
-      final shadow = (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open')) as web.ShadowRoot;
+      final shadow =
+          (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
+              as web.ShadowRoot;
       shadow.appendChild(web.document.createTextNode('initial text'));
-      
+
       // vNode is Element, firstElementChild is null, but firstChild is NOT null
       patch(shadow, html.div(['new element']));
       expect(shadow.firstChild, isA<web.Element>());
@@ -200,10 +222,14 @@ void main() {
 
     test('mountList with ShadowRoot triggers SVG detection branch', () {
       final div = web.document.createElement('div');
-      final shadow = (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open')) as web.ShadowRoot;
-      
+      final shadow =
+          (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
+              as web.ShadowRoot;
+
       // This hits the "} else if (node is web.ShadowRoot) {" branch in mountList
-      mountList(shadow, [html.div(['test'])]);
+      mountList(shadow, [
+        html.div(['test']),
+      ]);
       expect(shadow.firstChild!.textContent, 'test');
     });
 
@@ -216,7 +242,9 @@ void main() {
 
     test('mountList with non-Element parent skips SVG detection', () {
       final fragment = web.document.createDocumentFragment();
-      mountList(fragment, [html.div(['test'])]);
+      mountList(fragment, [
+        html.div(['test']),
+      ]);
       expect(fragment.firstChild!.textContent, 'test');
     });
 
@@ -241,10 +269,10 @@ void main() {
     test('isIgnorable coverage', () {
       final comment = web.document.createComment('test');
       expect(isIgnorable(comment), isTrue);
-      
+
       final text = web.document.createTextNode('   ');
       expect(isIgnorable(text), isTrue);
-      
+
       final significant = web.document.createTextNode('content');
       expect(isIgnorable(significant), isFalse);
     });
@@ -254,28 +282,42 @@ void main() {
       mount(parent, html.div(['content']));
       final div = parent.firstChild!;
       parent.insertBefore(comment, div);
-      
+
       // mountList will use _isIgnorable to find significant nodes
-      mountList(parent, [html.div(['new content'])]);
+      mountList(parent, [
+        html.div(['new content']),
+      ]);
       expect(parent.querySelector('div')!.textContent, 'new content');
     });
 
     test('mount detects SVG context from element namespace', () {
-      final svg = web.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      final svg = web.document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'svg',
+      );
       mount(svg, html.h('circle'));
-      expect((svg.firstChild as web.Element).namespaceURI, 'http://www.w3.org/2000/svg');
+      expect(
+        (svg.firstChild as web.Element).namespaceURI,
+        'http://www.w3.org/2000/svg',
+      );
     });
 
     test('mountList detects SVG context from element namespace', () {
-      final svg = web.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      final svg = web.document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'svg',
+      );
       mountList(svg, [html.h('circle')]);
-      expect((svg.firstChild as web.Element).namespaceURI, 'http://www.w3.org/2000/svg');
+      expect(
+        (svg.firstChild as web.Element).namespaceURI,
+        'http://www.w3.org/2000/svg',
+      );
     });
 
     test('_updateAttributes preserves data-spark-id', () {
       final el = web.document.createElement('div');
       el.setAttribute('data-spark-id', 'test-id');
-      
+
       patch(el, html.div([]));
       expect(el.getAttribute('data-spark-id'), 'test-id');
     });
@@ -298,7 +340,7 @@ void main() {
       final vNode1 = html.div([html.span('1')]);
       mount(parent, vNode1);
       final div = parent.firstChild as web.Element;
-      
+
       final vNode2 = html.div([html.span('2')]);
       patch(div, vNode2);
       expect(div.childNodes.length, 1);
@@ -309,7 +351,7 @@ void main() {
       final vNode1 = html.div([]);
       mount(parent, vNode1);
       final div = parent.firstChild as web.Element;
-      
+
       final vNode2 = html.div([html.span('new')]);
       patch(div, vNode2);
       expect(div.childNodes.length, 1);
@@ -322,14 +364,18 @@ void main() {
 
     test('_updateEvents listener handles event not in config', () {
       bool called = false;
-      final vNode = html.h('div', children: [], events: {'click': (_) => called = true});
+      final vNode = html.h(
+        'div',
+        children: [],
+        events: {'click': (_) => called = true},
+      );
       final el = createNode(vNode) as web.HTMLElement;
       parent.appendChild(el);
-      
+
       // Patch it to remove the listener from config, but DOM listener remains
       final vNode2 = html.div([]);
       patch(el, vNode2);
-      
+
       el.dispatchEvent(web.createMouseEvent('click'));
       expect(called, isFalse);
     });
