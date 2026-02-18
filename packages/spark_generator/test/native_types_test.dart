@@ -5,10 +5,19 @@ import 'package:source_gen/source_gen.dart';
 import 'package:spark_generator/src/component_generator.dart';
 import 'package:test/test.dart';
 
+import 'dart:convert';
+
 class SimpleBuildStep implements BuildStep {
   @override
   final AssetId inputId;
-  SimpleBuildStep(this.inputId);
+  final Map<String, String> sources;
+  SimpleBuildStep(this.inputId, this.sources);
+
+  @override
+  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
+    final key = '${id.package}|${id.path}';
+    return sources[key]!;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -17,9 +26,8 @@ class SimpleBuildStep implements BuildStep {
 void main() {
   group('ComponentGenerator Native Types', () {
     test('supports List and Map types (core and custom)', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -30,7 +38,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -41,12 +49,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -69,7 +77,7 @@ void main() {
 
               @Attribute()
               Map<String, int> scores = {};
-              
+
               @Attribute()
               List<User> users = [];
 
@@ -85,99 +93,97 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final componentClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'MyComponent');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = componentClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final componentClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'MyComponent');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            componentClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = componentClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Serialization checks
-          expect(output, contains("setAttr('tags', jsonEncode(tags));"));
-          expect(output, contains("setAttr('numbers', jsonEncode(numbers));"));
-          expect(output, contains("setAttr('scores', jsonEncode(scores));"));
-          expect(
-            output,
-            contains("setAttr('users', jsonEncode(users));"),
-          ); // List<Custom> should verify toJson is called by jsonEncode
-          expect(output, contains("setAttr('usermap', jsonEncode(userMap));"));
-          expect(
-            output,
-            contains("setAttr('activeuser', jsonEncode(activeUser.toJson()));"),
-          );
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          componentClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Deserialization checks
+        // Serialization checks
+        expect(output, contains("setAttr('tags', jsonEncode(tags));"));
+        expect(output, contains("setAttr('numbers', jsonEncode(numbers));"));
+        expect(output, contains("setAttr('scores', jsonEncode(scores));"));
+        expect(
+          output,
+          contains("setAttr('users', jsonEncode(users));"),
+        ); // List<Custom> should verify toJson is called by jsonEncode
+        expect(output, contains("setAttr('usermap', jsonEncode(userMap));"));
+        expect(
+          output,
+          contains("setAttr('activeuser', jsonEncode(activeUser.toJson()));"),
+        );
 
-          // List<String>
-          expect(output, contains("case 'tags':"));
-          expect(
-            output,
-            contains(
-              "(jsonDecode(newValue ?? '[]') as List).cast<String>().toList()",
-            ),
-          );
+        // Deserialization checks
 
-          // List<int>
-          expect(output, contains("case 'numbers':"));
-          expect(
-            output,
-            contains(
-              "(jsonDecode(newValue ?? '[]') as List).cast<int>().toList()",
-            ),
-          );
+        // List<String>
+        expect(output, contains("case 'tags':"));
+        expect(
+          output,
+          contains(
+            "(jsonDecode(newValue ?? '[]') as List).cast<String>().toList()",
+          ),
+        );
 
-          // Map<String, int>
-          expect(output, contains("case 'scores':"));
-          expect(
-            output,
-            contains(
-              "(jsonDecode(newValue ?? '{}') as Map).cast<String, int>()",
-            ),
-          );
+        // List<int>
+        expect(output, contains("case 'numbers':"));
+        expect(
+          output,
+          contains(
+            "(jsonDecode(newValue ?? '[]') as List).cast<int>().toList()",
+          ),
+        );
 
-          // List<User> - Custom Type
-          expect(output, contains("case 'users':"));
-          expect(
-            output,
-            contains(
-              "(jsonDecode(newValue ?? '[]') as List).map((e) => User.fromJson(e)).toList()",
-            ),
-          );
+        // Map<String, int>
+        expect(output, contains("case 'scores':"));
+        expect(
+          output,
+          contains("(jsonDecode(newValue ?? '{}') as Map).cast<String, int>()"),
+        );
 
-          // Map<String, User> - Custom Type
-          expect(output, contains("case 'usermap':"));
-          expect(
-            output,
-            contains(
-              "(jsonDecode(newValue ?? '{}') as Map).map((k, v) => MapEntry(k as String, User.fromJson(v)))",
-            ),
-          );
+        // List<User> - Custom Type
+        expect(output, contains("case 'users':"));
+        expect(
+          output,
+          contains(
+            "(jsonDecode(newValue ?? '[]') as List).map((e) => User.fromJson(e)).toList()",
+          ),
+        );
 
-          // Single User - Custom Type (existing behavior check)
-          expect(output, contains("case 'activeuser':"));
-          expect(output, contains("User?.fromJson(jsonDecode(newValue));"));
-        },
-      );
+        // Map<String, User> - Custom Type
+        expect(output, contains("case 'usermap':"));
+        expect(
+          output,
+          contains(
+            "(jsonDecode(newValue ?? '{}') as Map).map((k, v) => MapEntry(k as String, User.fromJson(v)))",
+          ),
+        );
+
+        // Single User - Custom Type (existing behavior check)
+        expect(output, contains("case 'activeuser':"));
+        expect(output, contains("User?.fromJson(jsonDecode(newValue));"));
+      });
     });
   });
 }

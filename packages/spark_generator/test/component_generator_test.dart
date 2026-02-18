@@ -4,11 +4,23 @@ import 'package:build_test/build_test.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:spark_generator/src/component_generator.dart';
 import 'package:test/test.dart';
+import 'dart:convert';
 
 class SimpleBuildStep implements BuildStep {
   @override
   final AssetId inputId;
-  SimpleBuildStep(this.inputId);
+  final Map<String, String> sources;
+  SimpleBuildStep(this.inputId, this.sources);
+
+  @override
+  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
+    final key = '${id.package}|${id.path}';
+    if (sources.containsKey(key)) return sources[key]!;
+    // Fallback for resolveSources internal structure if needed
+    final altKey = id.path;
+    if (sources.containsKey(altKey)) return sources[altKey]!;
+    throw AssetNotFoundException(id);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -19,9 +31,8 @@ void main() {
     test(
       'generates complete reactive class with private fields and setters',
       () async {
-        await resolveSources(
-          {
-            'spark|lib/src/annotations/component.dart': '''
+        final sources = {
+          'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -32,7 +43,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-            'spark|lib/src/component/spark_component.dart': '''
+          'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -43,12 +54,12 @@ void main() {
               String get tagName;
             }
           ''',
-            'spark|lib/server.dart': '''
+          'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-            'a|lib/test_lib_base.dart': '''
+          'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -69,59 +80,58 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-          },
-          (resolver) async {
-            final libraryElement = await resolver.libraryFor(
-              AssetId('a', 'lib/test_lib_base.dart'),
-            );
+        };
 
-            final counterClass = libraryElement.children
-                .whereType<ClassElement>()
-                .firstWhere((e) => e.name == 'Counter');
+        await resolveSources(sources, (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib_base.dart'),
+          );
 
-            final annotations = counterClass.metadata.annotations;
-            final annotation = annotations.firstWhere((a) {
-              final element = a.element;
-              final enclosing = element?.enclosingElement;
-              return enclosing?.name == 'Component';
-            });
-            final constantReader = ConstantReader(
-              annotation.computeConstantValue(),
-            );
+          final counterClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'Counter');
 
-            final generator = ComponentGenerator();
-            final output = generator.generateForAnnotatedElement(
-              counterClass,
-              constantReader,
-              SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-            );
+          final annotations = counterClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Component';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
 
-            // Should generate complete class extending SparkComponent
-            expect(output, contains('class Counter extends SparkComponent {'));
+          final generator = ComponentGenerator();
+          final output = await generator.generateForAnnotatedElement(
+            counterClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+          );
 
-            // Should generate static tag
-            expect(output, contains('static const tag ='));
+          // Should generate complete class extending SparkComponent
+          expect(output, contains('class Counter extends SparkComponent {'));
 
-            // Should generate private field
-            expect(output, contains('_value'));
+          // Should generate static tag
+          expect(output, contains('static const tag ='));
 
-            // Should generate reactive getter
-            expect(output, contains('int get value => _value;'));
+          // Should generate private field
+          expect(output, contains('_value'));
 
-            // Should generate reactive setter with scheduleUpdate
-            expect(output, contains('set value(int v) {'));
-            expect(output, contains('if (_value != v) {'));
-            expect(output, contains('_value = v;'));
-            expect(output, contains('scheduleUpdate();'));
-          },
-        );
+          // Should generate reactive getter
+          expect(output, contains('int get value => _value;'));
+
+          // Should generate reactive setter with scheduleUpdate
+          expect(output, contains('set value(int v) {'));
+          expect(output, contains('if (_value != v) {'));
+          expect(output, contains('_value = v;'));
+          expect(output, contains('scheduleUpdate();'));
+        });
       },
     );
 
     test('generates syncAttributes using field access', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -132,7 +142,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -143,12 +153,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -167,43 +177,42 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // syncAttributes should use field access
-          expect(output, contains("setAttr('value', value.toString());"));
-        },
-      );
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
+
+        // syncAttributes should use field access
+        expect(output, contains("setAttr('value', value.toString());"));
+      });
     });
 
     test('generates dumpedAttributes map', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -214,7 +223,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -225,12 +234,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -249,47 +258,46 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // dumpedAttributes should be a map
-          expect(
-            output,
-            contains("Map<String, String> get dumpedAttributes => {"),
-          );
-          expect(output, contains("'value': value.toString(),"));
-        },
-      );
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
+
+        // dumpedAttributes should be a map
+        expect(
+          output,
+          contains("Map<String, String> get dumpedAttributes => {"),
+        );
+        expect(output, contains("'value': value.toString(),"));
+      });
     });
 
     test('attributeChangedCallback sets private field directly', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -300,7 +308,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -311,12 +319,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -335,63 +343,59 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // attributeChangedCallback should set the private field directly
-          expect(output, contains("case 'value':"));
-          expect(
-            output,
-            contains("_value = int.tryParse(newValue ?? '') ?? 0;"),
-          );
-        },
-      );
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
+
+        // attributeChangedCallback should set the private field directly
+        expect(output, contains("case 'value':"));
+        expect(output, contains("_value = int.tryParse(newValue ?? '') ?? 0;"));
+      });
     });
 
     test('requires file to end with _base.dart', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib.dart': '''
+        'a|lib/test_lib.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -400,44 +404,43 @@ void main() {
               static const tag = 'my-counter';
             }
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          expect(
-            () => generator.generateForAnnotatedElement(
-              counterClass,
-              constantReader,
-              SimpleBuildStep(AssetId('a', 'lib/test_lib.dart')),
-            ),
-            throwsA(isA<InvalidGenerationSourceError>()),
-          );
-        },
-      );
+        final generator = ComponentGenerator();
+
+        expect(
+          () => generator.generateForAnnotatedElement(
+            counterClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib.dart'), sources),
+          ),
+          throwsA(isA<InvalidGenerationSourceError>()),
+        );
+      });
     });
 
     test('supports custom attribute names', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -448,7 +451,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -459,12 +462,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -483,46 +486,45 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // observedAttributes should use custom name
-          expect(output, contains("const ['counter-value']"));
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // attributeChangedCallback should use custom name
-          expect(output, contains("case 'counter-value':"));
-        },
-      );
+        // observedAttributes should use custom name
+        expect(output, contains("const ['counter-value']"));
+
+        // attributeChangedCallback should use custom name
+        expect(output, contains("case 'counter-value':"));
+      });
     });
 
     test('handles multiple attributes', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -533,7 +535,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -544,12 +546,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -574,51 +576,50 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Should generate reactive setters for all fields
-          expect(output, contains('set count(int v)'));
-          expect(output, contains('set label(String v)'));
-          expect(output, contains('set enabled(bool v)'));
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Each setter should call scheduleUpdate
-          final scheduleUpdateCount = 'scheduleUpdate();'
-              .allMatches(output)
-              .length;
-          expect(scheduleUpdateCount, greaterThanOrEqualTo(3));
-        },
-      );
+        // Should generate reactive setters for all fields
+        expect(output, contains('set count(int v)'));
+        expect(output, contains('set label(String v)'));
+        expect(output, contains('set enabled(bool v)'));
+
+        // Each setter should call scheduleUpdate
+        final scheduleUpdateCount = 'scheduleUpdate();'
+            .allMatches(output)
+            .length;
+        expect(scheduleUpdateCount, greaterThanOrEqualTo(3));
+      });
     });
 
     test('preserves non-@Attribute fields with fallback declaration', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -629,7 +630,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -640,12 +641,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -668,57 +669,56 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Non-@Attribute field should be preserved (fallback declaration)
-          // Note: default values may not be available via computeConstantValue()
-          // in test context, so the field is emitted without initializer
-          expect(output, contains('String label'));
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Private non-@Attribute field should also be preserved
-          expect(output, contains('int _clickCount'));
+        // Non-@Attribute field should be preserved (fallback declaration)
+        // Note: default values may not be available via computeConstantValue()
+        // in test context, so the field is emitted without initializer
+        expect(output, contains('String label'));
 
-          // Non-@Attribute fields should NOT get reactive getter/setter
-          expect(output, isNot(contains('String get label =>')));
-          expect(output, isNot(contains('set label(String v)')));
-          expect(output, isNot(contains('int get _clickCount =>')));
+        // Private non-@Attribute field should also be preserved
+        expect(output, contains('int _clickCount'));
 
-          // @Attribute field should still have reactive getter/setter
-          expect(output, contains('int get value => _value'));
-          expect(output, contains('set value(int v)'));
-        },
-      );
+        // Non-@Attribute fields should NOT get reactive getter/setter
+        expect(output, isNot(contains('String get label =>')));
+        expect(output, isNot(contains('set label(String v)')));
+        expect(output, isNot(contains('int get _clickCount =>')));
+
+        // @Attribute field should still have reactive getter/setter
+        expect(output, contains('int get value => _value'));
+        expect(output, contains('set value(int v)'));
+      });
     });
 
     test('preserves user-defined getters and setters', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -729,7 +729,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -740,12 +740,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -775,78 +775,75 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final widgetClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'MyWidget');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = widgetClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final widgetClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'MyWidget');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            widgetClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = widgetClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Generator should NOT crash when processing user getters/setters
-          expect(output, contains('class MyWidget extends SparkComponent'));
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          widgetClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // @Attribute getters/setters should be generated (reactive)
-          expect(output, contains('int get value => _value'));
-          expect(output, contains('set value(int v)'));
-          expect(output, contains('String get label => _label'));
-          expect(output, contains('set label(String v)'));
+        // Generator should NOT crash when processing user getters/setters
+        expect(output, contains('class MyWidget extends SparkComponent'));
 
-          // There should be exactly one getter for each @Attribute
-          final valueGetterCount = RegExp(
-            r'get value\b',
-          ).allMatches(output).length;
-          expect(
-            valueGetterCount,
-            equals(1),
-            reason: 'Should have exactly one getter for value',
-          );
+        // @Attribute getters/setters should be generated (reactive)
+        expect(output, contains('int get value => _value'));
+        expect(output, contains('set value(int v)'));
+        expect(output, contains('String get label => _label'));
+        expect(output, contains('set label(String v)'));
 
-          final valueSetterCount = RegExp(
-            r'set value\b',
-          ).allMatches(output).length;
-          expect(
-            valueSetterCount,
-            equals(1),
-            reason: 'Should have exactly one setter for value',
-          );
+        // There should be exactly one getter for each @Attribute
+        final valueGetterCount = RegExp(
+          r'get value\b',
+        ).allMatches(output).length;
+        expect(
+          valueGetterCount,
+          equals(1),
+          reason: 'Should have exactly one getter for value',
+        );
 
-          // tagName should appear exactly once (generated, not duplicated)
-          final tagNameCount = RegExp(
-            r'get tagName\b',
-          ).allMatches(output).length;
-          expect(
-            tagNameCount,
-            equals(1),
-            reason: 'Should have exactly one tagName getter',
-          );
-        },
-      );
+        final valueSetterCount = RegExp(
+          r'set value\b',
+        ).allMatches(output).length;
+        expect(
+          valueSetterCount,
+          equals(1),
+          reason: 'Should have exactly one setter for value',
+        );
+
+        // tagName should appear exactly once (generated, not duplicated)
+        final tagNameCount = RegExp(r'get tagName\b').allMatches(output).length;
+        expect(
+          tagNameCount,
+          equals(1),
+          reason: 'Should have exactly one tagName getter',
+        );
+      });
     });
 
     test('constructor forwards non-@Attribute params to fields', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -857,7 +854,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -868,12 +865,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -899,50 +896,49 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // @Attribute field should use private backing field
-          expect(output, contains('_value = value'));
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Non-@Attribute field should be forwarded directly
-          expect(output, contains('this.label = label'));
+        // @Attribute field should use private backing field
+        expect(output, contains('_value = value'));
 
-          // Constructor should include both params
-          expect(output, contains('int value'));
-          expect(output, contains('String label'));
-        },
-      );
+        // Non-@Attribute field should be forwarded directly
+        expect(output, contains('this.label = label'));
+
+        // Constructor should include both params
+        expect(output, contains('int value'));
+        expect(output, contains('String label'));
+      });
     });
 
     test('does not preserve reserved method names', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -953,7 +949,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -964,12 +960,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -990,57 +986,54 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final counterClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'Counter');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = counterClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final counterClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'Counter');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            counterClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = counterClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Generator should complete without error
-          expect(output, contains('class Counter extends SparkComponent'));
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          counterClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Generated methods should appear exactly once
-          expect(
-            RegExp(r'void syncAttributes\(\)').allMatches(output).length,
-            equals(1),
-            reason: 'syncAttributes should appear once',
-          );
-          expect(
-            RegExp(
-              r'void attributeChangedCallback\(',
-            ).allMatches(output).length,
-            equals(1),
-            reason: 'attributeChangedCallback should appear once',
-          );
-        },
-      );
+        // Generator should complete without error
+        expect(output, contains('class Counter extends SparkComponent'));
+
+        // Generated methods should appear exactly once
+        expect(
+          RegExp(r'void syncAttributes\(\)').allMatches(output).length,
+          equals(1),
+          reason: 'syncAttributes should appear once',
+        );
+        expect(
+          RegExp(r'void attributeChangedCallback\(').allMatches(output).length,
+          equals(1),
+          reason: 'attributeChangedCallback should appear once',
+        );
+      });
     });
 
     test('does not emit synthetic field for explicit getter', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -1051,7 +1044,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -1062,12 +1055,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
 
@@ -1088,46 +1081,46 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final widgetClass = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'MyWidget');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = widgetClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final widgetClass = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'MyWidget');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            widgetClass,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = widgetClass.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Should NOT emit a bare field declaration for a getter-backed property
-          // The analyzer creates synthetic FieldElement for explicit getters, and
-          // the generator must skip those to avoid "already declared" errors.
-          expect(
-            output,
-            isNot(contains('String displayText;')),
-            reason: 'Should not emit synthetic field for explicit getter',
-          );
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          widgetClass,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Should still generate the class correctly
-          expect(output, contains('class MyWidget extends SparkComponent'));
-        },
-      );
+        // Should NOT emit a bare field declaration for a getter-backed property
+        // The analyzer creates synthetic FieldElement for explicit getters, and
+        // the generator must skip those to avoid "already declared" errors.
+        expect(
+          output,
+          isNot(contains('String displayText;')),
+          reason: 'Should not emit synthetic field for explicit getter',
+        );
+
+        // Should still generate the class correctly
+        expect(output, contains('class MyWidget extends SparkComponent'));
+      });
     });
 
     test('regex pattern matches method declarations, not method calls', () {
@@ -1161,14 +1154,14 @@ class ContactForm {
       // Pattern must have at least one of: annotation, modifier, or return type before method name
       // This prevents matching method calls that happen to be at the start of a line
       final methodPattern = RegExp(
-        // Match start of line, followed by whitespace
         r'(?:^|\n)\s*'
-        // At least one of: annotation, modifier, or (return type + space)
-        // Use a positive lookahead to ensure something is there before the method name
-        r'(?=(?:@\w+\s+|(?:static|const|final|late|override)\s+|\w+(?:<[^>]+>)?(?:\?)?\s+))'
-        // Now match the actual annotations/modifiers/return type
-        r'(?:@\w+\s+)*(?:(?:static|const|final|late|override)\s+)*(?:\w+(?:<[^>]+>)?(?:\?)?\s+)?'
-        '${RegExp.escape('_handleSubmit')}'
+        r'(?:@[\w\.]+\s*(?:\([^)]*\))?\s+)*'
+        r'(?:'
+        r'(?:(?:static|const|final|late|override)\s+)+'
+        r'|'
+        r'(?:(?!(?:if|else|for|while|switch|return)\b)[a-zA-Z_]\w*(?:<[^>]+>)?(?:\?)?\s+)'
+        r')'
+        '\\b${RegExp.escape('_handleSubmit')}\\b'
         r'\s*\(',
         multiLine: true,
       );
@@ -1335,5 +1328,122 @@ class MyWidget {
         reason: 'Should match the double? nullableField declaration',
       );
     });
+
+    test(
+      'Regression: does not mis-extract methods when calls are at start of line',
+      () async {
+        final sources = {
+          'spark|lib/src/annotations/component.dart': '''
+            class Component {
+              final String tag;
+              const Component({required this.tag});
+            }
+            class Attribute {
+              final String? name;
+              const Attribute({this.name});
+            }
+          ''',
+          'spark|lib/src/component/spark_component.dart': '''
+            abstract class SparkComponent {
+              void scheduleUpdate() {}
+              String get tagName;
+              List<String> get observedAttributes => const [];
+              void syncAttributes() {}
+              Map<String, String> get dumpedAttributes => {};
+              void attributeChangedCallback(String name, String? oldValue, String? newValue) {}
+            }
+          ''',
+          'spark|lib/server.dart': '''
+            library spark;
+            export 'src/annotations/component.dart';
+            export 'src/component/spark_component.dart';
+          ''',
+          'a|lib/test_lib_base.dart': '''
+            library a;
+            import 'package:spark/server.dart';
+
+            @Component(tag: 'oauth-apps-card')
+            class OAuthAppsCard {
+              static const tag = 'oauth-apps-card';
+
+              Element render() {
+                final activeTab = 'connected';
+                final grants = [];
+                final apps = [];
+
+                return div([
+                  if (activeTab == 'connected')
+                    _renderConnectedTab(grants)
+                  else
+                    _renderMyAppsTab(apps),
+                ]);
+              }
+
+              Element _renderConnectedTab(List grants) {
+                return div(['Connected']);
+              }
+
+              Element _renderMyAppsTab(List apps) {
+                return div(['My Apps']);
+              }
+            }
+
+            class Element {}
+            Element div(List children) => Element();
+          ''',
+        };
+
+        await resolveSources(sources, (resolver) async {
+          final libraryElement = await resolver.libraryFor(
+            AssetId('a', 'lib/test_lib_base.dart'),
+          );
+
+          final cardClass = libraryElement.children
+              .whereType<ClassElement>()
+              .firstWhere((e) => e.name == 'OAuthAppsCard');
+
+          final annotations = cardClass.metadata.annotations;
+          final annotation = annotations.firstWhere((a) {
+            final element = a.element;
+            final enclosing = element?.enclosingElement;
+            return enclosing?.name == 'Component';
+          });
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
+
+          final generator = ComponentGenerator();
+          final output = await generator.generateForAnnotatedElement(
+            cardClass,
+            constantReader,
+            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+          );
+
+          final connectedTabCount = RegExp(
+            r'Element _renderConnectedTab\(',
+          ).allMatches(output).length;
+          expect(
+            connectedTabCount,
+            equals(1),
+            reason:
+                'Should have exactly one declaration of _renderConnectedTab',
+          );
+
+          final myAppsTabCount = RegExp(
+            r'Element _renderMyAppsTab\(',
+          ).allMatches(output).length;
+          expect(
+            myAppsTabCount,
+            equals(1),
+            reason: 'Should have exactly one declaration of _renderMyAppsTab',
+          );
+
+          expect(
+            output,
+            contains('else\n                    _renderMyAppsTab(apps),'),
+          );
+        });
+      },
+    );
   });
 }

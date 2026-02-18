@@ -5,10 +5,20 @@ import 'package:source_gen/source_gen.dart';
 import 'package:spark_generator/src/component_generator.dart';
 import 'package:test/test.dart';
 
+import 'dart:convert';
+
 class SimpleBuildStep implements BuildStep {
   @override
   final AssetId inputId;
-  SimpleBuildStep(this.inputId);
+  final Map<String, String> sources;
+  SimpleBuildStep(this.inputId, this.sources);
+
+  @override
+  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
+    final key = '${id.package}|${id.path}';
+    if (sources.containsKey(key)) return sources[key]!;
+    throw AssetNotFoundException(id);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -17,9 +27,8 @@ class SimpleBuildStep implements BuildStep {
 void main() {
   group('ComponentGenerator Attribute Types', () {
     test('generates correct deserialization for various types', () async {
-      await resolveSources(
-        {
-          'spark|lib/src/annotations/component.dart': '''
+      final sources = {
+        'spark|lib/src/annotations/component.dart': '''
             class Component {
               final String tag;
               const Component({required this.tag});
@@ -30,7 +39,7 @@ void main() {
               const Attribute({this.name, this.observable = false});
             }
           ''',
-          'spark|lib/src/component/spark_component.dart': '''
+        'spark|lib/src/component/spark_component.dart': '''
             abstract class SparkComponent {
               void syncAttributes() {}
               void scheduleUpdate() {}
@@ -41,12 +50,12 @@ void main() {
               String get tagName;
             }
           ''',
-          'spark|lib/server.dart': '''
+        'spark|lib/server.dart': '''
             library spark;
             export 'src/annotations/component.dart';
             export 'src/component/spark_component.dart';
           ''',
-          'a|lib/test_lib_base.dart': '''
+        'a|lib/test_lib_base.dart': '''
             library a;
             import 'package:spark/server.dart';
             import 'dart:convert';
@@ -97,104 +106,102 @@ void main() {
             class Element {}
             Element div(List children) => Element();
           ''',
-        },
-        (resolver) async {
-          final libraryElement = await resolver.libraryFor(
-            AssetId('a', 'lib/test_lib_base.dart'),
-          );
+      };
 
-          final classElement = libraryElement.children
-              .whereType<ClassElement>()
-              .firstWhere((e) => e.name == 'MyElement');
+      await resolveSources(sources, (resolver) async {
+        final libraryElement = await resolver.libraryFor(
+          AssetId('a', 'lib/test_lib_base.dart'),
+        );
 
-          final annotations = classElement.metadata.annotations;
-          final annotation = annotations.firstWhere((a) {
-            final element = a.element;
-            final enclosing = element?.enclosingElement;
-            return enclosing?.name == 'Component';
-          });
-          final constantReader = ConstantReader(
-            annotation.computeConstantValue(),
-          );
+        final classElement = libraryElement.children
+            .whereType<ClassElement>()
+            .firstWhere((e) => e.name == 'MyElement');
 
-          final generator = ComponentGenerator();
-          final output = generator.generateForAnnotatedElement(
-            classElement,
-            constantReader,
-            SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart')),
-          );
+        final annotations = classElement.metadata.annotations;
+        final annotation = annotations.firstWhere((a) {
+          final element = a.element;
+          final enclosing = element?.enclosingElement;
+          return enclosing?.name == 'Component';
+        });
+        final constantReader = ConstantReader(
+          annotation.computeConstantValue(),
+        );
 
-          // Verify int deserialization
-          expect(output, contains("case 'intattr':"));
-          expect(
-            output,
-            contains("_intAttr = int.tryParse(newValue ?? '') ?? 0;"),
-          );
+        final generator = ComponentGenerator();
+        final output = await generator.generateForAnnotatedElement(
+          classElement,
+          constantReader,
+          SimpleBuildStep(AssetId('a', 'lib/test_lib_base.dart'), sources),
+        );
 
-          // Verify double deserialization
-          expect(output, contains("case 'doubleattr':"));
-          expect(
-            output,
-            contains("_doubleAttr = double.tryParse(newValue ?? '') ?? 0.0;"),
-          );
+        // Verify int deserialization
+        expect(output, contains("case 'intattr':"));
+        expect(
+          output,
+          contains("_intAttr = int.tryParse(newValue ?? '') ?? 0;"),
+        );
 
-          // Verify bool deserialization
-          expect(output, contains("case 'boolattr':"));
-          expect(
-            output,
-            contains("_boolAttr = newValue != null && newValue != 'false';"),
-          );
+        // Verify double deserialization
+        expect(output, contains("case 'doubleattr':"));
+        expect(
+          output,
+          contains("_doubleAttr = double.tryParse(newValue ?? '') ?? 0.0;"),
+        );
 
-          // Verify string deserialization
-          expect(output, contains("case 'stringattr':"));
-          expect(output, contains("_stringAttr = newValue ?? '';"));
+        // Verify bool deserialization
+        expect(output, contains("case 'boolattr':"));
+        expect(
+          output,
+          contains("_boolAttr = newValue != null && newValue != 'false';"),
+        );
 
-          // Verify List<String> deserialization
-          expect(output, contains("case 'liststringattr':"));
-          expect(
-            output,
-            contains(
-              "_listStringAttr = (jsonDecode(newValue ?? '[]') as List).cast<String>().toList();",
-            ),
-          );
+        // Verify string deserialization
+        expect(output, contains("case 'stringattr':"));
+        expect(output, contains("_stringAttr = newValue ?? '';"));
 
-          // Verify Map<String, int> deserialization
-          expect(output, contains("case 'mapintattr':"));
-          expect(
-            output,
-            contains(
-              "_mapIntAttr = (jsonDecode(newValue ?? '{}') as Map).cast<String, int>();",
-            ),
-          );
+        // Verify List<String> deserialization
+        expect(output, contains("case 'liststringattr':"));
+        expect(
+          output,
+          contains(
+            "_listStringAttr = (jsonDecode(newValue ?? '[]') as List).cast<String>().toList();",
+          ),
+        );
 
-          // Verify CustomType deserialization
-          expect(output, contains("case 'customattr':"));
-          expect(
-            output,
-            contains(
-              "_customAttr = CustomType.fromJson(jsonDecode(newValue));",
-            ),
-          );
+        // Verify Map<String, int> deserialization
+        expect(output, contains("case 'mapintattr':"));
+        expect(
+          output,
+          contains(
+            "_mapIntAttr = (jsonDecode(newValue ?? '{}') as Map).cast<String, int>();",
+          ),
+        );
 
-          // Verify List<CustomType> deserialization
-          expect(output, contains("case 'listcustomattr':"));
-          expect(
-            output,
-            contains(
-              "_listCustomAttr = (jsonDecode(newValue ?? '[]') as List).map((e) => CustomType.fromJson(e)).toList();",
-            ),
-          );
+        // Verify CustomType deserialization
+        expect(output, contains("case 'customattr':"));
+        expect(
+          output,
+          contains("_customAttr = CustomType.fromJson(jsonDecode(newValue));"),
+        );
 
-          // Verify Map<String, CustomType> deserialization
-          expect(output, contains("case 'mapcustomattr':"));
-          expect(
-            output,
-            contains(
-              "_mapCustomAttr = (jsonDecode(newValue ?? '{}') as Map).map((k, v) => MapEntry(k as String, CustomType.fromJson(v)));",
-            ),
-          );
-        },
-      );
+        // Verify List<CustomType> deserialization
+        expect(output, contains("case 'listcustomattr':"));
+        expect(
+          output,
+          contains(
+            "_listCustomAttr = (jsonDecode(newValue ?? '[]') as List).map((e) => CustomType.fromJson(e)).toList();",
+          ),
+        );
+
+        // Verify Map<String, CustomType> deserialization
+        expect(output, contains("case 'mapcustomattr':"));
+        expect(
+          output,
+          contains(
+            "_mapCustomAttr = (jsonDecode(newValue ?? '{}') as Map).map((k, v) => MapEntry(k as String, CustomType.fromJson(v)));",
+          ),
+        );
+      });
     });
   });
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:meta/meta.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -59,11 +57,11 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   };
 
   @override
-  String generateForAnnotatedElement(
+  Future<String> generateForAnnotatedElement(
     Element element,
     ConstantReader annotation,
     BuildStep buildStep,
-  ) {
+  ) async {
     print('ComponentGenerator: Processing element ${element.name}');
     helpers.validateClassElement(element, 'Component');
     final classElement = element as ClassElement;
@@ -88,21 +86,21 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     }
 
     // Generate complete reactive class with same name
-    return _generateCompleteReactiveClass(
+    return await _generateCompleteReactiveClass(
       classElement,
       className,
       annotation,
-      sourceFilePath,
+      buildStep,
     );
   }
 
   /// Generates a complete reactive class for plain @Component classes.
-  String _generateCompleteReactiveClass(
+  Future<String> _generateCompleteReactiveClass(
     ClassElement classElement,
     String className,
     ConstantReader annotation,
-    String sourceFilePath,
-  ) {
+    BuildStep buildStep,
+  ) async {
     final buffer = StringBuffer();
     final attributes = _extractAttributes(classElement);
 
@@ -135,7 +133,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     buffer.writeln();
 
     // Copy imports from the base file
-    final baseFileImports = _extractImports(sourceFilePath);
+    final baseFileImports = await _extractImports(buildStep);
     for (final import in baseFileImports) {
       buffer.writeln(import);
     }
@@ -203,7 +201,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       if (attributes.containsKey(fieldName)) continue;
       if (reservedFields.contains(fieldName)) continue;
 
-      final fieldSource = _getFieldSource(field, sourceFilePath);
+      final fieldSource = await _getFieldSource(field, buildStep);
       if (fieldSource != null && fieldSource.isNotEmpty) {
         buffer.writeln(fieldSource);
       } else {
@@ -226,12 +224,12 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     buffer.writeln();
 
     // Generate constructor matching user's constructor
-    _generateConstructor(
+    await _generateConstructor(
       buffer,
       classElement,
       className,
       attributes,
-      sourceFilePath,
+      buildStep,
     );
 
     // Generate reactive getters/setters
@@ -251,7 +249,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     }
 
     // Copy user's methods (render, etc.)
-    _copyUserMethods(buffer, classElement, attributes, sourceFilePath);
+    await _copyUserMethods(buffer, classElement, attributes, buildStep);
 
     // tagName getter
     buffer.writeln('  @override');
@@ -271,7 +269,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
     if (hasAdoptedStyleSheets) {
       final getter = classElement.getGetter('adoptedStyleSheets');
       if (getter != null) {
-        final getterSource = _getGetterSource(getter, sourceFilePath);
+        final getterSource = await _getGetterSource(getter, buildStep);
         if (getterSource != null) {
           buffer.writeln('  @override');
           buffer.writeln(getterSource);
@@ -515,12 +513,10 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   /// hides the top-level [query] and [queryAll] stubs so that the generated
   /// class resolves those names to the inherited [WebComponent] instance
   /// methods instead.
-  List<String> _extractImports(String sourceFilePath) {
+  Future<List<String>> _extractImports(BuildStep buildStep) async {
     try {
-      final file = File(sourceFilePath);
-      if (!file.existsSync()) return [];
-
-      final contents = file.readAsStringSync();
+      final inputId = buildStep.inputId;
+      final contents = await buildStep.readAsString(inputId);
       final imports = <String>[];
 
       // Always emit the spark import with query/queryAll hidden so the
@@ -649,13 +645,13 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Generates a constructor matching the user's constructor signature.
-  void _generateConstructor(
+  Future<void> _generateConstructor(
     StringBuffer buffer,
     ClassElement classElement,
     String className,
     Map<String, _AttributeInfo> attributes,
-    String sourceFilePath,
-  ) {
+    BuildStep buildStep,
+  ) async {
     final constructor = classElement.unnamedConstructor;
     if (constructor != null && constructor.formalParameters.isNotEmpty) {
       buffer.writeln('  $className({');
@@ -747,16 +743,16 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Copies user's methods into the generated class.
-  void _copyUserMethods(
+  Future<void> _copyUserMethods(
     StringBuffer buffer,
     ClassElement classElement,
     Map<String, _AttributeInfo> attributes,
-    String sourceFilePath,
-  ) {
+    BuildStep buildStep,
+  ) async {
     // Copy render method
     final renderMethod = classElement.getMethod('render');
     if (renderMethod != null) {
-      final methodSource = getMethodSource(renderMethod, sourceFilePath);
+      final methodSource = await getMethodSource(renderMethod, buildStep);
       if (methodSource != null && methodSource.isNotEmpty) {
         buffer.writeln('@override');
         buffer.writeln(methodSource.replaceFirst('render', 'build'));
@@ -773,7 +769,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
 
     final onMountMethod = classElement.getMethod('onMount');
     if (onMountMethod != null) {
-      final methodSource = getMethodSource(onMountMethod, sourceFilePath);
+      final methodSource = await getMethodSource(onMountMethod, buildStep);
       if (methodSource != null && methodSource.isNotEmpty) {
         buffer.writeln('@override');
         buffer.writeln(
@@ -792,7 +788,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       if (method.isStatic || name == null) continue;
       if (_reservedMethodNames.contains(name)) continue;
 
-      final methodSource = getMethodSource(method, sourceFilePath);
+      final methodSource = await getMethodSource(method, buildStep);
       if (methodSource != null && methodSource.isNotEmpty) {
         buffer.writeln(methodSource);
         buffer.writeln();
@@ -812,7 +808,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
       final name = getter.name;
       if (reservedGetters.contains(name)) continue;
 
-      final getterSource = _getGetterSource(getter, sourceFilePath);
+      final getterSource = await _getGetterSource(getter, buildStep);
       if (getterSource != null && getterSource.isNotEmpty) {
         buffer.writeln(getterSource);
         buffer.writeln();
@@ -837,7 +833,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
 
       if (reservedSetters.contains(name)) continue;
 
-      final setterSource = _getSetterSource(setter, sourceFilePath);
+      final setterSource = await _getSetterSource(setter, buildStep);
       if (setterSource != null && setterSource.isNotEmpty) {
         buffer.writeln(setterSource);
         buffer.writeln();
@@ -848,125 +844,134 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   /// Extracts method source code from a method element.
   /// Finds the method by name and extracts from the previous declaration boundary.
   @visibleForTesting
-  String? getMethodSource(MethodElement method, String sourceFilePath) {
+  Future<String?> getMethodSource(
+    MethodElement method,
+    BuildStep buildStep,
+  ) async {
     final methodName = method.name;
     if (methodName == null) return null;
 
     try {
-      final file = File(sourceFilePath);
-      if (!file.existsSync()) return null;
-      final contents = file.readAsStringSync();
+      final contents = await buildStep.readAsString(buildStep.inputId);
 
-      // Match method declarations with return type or modifiers before method name
-      // This pattern ensures we match actual method declarations, not method calls
-      // The lookahead ensures at least one of: annotation, modifier, or return type is present
+      // Match method declarations with return type or modifiers before method name.
+      // We look for:
+      // 1. Optional annotations (@\w+, @some.path, @some(args))
+      // 2. EITHER:
+      //    a. At least one recognized modifier (static, override, final, late, const)
+      //    b. A return type (like "Element" or "Future<void>") that is NOT a control flow keyword.
+      // 3. The method name itself followed by (
       final pattern = RegExp(
         r'(?:^|\n)\s*'
-        // Positive lookahead: require at least annotation, modifier, or return type
-        r'(?=(?:@\w+\s+|(?:static|const|final|late|override)\s+|\w+(?:<[^>]+>)?(?:\?)?\s+))'
-        // Now match the actual components
-        r'(?:@\w+\s+)*(?:(?:static|const|final|late|override)\s+)*(?:\w+(?:<[^>]+>)?(?:\?)?\s+)?'
-        '${RegExp.escape(methodName)}'
+        r'(?:@[\w\.]+\s*(?:\([^)]*\))?\s+)*'
+        r'(?:'
+        r'(?:(?:static|const|final|late|override)\s+)+'
+        r'|'
+        r'(?:(?!(?:if|else|for|while|switch|return)\b)[a-zA-Z_]\w*(?:<[^>]+>)?(?:\?)?\s+)'
+        r')'
+        '\\b${RegExp.escape(methodName)}\\b'
         r'\s*\(',
         multiLine: true,
       );
 
       final matches = pattern.allMatches(contents);
-      if (matches.isEmpty) return null;
+      if (matches.isEmpty) {
+        return null;
+      }
 
-      for (final match in matches) {
-        // Extract the full match and find where the actual declaration starts
-        // Skip any leading newlines
-        int start = match.start;
-        while (start < contents.length &&
-            (contents[start] == '\n' || contents[start] == '\r')) {
-          start++;
+      final match = matches.first;
+
+      // Extract the full match and find where the actual declaration starts
+      // Skip any leading newlines
+      int start = match.start;
+      while (start < contents.length &&
+          (contents[start] == '\n' || contents[start] == '\r')) {
+        start++;
+      }
+
+      // Find the matching closing parenthesis of the parameter list
+      int pos = match.end;
+      int parenCount = 1;
+      while (pos < contents.length && parenCount > 0) {
+        if (contents[pos] == '(') {
+          parenCount++;
+        } else if (contents[pos] == ')') {
+          parenCount--;
         }
+        pos++;
+      }
 
-        // Find the matching closing parenthesis of the parameter list
-        int pos = match.end;
-        int parenCount = 1;
-        while (pos < contents.length && parenCount > 0) {
-          if (contents[pos] == '(') {
-            parenCount++;
-          } else if (contents[pos] == ')') {
-            parenCount--;
+      // Find opening brace or arrow after method signature
+      bool isArrowFunction = false;
+      while (pos < contents.length &&
+          contents[pos] != '{' &&
+          contents[pos] != '=') {
+        pos++;
+      }
+      if (pos >= contents.length) return null;
+
+      // Check if it's an arrow function
+      if (pos + 1 < contents.length &&
+          contents[pos] == '=' &&
+          contents[pos + 1] == '>') {
+        isArrowFunction = true;
+      }
+
+      int end;
+      if (isArrowFunction) {
+        // Arrow function - find semicolon or end of expression
+        end = pos + 2;
+        int braceCount = 0;
+        int innerParenCount = 0;
+        int bracketCount = 0;
+
+        while (end < contents.length) {
+          final char = contents[end];
+          if (char == '{') {
+            braceCount++;
+          } else if (char == '}') {
+            braceCount--;
+          } else if (char == '(') {
+            innerParenCount++;
+          } else if (char == ')') {
+            innerParenCount--;
+          } else if (char == '[') {
+            bracketCount++;
+          } else if (char == ']') {
+            bracketCount--;
+          } else if (char == ';' &&
+              braceCount == 0 &&
+              innerParenCount == 0 &&
+              bracketCount == 0) {
+            end++;
+            break;
           }
-          pos++;
+          end++;
         }
-
-        // Find opening brace or arrow after method signature
-        bool isArrowFunction = false;
-        while (pos < contents.length &&
-            contents[pos] != '{' &&
-            contents[pos] != '=') {
-          pos++;
-        }
-        if (pos >= contents.length) continue;
-
-        // Check if it's an arrow function
-        if (pos + 1 < contents.length &&
-            contents[pos] == '=' &&
-            contents[pos + 1] == '>') {
-          isArrowFunction = true;
-        }
-
-        int end;
-        if (isArrowFunction) {
-          // Arrow function - find semicolon or end of expression
-          end = pos + 2;
-          int braceCount = 0;
-          int parenCount = 0;
-          int bracketCount = 0;
-
-          while (end < contents.length) {
-            final char = contents[end];
-            if (char == '{') {
-              braceCount++;
-            } else if (char == '}') {
-              braceCount--;
-            } else if (char == '(') {
-              parenCount++;
-            } else if (char == ')') {
-              parenCount--;
-            } else if (char == '[') {
-              bracketCount++;
-            } else if (char == ']') {
-              bracketCount--;
-            } else if (char == ';' &&
-                braceCount == 0 &&
-                parenCount == 0 &&
-                bracketCount == 0) {
+      } else {
+        // Block function - find matching closing brace
+        int braceCount = 0;
+        end = pos;
+        while (end < contents.length) {
+          if (contents[end] == '{') {
+            braceCount++;
+          } else if (contents[end] == '}') {
+            braceCount--;
+            if (braceCount == 0) {
               end++;
               break;
             }
-            end++;
           }
-        } else {
-          // Block function - find matching closing brace
-          int braceCount = 0;
-          end = pos;
-          while (end < contents.length) {
-            if (contents[end] == '{') {
-              braceCount++;
-            } else if (contents[end] == '}') {
-              braceCount--;
-              if (braceCount == 0) {
-                end++;
-                break;
-              }
-            }
-            end++;
-          }
+          end++;
         }
+      }
 
-        if (end > start) {
-          final extracted = contents.substring(start, end).trim();
-          // Verify this looks like a valid method (basic sanity check)
-          if (extracted.contains(methodName) &&
-              (extracted.contains('{') || extracted.contains('=>'))) {
-            return '  $extracted';
-          }
+      if (end > start) {
+        final extracted = contents.substring(start, end).trim();
+        // Verify this looks like a valid method (basic sanity check)
+        if (extracted.contains(methodName) &&
+            (extracted.contains('{') || extracted.contains('=>'))) {
+          return '  $extracted';
         }
       }
     } catch (e) {
@@ -978,17 +983,15 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
 
   /// Extracts getter source code from a getter element.
   /// Finds the getter by name and extracts from the previous declaration boundary.
-  String? _getGetterSource(
+  Future<String?> _getGetterSource(
     PropertyAccessorElement getter,
-    String sourceFilePath,
-  ) {
+    BuildStep buildStep,
+  ) async {
     final getterName = getter.name;
     if (getterName == null) return null;
 
     try {
-      final file = File(sourceFilePath);
-      if (!file.existsSync()) return null;
-      final contents = file.readAsStringSync();
+      final contents = await buildStep.readAsString(buildStep.inputId);
 
       // Find "get getterName" pattern
       final pattern = RegExp(
@@ -1068,10 +1071,10 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Extracts setter source code from a setter element.
-  String? _getSetterSource(
+  Future<String?> _getSetterSource(
     PropertyAccessorElement setter,
-    String sourceFilePath,
-  ) {
+    BuildStep buildStep,
+  ) async {
     final setterName = setter.name;
     if (setterName == null) return null;
 
@@ -1081,9 +1084,7 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
         : setterName;
 
     try {
-      final file = File(sourceFilePath);
-      if (!file.existsSync()) return null;
-      final contents = file.readAsStringSync();
+      final contents = await buildStep.readAsString(buildStep.inputId);
 
       // Find "set cleanName(" pattern
       final pattern = RegExp(
@@ -1192,14 +1193,15 @@ class ComponentGenerator extends GeneratorForAnnotation<Component> {
   }
 
   /// Extracts field source code from a field element.
-  String? _getFieldSource(FieldElement field, String sourceFilePath) {
+  Future<String?> _getFieldSource(
+    FieldElement field,
+    BuildStep buildStep,
+  ) async {
     final fieldName = field.name;
     if (fieldName == null) return null;
 
     try {
-      final file = File(sourceFilePath);
-      if (!file.existsSync()) return null;
-      final contents = file.readAsStringSync();
+      final contents = await buildStep.readAsString(buildStep.inputId);
 
       // Match field declarations: optional modifiers, type, field name
       final pattern = RegExp(

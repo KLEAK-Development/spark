@@ -1,3 +1,9 @@
+## 1.0.0-alpha.16
+
+- Fix: prevent mis-extraction of method calls starting at line beginning in `ComponentGenerator` by refining the regex to require return types or modifiers.
+- Internal: Refactored `ComponentGenerator` to be asynchronous for better integration with `BuildStep` and file reading.
+- Internal: Updated test suite to support async generation and more robust mocking.
+
 ## 1.0.0-alpha.15
 
 - Fix: improve method body extraction in `ComponentGenerator` to correctly handle methods with named parameters and default values.

@@ -5,10 +5,17 @@ import 'package:source_gen/source_gen.dart';
 import 'package:spark_generator/src/endpoint_generator.dart';
 import 'package:test/test.dart';
 
+import 'dart:convert';
+
 class SimpleBuildStep implements BuildStep {
   @override
   final AssetId inputId;
   SimpleBuildStep(this.inputId);
+
+  @override
+  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
+    throw UnimplementedError();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

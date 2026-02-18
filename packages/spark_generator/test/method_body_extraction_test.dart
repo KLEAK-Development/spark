@@ -1,13 +1,35 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:spark_generator/src/component_generator.dart';
 import 'package:test/test.dart';
-import 'dart:io';
+import 'dart:convert';
+import 'package:build/build.dart';
 
 class TestComponentGenerator extends ComponentGenerator {
-  String? testGetMethodSource(String methodName, String sourceFilePath) {
+  Future<String?> testGetMethodSource(
+    String methodName,
+    AssetId inputId,
+    String contents,
+  ) async {
     final mockMethod = MockMethodElement(methodName);
-    return super.getMethodSource(mockMethod, sourceFilePath);
+    final mockBuildStep = MockBuildStep(inputId, contents);
+    return await super.getMethodSource(mockMethod, mockBuildStep);
   }
+}
+
+class MockBuildStep implements BuildStep {
+  @override
+  final AssetId inputId;
+  final String contents;
+  MockBuildStep(this.inputId, this.contents);
+
+  @override
+  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
+    if (id == inputId) return contents;
+    throw UnimplementedError();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
 class MockMethodElement implements MethodElement {
@@ -21,33 +43,26 @@ class MockMethodElement implements MethodElement {
 
 void main() {
   group('Method Body Extraction', () {
-    late Directory tempDir;
     late TestComponentGenerator generator;
 
     setUp(() async {
-      tempDir = await Directory.systemTemp.createTemp('spark_gen_test');
       generator = TestComponentGenerator();
     });
 
-    tearDown(() async {
-      await tempDir.delete(recursive: true);
-    });
-
     test('extracts method with named parameters correctly', () async {
-      final sourceFile = File('${tempDir.path}/test_base.dart');
-      await sourceFile.writeAsString('''
+      final contents = '''
 class Test {
   Future<void> _getCurrentPosition({bool highAccuracy = true}) async {
     print('body');
   }
-  
+
   void anotherMethod() {}
 }
-''');
-
-      final source = generator.testGetMethodSource(
+''';
+      final source = await generator.testGetMethodSource(
         '_getCurrentPosition',
-        sourceFile.path,
+        AssetId('a', 'lib/test_lib_base.dart'),
+        contents,
       );
 
       expect(
@@ -63,8 +78,7 @@ class Test {
     });
 
     test('extracts method with multiple sets of braces correctly', () async {
-      final sourceFile = File('${tempDir.path}/test_base.dart');
-      await sourceFile.writeAsString('''
+      final contents = '''
 class Test {
   void complexMethod({Map m = const {'a': 1}}) {
     if (true) {
@@ -72,11 +86,11 @@ class Test {
     }
   }
 }
-''');
-
-      final source = generator.testGetMethodSource(
+''';
+      final source = await generator.testGetMethodSource(
         'complexMethod',
-        sourceFile.path,
+        AssetId('a', 'lib/test_lib_base.dart'),
+        contents,
       );
 
       expect(
@@ -90,14 +104,16 @@ class Test {
     });
 
     test('extracts arrow function with named parameters correctly', () async {
-      final sourceFile = File('${tempDir.path}/test_base.dart');
-      await sourceFile.writeAsString('''
+      final contents = '''
 class Test {
   String format({String prefix = ''}) => '\$prefix: value';
 }
-''');
-
-      final source = generator.testGetMethodSource('format', sourceFile.path);
+''';
+      final source = await generator.testGetMethodSource(
+        'format',
+        AssetId('a', 'lib/test_lib_base.dart'),
+        contents,
+      );
 
       expect(
         source,
