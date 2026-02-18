@@ -477,6 +477,41 @@ Element img({
   selfClosing: true,
 );
 
+Element dialog(
+  dynamic children, {
+  bool? open,
+  String? id,
+  String? className,
+  Map<String, dynamic>? attributes,
+}) => _el(
+  'dialog',
+  children,
+  id: id,
+  className: className,
+  attributes: {'open': ?open, ...?attributes},
+);
+
+Element details(
+  dynamic children, {
+  bool? open,
+  String? id,
+  String? className,
+  Map<String, dynamic>? attributes,
+}) => _el(
+  'details',
+  children,
+  id: id,
+  className: className,
+  attributes: {'open': ?open, ...?attributes},
+);
+
+Element summary(
+  dynamic children, {
+  String? id,
+  String? className,
+  Map<String, dynamic>? attributes,
+}) => _el('summary', children, id: id, className: className, attributes: attributes);
+
 // --- Forms ---
 Element button(
   dynamic children, {

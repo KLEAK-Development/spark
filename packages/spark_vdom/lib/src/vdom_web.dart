@@ -225,6 +225,14 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
 
   for (final name in currentAttrNames) {
     if (!attrs.containsKey(name) && name != 'data-spark-id') {
+      // Don't remove browser-managed attributes that might be changed by user or methods
+      if (name == 'open' &&
+          (el is web.HTMLDialogElement || el is web.HTMLDetailsElement)) {
+        continue;
+      }
+      if (name == 'checked' && el is web.HTMLInputElement) {
+        continue;
+      }
       el.removeAttribute(name);
     }
   }
@@ -239,15 +247,55 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
       } else {
         el.removeAttribute(key);
       }
+
+      // Sync properties for boolean attributes
+      if (key == 'open') {
+        if (el is web.HTMLDialogElement) {
+          if (el.open != value) {
+            el.open = value;
+          }
+        } else if (el is web.HTMLDetailsElement) {
+          if (el.open != value) {
+            el.open = value;
+          }
+        }
+      } else if (key == 'checked' && el is web.HTMLInputElement) {
+        if (el.checked != value) {
+          el.checked = value;
+        }
+      }
     } else {
       final strVal = value.toString();
       if (el.getAttribute(key) != strVal) {
         el.setAttribute(key, strVal);
       }
       // Also set the property for input value to ensure sync
-      if (key == 'value' && el is web.HTMLInputElement) {
-        if (el.value != strVal) {
-          el.value = strVal;
+      if (key == 'value') {
+        if (el is web.HTMLInputElement) {
+          if (el.value != strVal) {
+            el.value = strVal;
+          }
+        } else if (el is web.HTMLTextAreaElement) {
+          if (el.value != strVal) {
+            el.value = strVal;
+          }
+        } else if (el is web.HTMLSelectElement) {
+          if (el.value != strVal) {
+            el.value = strVal;
+          }
+        }
+      }
+      // Handle non-boolean 'open' (though rare, some might use it)
+      if (key == 'open') {
+        final boolVal = strVal == 'true' || strVal == '';
+        if (el is web.HTMLDialogElement) {
+          if (el.open != boolVal) {
+            el.open = boolVal;
+          }
+        } else if (el is web.HTMLDetailsElement) {
+          if (el.open != boolVal) {
+            el.open = boolVal;
+          }
         }
       }
     }
