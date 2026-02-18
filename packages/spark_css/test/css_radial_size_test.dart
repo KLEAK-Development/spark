@@ -28,7 +28,10 @@ void main() {
     });
 
     test('global outputs correct CSS', () {
-      expect(CssRadialSize.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssRadialSize.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 }

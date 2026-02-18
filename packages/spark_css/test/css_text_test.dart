@@ -25,13 +25,19 @@ void main() {
       expect(CssTextDecoration.underline.toCss(), equals('underline'));
     });
     test('variable outputs correct CSS', () {
-      expect(CssTextDecoration.variable('decor').toCss(), equals('var(--decor)'));
+      expect(
+        CssTextDecoration.variable('decor').toCss(),
+        equals('var(--decor)'),
+      );
     });
     test('raw outputs value as-is', () {
       expect(CssTextDecoration.raw('underline').toCss(), equals('underline'));
     });
     test('global outputs correct CSS', () {
-      expect(CssTextDecoration.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssTextDecoration.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -41,13 +47,19 @@ void main() {
       expect(CssTextTransform.uppercase.toCss(), equals('uppercase'));
     });
     test('variable outputs correct CSS', () {
-      expect(CssTextTransform.variable('trans').toCss(), equals('var(--trans)'));
+      expect(
+        CssTextTransform.variable('trans').toCss(),
+        equals('var(--trans)'),
+      );
     });
     test('raw outputs value as-is', () {
       expect(CssTextTransform.raw('uppercase').toCss(), equals('uppercase'));
     });
     test('global outputs correct CSS', () {
-      expect(CssTextTransform.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssTextTransform.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -63,7 +75,10 @@ void main() {
       expect(CssWhiteSpace.raw('nowrap').toCss(), equals('nowrap'));
     });
     test('global outputs correct CSS', () {
-      expect(CssWhiteSpace.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssWhiteSpace.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 

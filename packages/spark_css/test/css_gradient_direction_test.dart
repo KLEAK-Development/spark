@@ -12,20 +12,35 @@ void main() {
       expect(CssGradientDirection.toRight.toCss(), equals('to right'));
       expect(CssGradientDirection.toTopLeft.toCss(), equals('to top left'));
       expect(CssGradientDirection.toTopRight.toCss(), equals('to top right'));
-      expect(CssGradientDirection.toBottomLeft.toCss(), equals('to bottom left'));
-      expect(CssGradientDirection.toBottomRight.toCss(), equals('to bottom right'));
+      expect(
+        CssGradientDirection.toBottomLeft.toCss(),
+        equals('to bottom left'),
+      );
+      expect(
+        CssGradientDirection.toBottomRight.toCss(),
+        equals('to bottom right'),
+      );
     });
 
     test('angle outputs correct CSS', () {
-      expect(CssGradientDirection.angle(CssAngle.deg(45)).toCss(), equals('45deg'));
+      expect(
+        CssGradientDirection.angle(CssAngle.deg(45)).toCss(),
+        equals('45deg'),
+      );
     });
 
     test('raw outputs value as-is', () {
-      expect(CssGradientDirection.raw('to top left').toCss(), equals('to top left'));
+      expect(
+        CssGradientDirection.raw('to top left').toCss(),
+        equals('to top left'),
+      );
     });
 
     test('global outputs correct CSS', () {
-      expect(CssGradientDirection.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssGradientDirection.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 }

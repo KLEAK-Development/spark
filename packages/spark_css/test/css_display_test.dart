@@ -16,7 +16,10 @@ void main() {
     });
 
     test('variable outputs correct CSS', () {
-      expect(CssDisplay.variable('display-mode').toCss(), equals('var(--display-mode)'));
+      expect(
+        CssDisplay.variable('display-mode').toCss(),
+        equals('var(--display-mode)'),
+      );
     });
 
     test('raw outputs value as-is', () {

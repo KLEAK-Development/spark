@@ -32,7 +32,10 @@ void main() {
     });
 
     test('variable outputs correct CSS', () {
-      expect(CssCursor.variable('my-cursor').toCss(), equals('var(--my-cursor)'));
+      expect(
+        CssCursor.variable('my-cursor').toCss(),
+        equals('var(--my-cursor)'),
+      );
     });
 
     test('raw outputs value as-is', () {

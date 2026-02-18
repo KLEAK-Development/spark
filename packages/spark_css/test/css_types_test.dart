@@ -168,10 +168,7 @@ void main() {
     });
 
     test('global outputs correct CSS', () {
-      expect(
-        CssLength.global(CssGlobal.inherit).toCss(),
-        equals('inherit'),
-      );
+      expect(CssLength.global(CssGlobal.inherit).toCss(), equals('inherit'));
     });
   });
 

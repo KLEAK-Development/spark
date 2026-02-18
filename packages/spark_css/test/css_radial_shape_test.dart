@@ -14,7 +14,10 @@ void main() {
     });
 
     test('global outputs correct CSS', () {
-      expect(CssRadialShape.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssRadialShape.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 }

@@ -45,7 +45,8 @@ sealed class CssGradientDirection implements CssValue {
       _CssGradientDirectionKeyword('to bottom right');
 
   /// Direction defined by an angle.
-  factory CssGradientDirection.angle(CssAngle angle) = _CssGradientDirectionAngle;
+  factory CssGradientDirection.angle(CssAngle angle) =
+      _CssGradientDirectionAngle;
 
   /// Raw CSS value escape hatch.
   factory CssGradientDirection.raw(String value) = _CssGradientDirectionRaw;

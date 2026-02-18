@@ -28,11 +28,17 @@ void main() {
     });
 
     test('raw outputs value as-is', () {
-      expect(CssBackgroundOrigin.raw('border-box').toCss(), equals('border-box'));
+      expect(
+        CssBackgroundOrigin.raw('border-box').toCss(),
+        equals('border-box'),
+      );
     });
 
     test('global outputs correct CSS', () {
-      expect(CssBackgroundOrigin.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssBackgroundOrigin.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 }

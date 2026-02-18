@@ -71,7 +71,10 @@ void main() {
     });
 
     test('hueRotate', () {
-      expect(CssFilter.hueRotate(CssAngle.deg(90)).toCss(), equals('hue-rotate(90deg)'));
+      expect(
+        CssFilter.hueRotate(CssAngle.deg(90)).toCss(),
+        equals('hue-rotate(90deg)'),
+      );
       expect(
         CssFilter.hueRotateRaw('0.5turn').toCss(),
         equals('hue-rotate(0.5turn)'),

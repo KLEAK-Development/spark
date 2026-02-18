@@ -18,7 +18,10 @@ void main() {
       expect(CssFontWeight.raw('bold').toCss(), equals('bold'));
     });
     test('global outputs correct CSS', () {
-      expect(CssFontWeight.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssFontWeight.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -31,7 +34,10 @@ void main() {
     });
     test('stack outputs correct CSS', () {
       expect(
-        CssFontFamily.stack([CssFontFamily.named('Arial'), CssFontFamily.sansSerif]).toCss(),
+        CssFontFamily.stack([
+          CssFontFamily.named('Arial'),
+          CssFontFamily.sansSerif,
+        ]).toCss(),
         equals('"Arial", sans-serif'),
       );
     });
@@ -42,7 +48,10 @@ void main() {
       expect(CssFontFamily.raw('sans-serif').toCss(), equals('sans-serif'));
     });
     test('global outputs correct CSS', () {
-      expect(CssFontFamily.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssFontFamily.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -52,7 +61,10 @@ void main() {
       expect(CssFontStyle.italic.toCss(), equals('italic'));
     });
     test('obliqueAngle outputs correct CSS', () {
-      expect(CssFontStyle.obliqueAngle('10deg').toCss(), equals('oblique 10deg'));
+      expect(
+        CssFontStyle.obliqueAngle('10deg').toCss(),
+        equals('oblique 10deg'),
+      );
     });
     test('variable outputs correct CSS', () {
       expect(CssFontStyle.variable('style').toCss(), equals('var(--style)'));

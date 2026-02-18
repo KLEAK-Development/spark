@@ -20,7 +20,10 @@ void main() {
     });
 
     test('variable outputs correct CSS', () {
-      expect(CssBorderStyle.variable('border-style').toCss(), equals('var(--border-style)'));
+      expect(
+        CssBorderStyle.variable('border-style').toCss(),
+        equals('var(--border-style)'),
+      );
     });
 
     test('raw outputs value as-is', () {
@@ -28,7 +31,10 @@ void main() {
     });
 
     test('global outputs correct CSS', () {
-      expect(CssBorderStyle.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssBorderStyle.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -60,7 +66,10 @@ void main() {
     });
 
     test('raw outputs value as-is', () {
-      expect(CssBorder.raw('1px solid black').toCss(), equals('1px solid black'));
+      expect(
+        CssBorder.raw('1px solid black').toCss(),
+        equals('1px solid black'),
+      );
     });
 
     test('global outputs correct CSS', () {

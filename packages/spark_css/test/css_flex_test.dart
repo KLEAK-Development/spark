@@ -15,7 +15,10 @@ void main() {
       expect(CssFlexDirection.raw('row').toCss(), equals('row'));
     });
     test('global outputs correct CSS', () {
-      expect(CssFlexDirection.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssFlexDirection.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -41,13 +44,19 @@ void main() {
       expect(CssJustifyContent.spaceBetween.toCss(), equals('space-between'));
     });
     test('variable outputs correct CSS', () {
-      expect(CssJustifyContent.variable('justify').toCss(), equals('var(--justify)'));
+      expect(
+        CssJustifyContent.variable('justify').toCss(),
+        equals('var(--justify)'),
+      );
     });
     test('raw outputs value as-is', () {
       expect(CssJustifyContent.raw('center').toCss(), equals('center'));
     });
     test('global outputs correct CSS', () {
-      expect(CssJustifyContent.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssJustifyContent.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -63,7 +72,10 @@ void main() {
       expect(CssAlignItems.raw('center').toCss(), equals('center'));
     });
     test('global outputs correct CSS', () {
-      expect(CssAlignItems.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssAlignItems.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 
@@ -73,7 +85,10 @@ void main() {
       expect(CssAlignSelf.center.toCss(), equals('center'));
     });
     test('variable outputs correct CSS', () {
-      expect(CssAlignSelf.variable('align-self').toCss(), equals('var(--align-self)'));
+      expect(
+        CssAlignSelf.variable('align-self').toCss(),
+        equals('var(--align-self)'),
+      );
     });
     test('raw outputs value as-is', () {
       expect(CssAlignSelf.raw('center').toCss(), equals('center'));
@@ -89,13 +104,19 @@ void main() {
       expect(CssAlignContent.stretch.toCss(), equals('stretch'));
     });
     test('variable outputs correct CSS', () {
-      expect(CssAlignContent.variable('align-content').toCss(), equals('var(--align-content)'));
+      expect(
+        CssAlignContent.variable('align-content').toCss(),
+        equals('var(--align-content)'),
+      );
     });
     test('raw outputs value as-is', () {
       expect(CssAlignContent.raw('center').toCss(), equals('center'));
     });
     test('global outputs correct CSS', () {
-      expect(CssAlignContent.global(CssGlobal.inherit).toCss(), equals('inherit'));
+      expect(
+        CssAlignContent.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 }

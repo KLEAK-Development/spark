@@ -14,7 +14,10 @@ void main() {
         final sheet = css({'.foo': Style(color: 'blue')});
         expect(sheet.toCss(), equals('.foo{color:blue;}'));
 
-        final nested = Style(color: 'red', css: css({'.bar': Style(color: 'blue')}));
+        final nested = Style(
+          color: 'red',
+          css: css({'.bar': Style(color: 'blue')}),
+        );
         expect(nested.toCss(), equals('color:red;.bar{color:blue;}'));
       }, zoneValues: {#spark_css_minify: true});
     });
@@ -83,11 +86,20 @@ void main() {
         textShadow: CssTextShadow(x: CssLength.px(1), y: CssLength.px(1)),
         border: CssBorder.widthStyle(CssLength.px(1), CssBorderStyle.solid),
         borderTop: CssBorder.widthStyle(CssLength.px(1), CssBorderStyle.solid),
-        borderRight: CssBorder.widthStyle(CssLength.px(1), CssBorderStyle.solid),
-        borderBottom: CssBorder.widthStyle(CssLength.px(1), CssBorderStyle.solid),
+        borderRight: CssBorder.widthStyle(
+          CssLength.px(1),
+          CssBorderStyle.solid,
+        ),
+        borderBottom: CssBorder.widthStyle(
+          CssLength.px(1),
+          CssBorderStyle.solid,
+        ),
         borderLeft: CssBorder.widthStyle(CssLength.px(1), CssBorderStyle.solid),
         borderRadius: CssBorderRadius.all(CssLength.px(5)),
-        outline: CssOutline(width: CssLength.px(1), style: CssBorderStyle.solid),
+        outline: CssOutline(
+          width: CssLength.px(1),
+          style: CssBorderStyle.solid,
+        ),
         outlineOffset: CssLength.px(2),
         opacity: CssNumber(0.5),
         overflow: CssOverflow.hidden,
