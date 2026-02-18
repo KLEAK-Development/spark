@@ -15,9 +15,13 @@ void main() {
       expect(geo.getCurrentPosition, isNotNull);
       expect(geo.watchPosition, isNotNull);
       expect(geo.clearWatch, isNotNull);
-      
+
       // Call with options to cover _createNativeOptions
-      geo.getCurrentPosition((_) {}, (_) {}, const spark.PositionOptions(timeout: 1000));
+      geo.getCurrentPosition(
+        (_) {},
+        (_) {},
+        const spark.PositionOptions(timeout: 1000),
+      );
     });
   });
 }

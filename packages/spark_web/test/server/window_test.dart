@@ -56,7 +56,8 @@ void main() {
 
     test('ServerLocation', () {
       final loc = web.window.location;
-      loc.href = 'foo'; expect(loc.href, '');
+      loc.href = 'foo';
+      expect(loc.href, '');
       expect(loc.protocol, '');
       expect(loc.host, '');
       expect(loc.hostname, '');

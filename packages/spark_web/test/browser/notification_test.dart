@@ -11,12 +11,15 @@ void main() {
 
     test('createNotification with options', () {
       try {
-        final n = spark.createNotification('Test', const spark.NotificationOptions(
-          body: 'body',
-          timestamp: 123,
-          silent: true,
-          actions: [spark.NotificationAction(action: 'a', title: 'A')],
-        ));
+        final n = spark.createNotification(
+          'Test',
+          const spark.NotificationOptions(
+            body: 'body',
+            timestamp: 123,
+            silent: true,
+            actions: [spark.NotificationAction(action: 'a', title: 'A')],
+          ),
+        );
         expect(n.title, 'Test');
         expect(n.body, 'body');
         expect(n.timestamp, 123);

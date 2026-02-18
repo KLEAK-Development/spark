@@ -21,9 +21,18 @@ void main() {
       expect(web.createPointerEvent('pointerdown'), isA<web.PointerEvent>());
       expect(web.createTouchEvent('touchstart'), isA<web.TouchEvent>());
       expect(web.createDragEvent('drag'), isA<web.DragEvent>());
-      expect(web.createAnimationEvent('animationend'), isA<web.AnimationEvent>());
-      expect(web.createTransitionEvent('transitionend'), isA<web.TransitionEvent>());
-      expect(web.createCustomEvent('custom', {'foo': 'bar'}), isA<web.CustomEvent>());
+      expect(
+        web.createAnimationEvent('animationend'),
+        isA<web.AnimationEvent>(),
+      );
+      expect(
+        web.createTransitionEvent('transitionend'),
+        isA<web.TransitionEvent>(),
+      );
+      expect(
+        web.createCustomEvent('custom', {'foo': 'bar'}),
+        isA<web.CustomEvent>(),
+      );
     });
 
     test('Other events', () {
@@ -136,7 +145,7 @@ void main() {
     test('ServerTouch and TouchList', () {
       final e = web.createTouchEvent('touchstart');
       expect(e.touches.item(0), isNull);
-      
+
       // We can't easily create ServerTouch because it's not exposed,
       // but we can test the class if we could instantiate it.
       // Since it's in factory.dart (private to lib/src), we can't.

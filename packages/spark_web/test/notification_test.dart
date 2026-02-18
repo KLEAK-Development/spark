@@ -11,12 +11,18 @@ void main() {
 
     test('equality and hashCode', () {
       expect(NotificationDirection.auto, const NotificationDirection('auto'));
-      expect(NotificationDirection.auto.hashCode, const NotificationDirection('auto').hashCode);
+      expect(
+        NotificationDirection.auto.hashCode,
+        const NotificationDirection('auto').hashCode,
+      );
       expect(NotificationDirection.auto, isNot(NotificationDirection.ltr));
     });
 
     test('toString', () {
-      expect(NotificationDirection.auto.toString(), 'NotificationDirection(auto)');
+      expect(
+        NotificationDirection.auto.toString(),
+        'NotificationDirection(auto)',
+      );
     });
   });
 
@@ -28,18 +34,31 @@ void main() {
     });
 
     test('equality and hashCode', () {
-      expect(NotificationPermission.granted, const NotificationPermission('granted'));
-      expect(NotificationPermission.granted.hashCode, const NotificationPermission('granted').hashCode);
+      expect(
+        NotificationPermission.granted,
+        const NotificationPermission('granted'),
+      );
+      expect(
+        NotificationPermission.granted.hashCode,
+        const NotificationPermission('granted').hashCode,
+      );
     });
 
     test('toString', () {
-      expect(NotificationPermission.granted.toString(), 'NotificationPermission(granted)');
+      expect(
+        NotificationPermission.granted.toString(),
+        'NotificationPermission(granted)',
+      );
     });
   });
 
   group('NotificationAction', () {
     test('constructor', () {
-      const action = NotificationAction(action: 'view', title: 'View', icon: 'view.png');
+      const action = NotificationAction(
+        action: 'view',
+        title: 'View',
+        icon: 'view.png',
+      );
       expect(action.action, 'view');
       expect(action.title, 'View');
       expect(action.icon, 'view.png');

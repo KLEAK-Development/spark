@@ -532,9 +532,11 @@ class ServerHTMLTableElement extends ServerHTMLElement
   @override
   set tFoot(iface.HTMLTableSectionElement? val) {}
   @override
-  iface.HTMLTableSectionElement createTBody() => ServerHTMLTableSectionElement();
+  iface.HTMLTableSectionElement createTBody() =>
+      ServerHTMLTableSectionElement();
   @override
-  iface.HTMLTableRowElement insertRow([int index = -1]) => ServerHTMLTableRowElement();
+  iface.HTMLTableRowElement insertRow([int index = -1]) =>
+      ServerHTMLTableRowElement();
   @override
   void deleteRow(int index) {}
 }
@@ -542,7 +544,8 @@ class ServerHTMLTableElement extends ServerHTMLElement
 class ServerHTMLTableSectionElement extends ServerHTMLElement
     implements iface.HTMLTableSectionElement {
   @override
-  iface.HTMLTableRowElement insertRow([int index = -1]) => ServerHTMLTableRowElement();
+  iface.HTMLTableRowElement insertRow([int index = -1]) =>
+      ServerHTMLTableRowElement();
   @override
   void deleteRow(int index) {}
 }
@@ -554,7 +557,8 @@ class ServerHTMLTableRowElement extends ServerHTMLElement
   @override
   int get sectionRowIndex => -1;
   @override
-  iface.HTMLTableCellElement insertCell([int index = -1]) => ServerHTMLTableCellElement();
+  iface.HTMLTableCellElement insertCell([int index = -1]) =>
+      ServerHTMLTableCellElement();
   @override
   void deleteCell(int index) {}
 }

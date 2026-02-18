@@ -52,10 +52,12 @@ DragEvent createDragEvent(String type) => ServerDragEvent(type);
 AnimationEvent createAnimationEvent(String type) => ServerAnimationEvent(type);
 
 /// Creates a server-side [TransitionEvent].
-TransitionEvent createTransitionEvent(String type) => ServerTransitionEvent(type);
+TransitionEvent createTransitionEvent(String type) =>
+    ServerTransitionEvent(type);
 
 /// Creates a server-side [CustomEvent].
-CustomEvent createCustomEvent(String type, [Object? detail]) => ServerCustomEvent(type, detail);
+CustomEvent createCustomEvent(String type, [Object? detail]) =>
+    ServerCustomEvent(type, detail);
 
 /// Creates a server-side [CSSStyleSheet] (no-op).
 iface.CSSStyleSheet createCSSStyleSheet() => ServerCSSStyleSheet();

@@ -11,7 +11,7 @@ void main() {
       }, 10);
       await Future.delayed(const Duration(milliseconds: 50));
       expect(called, isTrue);
-      
+
       final handle = spark.window.setInterval(() {}, 100);
       spark.window.clearInterval(handle);
     });
@@ -25,7 +25,7 @@ void main() {
       expect(spark.window.navigator.userAgent, isNotEmpty);
       expect(spark.window.localStorage, isNotNull);
       expect(spark.window.sessionStorage, isNotNull);
-      
+
       spark.window.localStorage.setItem('spark_test', 'value');
       expect(spark.window.localStorage.getItem('spark_test'), 'value');
       spark.window.localStorage.removeItem('spark_test');
