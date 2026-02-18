@@ -74,6 +74,9 @@ void mountList(dynamic parent, List<Node> vNodes) {
   }
 }
 
+@visibleForTesting
+bool isIgnorable(web.Node node) => _isIgnorable(node);
+
 bool _isIgnorable(web.Node node) {
   return (node.nodeType == 3 && (node.textContent ?? '').trim().isEmpty) ||
       node.nodeType == 8;
@@ -307,6 +310,11 @@ void _updateEvents(web.Element el, Map<String, Function> newEvents) {
 
   _listenersConfig[id] = newEvents;
 }
+
+@visibleForTesting
+int get nextId => _nextId;
+@visibleForTesting
+set nextId(int val) => _nextId = val;
 
 int get _nextId => _nextListenerId;
 set _nextId(int val) => _nextListenerId = val;

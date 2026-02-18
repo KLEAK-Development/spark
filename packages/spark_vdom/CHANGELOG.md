@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0-alpha.4
+
+### Added
+
+- **Testing**: Achieved 100% code coverage for the entire package.
+- **Testing**: Restructured tests to mirror the `lib/` directory (`test/src/`).
+- **Testing**: Added comprehensive coverage for SVG context propagation, ShadowRoot patching, hydration edge cases, and resource cleanup.
+- **Internal**: Exposed `nextId` and `isIgnorable` for testing purposes via `@visibleForTesting`.
+
 ## 1.0.0-alpha.3
 
 ### Added

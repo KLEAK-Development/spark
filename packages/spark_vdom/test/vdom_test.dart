@@ -1,9 +1,7 @@
 import 'package:test/test.dart';
 import 'package:spark_html_dsl/spark_html_dsl.dart';
 
-// Conditional import - use browser implementation in browser, stub in VM
-import 'package:spark_vdom/vdom_web.dart'
-    if (dart.library.io) 'vdom_test_stub.dart';
+import 'package:spark_vdom/spark_vdom.dart';
 
 void main() {
   group('VDom mountList', () {
@@ -72,6 +70,12 @@ void main() {
     test('mount handles text node', () {
       final node = Text('Hello');
       expect(() => mount(null, node), returnsNormally);
+    });
+  });
+
+  group('VDom patch', () {
+    test('patch handles null realNode', () {
+      expect(() => patch(null, div([])), returnsNormally);
     });
   });
 }
