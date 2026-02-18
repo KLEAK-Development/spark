@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:spark_css/src/css_types/css_angle.dart';
 import 'package:spark_css/src/css_types/css_transform.dart';
 import 'package:spark_css/src/css_types/css_length.dart';
 import 'package:spark_css/src/css_types/css_value.dart';

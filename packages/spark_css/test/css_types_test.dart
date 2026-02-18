@@ -93,6 +93,19 @@ void main() {
       expect(CssLength.vh(100).toCss(), equals('100vh'));
       expect(CssLength.dvw(50).toCss(), equals('50dvw'));
       expect(CssLength.dvh(100).toCss(), equals('100dvh'));
+      expect(CssLength.svw(50).toCss(), equals('50svw'));
+      expect(CssLength.svh(100).toCss(), equals('100svh'));
+      expect(CssLength.lvw(50).toCss(), equals('50lvw'));
+      expect(CssLength.lvh(100).toCss(), equals('100lvh'));
+      expect(CssLength.vmin(50).toCss(), equals('50vmin'));
+      expect(CssLength.vmax(100).toCss(), equals('100vmax'));
+    });
+
+    test('character and font-relative units output correct CSS', () {
+      expect(CssLength.ch(10).toCss(), equals('10ch'));
+      expect(CssLength.ex(2).toCss(), equals('2ex'));
+      expect(CssLength.lh(1.5).toCss(), equals('1.5lh'));
+      expect(CssLength.rlh(2).toCss(), equals('2rlh'));
     });
 
     test('zero outputs without unit', () {
@@ -103,6 +116,8 @@ void main() {
       expect(CssLength.auto.toCss(), equals('auto'));
       expect(CssLength.maxContent.toCss(), equals('max-content'));
       expect(CssLength.minContent.toCss(), equals('min-content'));
+      expect(CssLength.fitContent.toCss(), equals('fit-content'));
+      expect(CssLength.none.toCss(), equals('none'));
     });
 
     test('calc outputs correct CSS', () {
@@ -137,8 +152,26 @@ void main() {
       );
     });
 
+    test('fit-content with argument outputs correct CSS', () {
+      expect(
+        CssLength.fitContentArg(CssLength.px(100)).toCss(),
+        equals('fit-content(100px)'),
+      );
+    });
+
     test('variable outputs correct CSS', () {
       expect(CssLength.variable('spacing').toCss(), equals('var(--spacing)'));
+    });
+
+    test('raw outputs value as-is', () {
+      expect(CssLength.raw('50% + 10px').toCss(), equals('50% + 10px'));
+    });
+
+    test('global outputs correct CSS', () {
+      expect(
+        CssLength.global(CssGlobal.inherit).toCss(),
+        equals('inherit'),
+      );
     });
   });
 

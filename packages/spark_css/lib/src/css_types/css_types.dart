@@ -2,6 +2,7 @@
 library;
 
 export 'css_value.dart';
+export 'css_angle.dart';
 export 'css_color.dart';
 export 'css_length.dart';
 export 'css_spacing.dart';

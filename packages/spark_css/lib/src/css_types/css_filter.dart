@@ -1,6 +1,7 @@
 import 'css_color.dart';
 import 'css_length.dart';
 import 'css_value.dart';
+import 'css_angle.dart';
 
 /// CSS filter function values.
 sealed class CssFilter implements CssValue {
@@ -41,9 +42,7 @@ sealed class CssFilter implements CssValue {
   factory CssFilter.grayscalePercent(num amount) = _CssFilterGrayscalePercent;
 
   /// Applies a hue rotation on the input image.
-  ///
-  /// TODO: Update to accept `CssAngle` once implemented.
-  factory CssFilter.hueRotate(num angle) = _CssFilterHueRotate;
+  factory CssFilter.hueRotate(CssAngle angle) = _CssFilterHueRotate;
 
   /// Same as [CssFilter.hueRotate] but takes a unit string (e.g. '90deg', '0.5turn').
   factory CssFilter.hueRotateRaw(String angle) = _CssFilterHueRotateRaw;
@@ -176,11 +175,11 @@ final class _CssFilterGrayscalePercent extends CssFilter {
 }
 
 final class _CssFilterHueRotate extends CssFilter {
-  final num angle;
+  final CssAngle angle;
   const _CssFilterHueRotate(this.angle) : super._();
 
   @override
-  String toCss() => 'hue-rotate(${angle}deg)';
+  String toCss() => 'hue-rotate(${angle.toCss()})';
 }
 
 final class _CssFilterHueRotateRaw extends CssFilter {

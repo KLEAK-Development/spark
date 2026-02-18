@@ -1,4 +1,5 @@
 import 'css_value.dart';
+import 'css_angle.dart';
 
 /// CSS linear-gradient direction.
 sealed class CssGradientDirection implements CssValue {
@@ -44,8 +45,7 @@ sealed class CssGradientDirection implements CssValue {
       _CssGradientDirectionKeyword('to bottom right');
 
   /// Direction defined by an angle.
-  /// TODO: Use CssAngle once it is merged.
-  factory CssGradientDirection.angle(String angle) = _CssGradientDirectionAngle;
+  factory CssGradientDirection.angle(CssAngle angle) = _CssGradientDirectionAngle;
 
   /// Raw CSS value escape hatch.
   factory CssGradientDirection.raw(String value) = _CssGradientDirectionRaw;
@@ -64,11 +64,11 @@ final class _CssGradientDirectionKeyword extends CssGradientDirection {
 }
 
 final class _CssGradientDirectionAngle extends CssGradientDirection {
-  final String angle;
+  final CssAngle angle;
   const _CssGradientDirectionAngle(this.angle) : super._();
 
   @override
-  String toCss() => angle;
+  String toCss() => angle.toCss();
 }
 
 final class _CssGradientDirectionRaw extends CssGradientDirection {

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0-alpha.3
+
+### Added
+
+- **Coverage**: Achieved 100% test coverage across the entire package.
+- **Feat**: Moved `CssAngle` to its own file (`css_angle.dart`) and added support for CSS variables and global values.
+- **Test**: Implemented Zone-based minification testing, enabling full coverage of production CSS output logic.
+
+### Changed
+
+- **Breaking Change**: `CssFilter.hueRotate` now accepts a `CssAngle` instead of a `num`.
+- **Breaking Change**: `CssGradientDirection.angle` now accepts a `CssAngle` instead of a `String`.
+
 ## 1.0.0-alpha.2
 
 ### Added

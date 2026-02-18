@@ -1,3 +1,4 @@
+import 'package:spark_css/src/css_types/css_angle.dart';
 import 'package:spark_css/spark_css.dart';
 import 'package:test/test.dart';
 
@@ -70,7 +71,7 @@ void main() {
     });
 
     test('hueRotate', () {
-      expect(CssFilter.hueRotate(90).toCss(), equals('hue-rotate(90deg)'));
+      expect(CssFilter.hueRotate(CssAngle.deg(90)).toCss(), equals('hue-rotate(90deg)'));
       expect(
         CssFilter.hueRotateRaw('0.5turn').toCss(),
         equals('hue-rotate(0.5turn)'),

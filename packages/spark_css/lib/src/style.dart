@@ -1,6 +1,13 @@
+import 'dart:async';
 import 'css_types/css_types.dart';
 
-const bool _minify = bool.fromEnvironment('dart.vm.product');
+/// Internal flag for minification.
+///
+/// In production, this is hardcoded to true via `dart.vm.product`.
+/// In tests, this can be overridden using `runZoned` with the `#spark_css_minify` key.
+bool get _minify =>
+    Zone.current[#spark_css_minify] == true ||
+    const bool.fromEnvironment('dart.vm.product');
 
 /// A common interface for CSS styles and stylesheets.
 abstract class CssStyle {

@@ -1,50 +1,6 @@
 import 'css_length.dart';
 import 'css_value.dart';
-
-/// CSS angle value.
-sealed class CssAngle implements CssValue {
-  const CssAngle._();
-
-  /// Degrees.
-  factory CssAngle.deg(num value) = _CssAngleDeg;
-
-  /// Radians.
-  factory CssAngle.rad(num value) = _CssAngleRad;
-
-  /// Gradians.
-  factory CssAngle.grad(num value) = _CssAngleGrad;
-
-  /// Turns.
-  factory CssAngle.turn(num value) = _CssAngleTurn;
-}
-
-final class _CssAngleDeg extends CssAngle {
-  final num value;
-  const _CssAngleDeg(this.value) : super._();
-  @override
-  String toCss() => '${value}deg';
-}
-
-final class _CssAngleRad extends CssAngle {
-  final num value;
-  const _CssAngleRad(this.value) : super._();
-  @override
-  String toCss() => '${value}rad';
-}
-
-final class _CssAngleGrad extends CssAngle {
-  final num value;
-  const _CssAngleGrad(this.value) : super._();
-  @override
-  String toCss() => '${value}grad';
-}
-
-final class _CssAngleTurn extends CssAngle {
-  final num value;
-  const _CssAngleTurn(this.value) : super._();
-  @override
-  String toCss() => '${value}turn';
-}
+import 'css_angle.dart';
 
 /// CSS transform functions.
 sealed class CssTransform implements CssValue {

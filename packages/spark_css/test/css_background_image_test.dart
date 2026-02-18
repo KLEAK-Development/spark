@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:spark_css/src/css_types/css_angle.dart';
 import 'package:spark_css/src/css_types/css_background_image.dart';
 import 'package:spark_css/src/css_types/css_background_position.dart';
 import 'package:spark_css/src/css_types/css_color.dart';
@@ -48,7 +49,7 @@ void main() {
 
       test('with direction angle', () {
         final gradient = CssBackgroundImage.linearGradient(
-          direction: CssGradientDirection.angle('45deg'),
+          direction: CssGradientDirection.angle(CssAngle.deg(45)),
           stops: [
             CssGradientStop(CssColor.red),
             CssGradientStop(CssColor.blue),
