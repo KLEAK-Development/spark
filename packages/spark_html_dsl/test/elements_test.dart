@@ -238,5 +238,69 @@ void main() {
         '<my-component>child</my-component>',
       );
     });
+
+    test('root sectioning helpers', () {
+      final node = html(body('content'), attributes: {'lang': 'en'});
+      expect(node.tag, 'html');
+      expect(node.attributes['lang'], 'en');
+      expect(
+        node.toHtml(),
+        contains('<html lang="en"><body>content</body></html>'),
+      );
+    });
+
+    test('metadata helpers', () {
+      final h = head(title('My Title'));
+      expect(h.tag, 'head');
+      expect(h.toHtml(), '<head><title>My Title</title></head>');
+    });
+
+    test('body helper', () {
+      final b = body('hello', id: 'b', className: 'main');
+      expect(b.tag, 'body');
+      expect(b.attributes['id'], 'b');
+      expect(b.attributes['class'], 'main');
+      expect(b.toHtml(), '<body id="b" class="main">hello</body>');
+    });
+
+    test('div helper with all event handlers', () {
+      final node = div(
+        'content',
+        onClick: (_) {},
+        onDoubleClick: (_) {},
+        onMouseEnter: (_) {},
+        onMouseLeave: (_) {},
+      );
+      expect(node.events, contains('click'));
+      expect(node.events, contains('dblclick'));
+      expect(node.events, contains('mouseenter'));
+      expect(node.events, contains('mouseleave'));
+    });
+
+    test('input helper with all events and extra attributes', () {
+      final node = input<String>(
+        type: 'text',
+        attributes: {'data-foo': 'bar'},
+        onInput: (_) {},
+        onChange: (_) {},
+        onKeyDown: (_) {},
+        onKeyUp: (_) {},
+      );
+      expect(node.attributes['type'], 'text');
+      expect(node.attributes['data-foo'], 'bar');
+      expect(node.events, contains('input'));
+      expect(node.events, contains('change'));
+      expect(node.events, contains('keydown'));
+      expect(node.events, contains('keyup'));
+    });
+
+    test('script helper with extra attributes', () {
+      final node = script(
+        'console.log(1)',
+        attributes: {'type': 'module', 'crossorigin': 'anonymous'},
+      );
+      expect(node.attributes['type'], 'module');
+      expect(node.attributes['crossorigin'], 'anonymous');
+    });
   });
 }
