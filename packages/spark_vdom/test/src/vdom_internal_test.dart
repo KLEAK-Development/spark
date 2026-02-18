@@ -20,17 +20,12 @@ void main() {
     });
 
     test('mount handles all ignorable children', () {
-      // Setup: <div><!-- comment -->  </div>
       parent.appendChild(web.document.createComment('comment'));
       parent.appendChild(web.document.createTextNode('   '));
 
       final vNode = html.div(['new content']);
       mount(parent, vNode);
 
-      // Should have appended a new child because all existing children were ignorable
-      // Wait, mount says:
-      // if (targetNode == null) { node.appendChild(...) }
-      // In this case, targetNode will be null because _isIgnorable skips everything.
       expect(parent.childNodes.length, 3);
       expect(parent.lastChild!.textContent, 'new content');
     });
@@ -41,19 +36,14 @@ void main() {
           (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
               as web.ShadowRoot;
 
-      // Just to trigger the branch in mountList:
-      // else if (node is web.ShadowRoot) { }
       mountList(shadow, [html.h('circle')]);
 
       final circle = shadow.firstChild as web.Element;
-      // It won't be SVG namespace because the branch is empty in vdom_web.dart
-      // but it triggers the coverage.
       expect(circle.tagName.toLowerCase(), 'circle');
     });
 
-    test('patch replaces text node when parentNode is null (no-op)', () {
+    test('patch replaces text node when parentNode is null', () {
       final textNode = web.document.createTextNode('standalone');
-      // No parent, so replaceChild can't be called
       patch(textNode, html.div(['test']));
       expect(textNode.textContent, 'standalone');
     });
@@ -112,14 +102,13 @@ void main() {
       expect(div.childNodes.length, 1);
     });
 
-    test('patch replaces element node when parentNode is null (no-op)', () {
+    test('patch replaces element node when parentNode is null', () {
       final el = web.document.createElement('div');
-      // No parent
       patch(el, html.span(['test']));
       expect(el.tagName.toLowerCase(), 'div');
     });
 
-    test('patch element tag mismatch when parentNode is null (no-op)', () {
+    test('patch element tag mismatch when parentNode is null', () {
       final el = web.document.createElement('div');
       patch(el, html.h('span'));
       expect(el.tagName.toLowerCase(), 'div');
@@ -129,7 +118,6 @@ void main() {
       final el = web.document.createElement('div');
       el.setAttribute('title', 'test');
 
-      // This should hit the 'if (el.getAttribute(key) != strVal)' branch (false)
       patch(el, html.div([], attributes: {'title': 'test'}));
       expect(el.getAttribute('title'), 'test');
     });
@@ -154,11 +142,10 @@ void main() {
       final el = createNode(vNode) as web.HTMLElement;
       parent.appendChild(el);
 
-      // Manually remove the ID
       el.removeAttribute('data-spark-id');
 
       el.dispatchEvent(web.createMouseEvent('click'));
-      expect(called, isFalse); // Should not crash, but also not call handler
+      expect(called, isFalse);
     });
 
     test('_updateEvents listener handles non-existent ID gracefully', () {
@@ -181,7 +168,6 @@ void main() {
       final input = web.document.createElement('input') as web.HTMLInputElement;
       input.value = 'match';
 
-      // Should hit 'if (el.value != strVal)' branch (false)
       patch(input, html.input(value: 'match'));
       expect(input.value, 'match');
     });
@@ -214,7 +200,6 @@ void main() {
               as web.ShadowRoot;
       shadow.appendChild(web.document.createTextNode('initial text'));
 
-      // vNode is Element, firstElementChild is null, but firstChild is NOT null
       patch(shadow, html.div(['new element']));
       expect(shadow.firstChild, isA<web.Element>());
       expect(shadow.firstChild!.textContent, 'new element');
@@ -226,7 +211,6 @@ void main() {
           (div as dynamic).attachShadow(web.ShadowRootInit(mode: 'open'))
               as web.ShadowRoot;
 
-      // This hits the "} else if (node is web.ShadowRoot) {" branch in mountList
       mountList(shadow, [
         html.div(['test']),
       ]);
@@ -235,7 +219,6 @@ void main() {
 
     test('mount with non-Element parent skips SVG detection', () {
       final fragment = web.document.createDocumentFragment();
-      // parent is DocumentFragment, not Element. Hits "if (node is web.Element)" branch (false)
       mount(fragment, html.div(['test']));
       expect(fragment.firstChild!.textContent, 'test');
     });
@@ -249,7 +232,6 @@ void main() {
     });
 
     test('mount/mountList with non-web.Node returns early', () {
-      // These return early so they should not crash or do anything
       expect(() => mount(Object(), html.div([])), returnsNormally);
       expect(() => mountList(Object(), [html.div([])]), returnsNormally);
     });
@@ -259,11 +241,10 @@ void main() {
     });
 
     test('nextId setter coverage', () {
-      // This is purely for coverage of the setter
       final current = nextId;
       nextId = current + 1;
       expect(nextId, current + 1);
-      nextId = current; // Restore
+      nextId = current;
     });
 
     test('isIgnorable coverage', () {
@@ -283,7 +264,6 @@ void main() {
       final div = parent.firstChild!;
       parent.insertBefore(comment, div);
 
-      // mountList will use _isIgnorable to find significant nodes
       mountList(parent, [
         html.div(['new content']),
       ]);
@@ -322,11 +302,42 @@ void main() {
       expect(el.getAttribute('data-spark-id'), 'test-id');
     });
 
-    test('patch with html.Text hits the text branch', () {
+    test('patch with html.Text hits the textContent update branch', () {
       final text = web.document.createTextNode('old');
       parent.appendChild(text);
       patch(text, html.Text('new'));
       expect(text.textContent, 'new');
+    });
+
+    test('patch with non-Text node falsifies line 103', () {
+      final text = web.document.createTextNode('text');
+      parent.appendChild(text);
+      patch(text, html.div([]));
+      expect(parent.firstChild, isA<web.Element>());
+    });
+
+    test('_updateEvents handles events starting with "on"', () {
+      bool called = false;
+      final vNode = html.h(
+        'div',
+        children: [],
+        events: {'onClick': (_) => called = true},
+      );
+      final el = createNode(vNode) as web.HTMLElement;
+      parent.appendChild(el);
+
+      el.dispatchEvent(web.createMouseEvent('click'));
+      expect(called, isTrue);
+    });
+
+    test('_patchElement hits the loop and loop termination', () {
+      final vNode1 = html.div([html.span('1')]);
+      mount(parent, vNode1);
+      final div = parent.firstChild as web.Element;
+
+      final vNode2 = html.div([]);
+      patch(div, vNode2);
+      expect(div.childNodes.length, 0);
     });
 
     test('patch with html.Element hits the element branch', () {
@@ -372,7 +383,6 @@ void main() {
       final el = createNode(vNode) as web.HTMLElement;
       parent.appendChild(el);
 
-      // Patch it to remove the listener from config, but DOM listener remains
       final vNode2 = html.div([]);
       patch(el, vNode2);
 
