@@ -224,6 +224,7 @@ void main() {
     test('preserves open attribute on dialog when opened via showModal', () {
       final vNode = html.dialog(['Hello']);
       final element = createNode(vNode) as web.HTMLDialogElement;
+      parent.appendChild(element);
 
       expect(element.open, isFalse);
 
@@ -248,6 +249,7 @@ void main() {
     test('can close dialog via VDOM by explicitly setting open to false', () {
       final vNodeOpen = html.dialog(['Hello'], open: true);
       final element = createNode(vNodeOpen) as web.HTMLDialogElement;
+      parent.appendChild(element);
       expect(element.open, isTrue);
 
       final vNodeClosed = html.dialog(['Hello'], open: false);
@@ -265,6 +267,7 @@ void main() {
           'Content',
         ]);
         final element = createNode(vNode) as web.HTMLDetailsElement;
+        parent.appendChild(element);
 
         expect(element.open, isFalse);
 
@@ -286,6 +289,7 @@ void main() {
     test('syncs checkbox checked property even if attribute is missing', () {
       final vNode = html.input(type: 'checkbox');
       final element = createNode(vNode) as web.HTMLInputElement;
+      parent.appendChild(element);
 
       expect(element.checked, isFalse);
 
