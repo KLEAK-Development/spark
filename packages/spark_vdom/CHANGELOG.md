@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-alpha.5
+
+### Fixed
+
+- **VDOM**: Prevented accidental closing of `dialog` and `details` elements by avoiding the removal of the browser-managed `open` attribute unless explicitly changed in the VDOM.
+- **VDOM**: Fixed `InvalidStateError` when calling `showModal()` on elements not yet in the Document.
+- **VDOM**: Improved property synchronization for `open`, `checked`, and `value` (extended to `textarea` and `select`) to ensure DOM state consistency.
+
 ## 1.0.0-alpha.4
 
 ### Added

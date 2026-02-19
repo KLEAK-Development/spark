@@ -510,7 +510,13 @@ Element summary(
   String? id,
   String? className,
   Map<String, dynamic>? attributes,
-}) => _el('summary', children, id: id, className: className, attributes: attributes);
+}) => _el(
+  'summary',
+  children,
+  id: id,
+  className: className,
+  attributes: attributes,
+);
 
 // --- Forms ---
 Element button(
