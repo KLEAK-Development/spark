@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0-alpha.3
+
+- **Feat**: Added `dialog`, `details`, and `summary` element helpers.
+
 ## 1.0.0-alpha.2
 
 - **Feat**: Added dependency on `spark_web` for isomorphic web types.
