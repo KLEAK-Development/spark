@@ -38,6 +38,7 @@ export 'src/core.dart';
 export 'src/dom.dart';
 export 'src/collections.dart';
 export 'src/css.dart';
+export 'src/file.dart';
 export 'src/geolocation.dart';
 export 'src/notification.dart';
 export 'src/window.dart';

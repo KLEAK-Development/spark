@@ -9,9 +9,11 @@ import '../core.dart';
 import '../dom.dart' as iface;
 import '../collections.dart';
 import '../css.dart';
+import '../file.dart' as iface;
 import 'canvas.dart';
 import 'collections.dart';
 import 'css.dart';
+import 'file.dart';
 
 // ---------------------------------------------------------------------------
 // Wrapping utilities
@@ -57,6 +59,9 @@ Node wrapNode(web.Node node) {
   }
   if ((node as JSAny?).isA<web.HTMLTemplateElement>()) {
     return BrowserHTMLTemplateElement(node as web.HTMLTemplateElement);
+  }
+  if ((node as JSAny?).isA<web.HTMLDataListElement>()) {
+    return BrowserHTMLDataListElement(node as web.HTMLDataListElement);
   }
   if ((node as JSAny?).isA<web.HTMLCanvasElement>()) {
     return BrowserHTMLCanvasElement(node as web.HTMLCanvasElement);
@@ -194,6 +199,38 @@ EventTarget wrapEventTarget(web.EventTarget target) {
   }
   // TODO: Add Window support if needed
   return BrowserEventTarget(target);
+}
+
+// ---------------------------------------------------------------------------
+// ValidityState
+// ---------------------------------------------------------------------------
+
+class BrowserValidityState implements iface.ValidityState {
+  final web.ValidityState _native;
+  BrowserValidityState(this._native);
+
+  @override
+  bool get valueMissing => _native.valueMissing;
+  @override
+  bool get typeMismatch => _native.typeMismatch;
+  @override
+  bool get patternMismatch => _native.patternMismatch;
+  @override
+  bool get tooLong => _native.tooLong;
+  @override
+  bool get tooShort => _native.tooShort;
+  @override
+  bool get rangeUnderflow => _native.rangeUnderflow;
+  @override
+  bool get rangeOverflow => _native.rangeOverflow;
+  @override
+  bool get stepMismatch => _native.stepMismatch;
+  @override
+  bool get badInput => _native.badInput;
+  @override
+  bool get customError => _native.customError;
+  @override
+  bool get valid => _native.valid;
 }
 
 // ---------------------------------------------------------------------------
@@ -673,36 +710,262 @@ class BrowserHTMLElement extends BrowserElement implements iface.HTMLElement {
 // ---------------------------------------------------------------------------
 
 class BrowserHTMLInputElement extends BrowserHTMLElement
-    implements iface.HTMLInputElement {
+    implements
+        iface.HTMLInputElement,
+        iface.HTMLTextInputElement,
+        iface.HTMLNumericInputElement,
+        iface.HTMLCheckableInputElement,
+        iface.HTMLFileInputElement,
+        iface.HTMLButtonInputElement {
   final web.HTMLInputElement _nativeInput;
   BrowserHTMLInputElement(this._nativeInput) : super(_nativeInput);
 
   @override
   dynamic get raw => _nativeInput;
-  @override
-  String get value => _nativeInput.value;
-  @override
-  set value(String val) => _nativeInput.value = val;
+
+  // -- HTMLInputElement (Common) --
+
   @override
   String get type => _nativeInput.type;
   @override
   set type(String val) => _nativeInput.type = val;
   @override
-  String get placeholder => _nativeInput.placeholder;
+  String get value => _nativeInput.value;
   @override
-  set placeholder(String val) => _nativeInput.placeholder = val;
+  set value(String val) => _nativeInput.value = val;
+  @override
+  String get defaultValue => _nativeInput.defaultValue;
+  @override
+  set defaultValue(String val) => _nativeInput.defaultValue = val;
+  @override
+  String get name => _nativeInput.name;
+  @override
+  set name(String val) => _nativeInput.name = val;
   @override
   bool get disabled => _nativeInput.disabled;
   @override
   set disabled(bool val) => _nativeInput.disabled = val;
   @override
+  bool get autofocus => _nativeInput.autofocus;
+  @override
+  set autofocus(bool val) => _nativeInput.autofocus = val;
+  @override
+  bool get required => _nativeInput.required;
+  @override
+  set required(bool val) => _nativeInput.required = val;
+
+  @override
+  iface.HTMLFormElement? get form =>
+      _nativeInput.form != null ? BrowserHTMLFormElement(_nativeInput.form!) : null;
+
+  @override
+  NodeList get labels => BrowserNodeList(_nativeInput.labels);
+
+  @override
+  iface.HTMLDataListElement? get list => _nativeInput.list != null
+      ? BrowserHTMLDataListElement(_nativeInput.list!)
+      : null;
+
+  @override
+  bool get willValidate => _nativeInput.willValidate;
+  @override
+  iface.ValidityState get validity => BrowserValidityState(_nativeInput.validity);
+  @override
+  String get validationMessage => _nativeInput.validationMessage;
+  @override
+  bool checkValidity() => _nativeInput.checkValidity();
+  @override
+  bool reportValidity() => _nativeInput.reportValidity();
+  @override
+  void setCustomValidity(String error) => _nativeInput.setCustomValidity(error);
+
+  @override
+  void select() => _nativeInput.select();
+  @override
+  void showPicker() => _nativeInput.showPicker();
+
+  // -- HTMLTextInputElement --
+
+  @override
+  String get placeholder => _nativeInput.placeholder;
+  @override
+  set placeholder(String val) => _nativeInput.placeholder = val;
+  @override
+  bool get readOnly => _nativeInput.readOnly;
+  @override
+  set readOnly(bool val) => _nativeInput.readOnly = val;
+  @override
+  int get size => _nativeInput.size;
+  @override
+  set size(int val) => _nativeInput.size = val;
+  @override
+  int get maxLength => _nativeInput.maxLength;
+  @override
+  set maxLength(int val) => _nativeInput.maxLength = val;
+  @override
+  int get minLength => _nativeInput.minLength;
+  @override
+  set minLength(int val) => _nativeInput.minLength = val;
+  @override
+  String get pattern => _nativeInput.pattern;
+  @override
+  set pattern(String val) => _nativeInput.pattern = val;
+  @override
+  String get autocomplete => _nativeInput.autocomplete;
+  @override
+  set autocomplete(String val) => _nativeInput.autocomplete = val;
+  @override
+  String get dirName => _nativeInput.dirName;
+  @override
+  set dirName(String val) => _nativeInput.dirName = val;
+
+  @override
+  int? get selectionStart => _nativeInput.selectionStart;
+  @override
+  set selectionStart(int? val) => _nativeInput.selectionStart = val ?? 0;
+  @override
+  int? get selectionEnd => _nativeInput.selectionEnd;
+  @override
+  set selectionEnd(int? val) => _nativeInput.selectionEnd = val ?? 0;
+  @override
+  String? get selectionDirection => _nativeInput.selectionDirection;
+  @override
+  set selectionDirection(String? val) => _nativeInput.selectionDirection = val ?? 'none';
+
+  @override
+  void setRangeText(String replacement, [int? start, int? end, String? selectionMode]) {
+    if (start != null && end != null) {
+      _nativeInput.setRangeText(replacement, start, end, selectionMode ?? 'preserve');
+    } else {
+      _nativeInput.setRangeText(replacement);
+    }
+  }
+
+  @override
+  void setSelectionRange(int start, int end, [String? direction]) =>
+      _nativeInput.setSelectionRange(start, end, direction ?? 'none');
+
+  // -- HTMLNumericInputElement --
+
+  @override
+  String get min => _nativeInput.min;
+  @override
+  set min(String val) => _nativeInput.min = val;
+  @override
+  String get max => _nativeInput.max;
+  @override
+  set max(String val) => _nativeInput.max = val;
+  @override
+  String get step => _nativeInput.step;
+  @override
+  set step(String val) => _nativeInput.step = val;
+  @override
+  double? get valueAsNumber {
+    final v = _nativeInput.valueAsNumber.toDouble();
+    return v.isNaN ? null : v;
+  }
+
+  @override
+  set valueAsNumber(double? val) =>
+      _nativeInput.valueAsNumber = val ?? double.nan;
+
+  @override
+  DateTime? get valueAsDate {
+    final ms = _nativeInput.valueAsNumber.toDouble();
+    if (ms.isNaN) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms.toInt(), isUtc: true);
+  }
+
+  @override
+  set valueAsDate(DateTime? val) {
+    if (val == null) {
+      _nativeInput.valueAsNumber = double.nan;
+    } else {
+      _nativeInput.valueAsNumber = val.millisecondsSinceEpoch.toDouble();
+    }
+  }
+
+  @override
+  void stepDown([int n = 1]) => _nativeInput.stepDown(n);
+  @override
+  void stepUp([int n = 1]) => _nativeInput.stepUp(n);
+
+  // -- HTMLCheckableInputElement --
+
+  @override
   bool get checked => _nativeInput.checked;
   @override
   set checked(bool val) => _nativeInput.checked = val;
   @override
-  String get name => _nativeInput.name;
+  bool get defaultChecked => _nativeInput.defaultChecked;
   @override
-  set name(String val) => _nativeInput.name = val;
+  set defaultChecked(bool val) => _nativeInput.defaultChecked = val;
+  @override
+  bool get indeterminate => _nativeInput.indeterminate;
+  @override
+  set indeterminate(bool val) => _nativeInput.indeterminate = val;
+
+  // -- HTMLFileInputElement --
+
+  @override
+  String get accept => _nativeInput.accept;
+  @override
+  set accept(String val) => _nativeInput.accept = val;
+  @override
+  String get capture => _nativeInput.capture;
+  @override
+  set capture(String val) => _nativeInput.capture = val;
+  @override
+  bool get multiple => _nativeInput.multiple;
+  @override
+  set multiple(bool val) => _nativeInput.multiple = val;
+  @override
+  iface.FileList? get files =>
+      _nativeInput.files != null ? BrowserFileList(_nativeInput.files!) : null;
+  @override
+  set files(iface.FileList? val) {
+    // Note: setting files is restricted in many browsers.
+  }
+
+  // -- HTMLButtonInputElement --
+
+  @override
+  String get alt => _nativeInput.alt;
+  @override
+  set alt(String val) => _nativeInput.alt = val;
+  @override
+  String get src => _nativeInput.src;
+  @override
+  set src(String val) => _nativeInput.src = val;
+  @override
+  int get height => _nativeInput.height;
+  @override
+  set height(int val) => _nativeInput.height = val;
+  @override
+  int get width => _nativeInput.width;
+  @override
+  set width(int val) => _nativeInput.width = val;
+
+  @override
+  String get formAction => _nativeInput.formAction;
+  @override
+  set formAction(String val) => _nativeInput.formAction = val;
+  @override
+  String get formEnctype => _nativeInput.formEnctype;
+  @override
+  set formEnctype(String val) => _nativeInput.formEnctype = val;
+  @override
+  String get formMethod => _nativeInput.formMethod;
+  @override
+  set formMethod(String val) => _nativeInput.formMethod = val;
+  @override
+  bool get formNoValidate => _nativeInput.formNoValidate;
+  @override
+  set formNoValidate(bool val) => _nativeInput.formNoValidate = val;
+  @override
+  String get formTarget => _nativeInput.formTarget;
+  @override
+  set formTarget(String val) => _nativeInput.formTarget = val;
 }
 
 class BrowserHTMLButtonElement extends BrowserHTMLElement
@@ -881,6 +1144,18 @@ class BrowserHTMLTemplateElement extends BrowserHTMLElement
   @override
   iface.DocumentFragment get content =>
       BrowserDocumentFragment(_nativeTemplate.content);
+}
+
+class BrowserHTMLDataListElement extends BrowserHTMLElement
+    implements iface.HTMLDataListElement {
+  final web.HTMLDataListElement _nativeDataList;
+  BrowserHTMLDataListElement(this._nativeDataList) : super(_nativeDataList);
+
+  @override
+  dynamic get raw => _nativeDataList;
+  @override
+  iface.HTMLCollection get options =>
+      BrowserHTMLCollection(_nativeDataList.options);
 }
 
 class BrowserHTMLCanvasElement extends BrowserHTMLElement

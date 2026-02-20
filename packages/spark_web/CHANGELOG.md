@@ -2,6 +2,17 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.9
+
+### Added
+
+- **Feat**: Greatly improved `HTMLInputElement` support by adding specialized interfaces for all input types (`HTMLTextInputElement`, `HTMLNumericInputElement`, `HTMLCheckableInputElement`, `HTMLFileInputElement`, and `HTMLButtonInputElement`).
+- **Feat**: Added support for `ValidityState` and constraint validation methods on input elements.
+- **Feat**: Added `HTMLDataListElement` and support for the `list` property on input elements.
+- **Feat**: Added `File` and `FileList` interfaces with platform-appropriate implementations.
+- **Feat**: Added `Blob` interface and `createBlob` factory function. `File` now extends `Blob`.
+- **Feat**: Added many missing properties to `HTMLInputElement` including `labels`, `defaultValue`, `selectionStart/End`, `valueAsNumber/Date`, etc.
+
 ## 1.0.0-alpha.8
 
 ### Added

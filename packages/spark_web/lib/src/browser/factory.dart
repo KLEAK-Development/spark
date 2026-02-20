@@ -7,10 +7,12 @@ import 'package:web/web.dart' as web;
 import '../core.dart';
 import '../css.dart' as iface;
 import '../dom.dart' as iface;
+import '../file.dart' as iface;
 import '../notification.dart' as iface;
 import '../window.dart' as iface;
 import 'css.dart';
 import 'dom.dart';
+import 'file.dart';
 import 'notification.dart';
 import 'window.dart';
 
@@ -19,6 +21,21 @@ iface.Window createWindow() => BrowserWindow(web.window);
 
 /// Creates a browser [Document] wrapping the global document.
 iface.Document createDocument() => BrowserDocument(web.document);
+
+/// Creates a browser [Blob].
+iface.Blob createBlob([List<Object>? parts, String? type]) {
+  if (parts == null) return BrowserBlob(web.Blob());
+  final jsParts = parts.map((p) {
+    if (p is BrowserBlob) return p.raw as web.Blob;
+    return p.jsify();
+  }).toList();
+
+  if (type != null) {
+    return BrowserBlob(web.Blob(
+        jsParts.toJS as JSArray<web.BlobPart>, web.BlobPropertyBag(type: type)));
+  }
+  return BrowserBlob(web.Blob(jsParts.toJS as JSArray<web.BlobPart>));
+}
 
 /// Creates a browser [MutationObserver].
 MutationObserver createMutationObserver(MutationCallback callback) =>

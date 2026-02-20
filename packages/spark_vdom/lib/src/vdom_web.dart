@@ -259,7 +259,7 @@ void _updateAttributes(web.Element el, Map<String, dynamic> attrs) {
             el.open = value;
           }
         }
-      } else if (key == 'checked' && el is web.HTMLInputElement) {
+      } else if (key == 'checked' && el is web.HTMLCheckableInputElement) {
         if (el.checked != value) {
           el.checked = value;
         }

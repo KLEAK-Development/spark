@@ -4,10 +4,12 @@ library;
 import '../core.dart';
 import '../css.dart' as iface;
 import '../dom.dart' as iface;
+import '../file.dart' as iface;
 import '../notification.dart' as iface;
 import '../window.dart' as iface;
 import 'css.dart';
 import 'dom.dart';
+import 'file.dart';
 import 'notification.dart';
 import 'window.dart';
 
@@ -16,6 +18,9 @@ iface.Window createWindow() => ServerWindow();
 
 /// Creates a server-side [Document] instance.
 iface.Document createDocument() => ServerDocument();
+
+/// Creates a server-side [Blob] instance.
+iface.Blob createBlob([List<Object>? parts, String? type]) => ServerBlob();
 
 /// Creates a server-side [MutationObserver].
 MutationObserver createMutationObserver(MutationCallback callback) =>

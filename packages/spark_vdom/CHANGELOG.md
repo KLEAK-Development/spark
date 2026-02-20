@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-alpha.6
+
+### Changed
+
+- **Internal**: Updated dependency on `spark_web` to `1.0.0-alpha.9` to leverage improved `HTMLInputElement` support and type safety for specialized input fields.
+
 ## 1.0.0-alpha.5
 
 ### Fixed

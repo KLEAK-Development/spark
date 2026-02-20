@@ -288,7 +288,7 @@ void main() {
 
     test('syncs checkbox checked property even if attribute is missing', () {
       final vNode = html.input(type: 'checkbox');
-      final element = createNode(vNode) as web.HTMLInputElement;
+      final element = createNode(vNode) as web.HTMLCheckableInputElement;
       parent.appendChild(element);
 
       expect(element.checked, isFalse);

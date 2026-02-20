@@ -12,15 +12,15 @@ import 'dom.dart';
 // ---------------------------------------------------------------------------
 
 class BrowserNodeList implements NodeList {
-  final web.NodeList _native;
+  final web.NodeList? _native;
   BrowserNodeList(this._native);
 
   @override
-  int get length => _native.length;
+  int get length => _native?.length ?? 0;
 
   @override
   Node? item(int index) {
-    final node = _native.item(index);
+    final node = _native?.item(index);
     return node != null ? wrapNode(node) : null;
   }
 }

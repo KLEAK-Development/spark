@@ -9,8 +9,39 @@ import '../core.dart';
 import '../dom.dart' as iface;
 import '../collections.dart';
 import '../css.dart';
+import '../file.dart' as iface;
 import 'collections.dart';
 import 'css.dart';
+import 'file.dart';
+
+// ---------------------------------------------------------------------------
+// ValidityState
+// ---------------------------------------------------------------------------
+
+class ServerValidityState implements iface.ValidityState {
+  @override
+  bool get valueMissing => false;
+  @override
+  bool get typeMismatch => false;
+  @override
+  bool get patternMismatch => false;
+  @override
+  bool get tooLong => false;
+  @override
+  bool get tooShort => false;
+  @override
+  bool get rangeUnderflow => false;
+  @override
+  bool get rangeOverflow => false;
+  @override
+  bool get stepMismatch => false;
+  @override
+  bool get badInput => false;
+  @override
+  bool get customError => false;
+  @override
+  bool get valid => true;
+}
 
 // ---------------------------------------------------------------------------
 // HTMLCollection
@@ -167,31 +198,223 @@ class ServerHTMLElement extends ServerElement implements iface.HTMLElement {
 // ---------------------------------------------------------------------------
 
 class ServerHTMLInputElement extends ServerHTMLElement
-    implements iface.HTMLInputElement {
+    implements
+        iface.HTMLInputElement,
+        iface.HTMLTextInputElement,
+        iface.HTMLNumericInputElement,
+        iface.HTMLCheckableInputElement,
+        iface.HTMLFileInputElement,
+        iface.HTMLButtonInputElement {
   @override
   String get value => '';
   @override
   set value(String val) {}
   @override
+  String get defaultValue => '';
+  @override
+  set defaultValue(String val) {}
+  @override
   String get type => '';
   @override
   set type(String val) {}
   @override
-  String get placeholder => '';
+  String get name => '';
   @override
-  set placeholder(String val) {}
+  set name(String val) {}
   @override
   bool get disabled => false;
   @override
   set disabled(bool val) {}
   @override
+  bool get autofocus => false;
+  @override
+  set autofocus(bool val) {}
+  @override
+  bool get required => false;
+  @override
+  set required(bool val) {}
+
+  @override
+  iface.HTMLFormElement? get form => null;
+
+  @override
+  NodeList get labels => ServerNodeList();
+
+  @override
+  iface.HTMLDataListElement? get list => null;
+
+  @override
+  bool get willValidate => true;
+  @override
+  iface.ValidityState get validity => ServerValidityState();
+  @override
+  String get validationMessage => '';
+  @override
+  bool checkValidity() => true;
+  @override
+  bool reportValidity() => true;
+  @override
+  void setCustomValidity(String error) {}
+
+  @override
+  void select() {}
+  @override
+  void showPicker() {}
+
+  // -- HTMLTextInputElement --
+
+  @override
+  String get placeholder => '';
+  @override
+  set placeholder(String val) {}
+  @override
+  bool get readOnly => false;
+  @override
+  set readOnly(bool val) {}
+  @override
+  int get size => 20;
+  @override
+  set size(int val) {}
+  @override
+  int get maxLength => -1;
+  @override
+  set maxLength(int val) {}
+  @override
+  int get minLength => -1;
+  @override
+  set minLength(int val) {}
+  @override
+  String get pattern => '';
+  @override
+  set pattern(String val) {}
+  @override
+  String get autocomplete => '';
+  @override
+  set autocomplete(String val) {}
+  @override
+  String get dirName => '';
+  @override
+  set dirName(String val) {}
+
+  @override
+  int? get selectionStart => 0;
+  @override
+  set selectionStart(int? val) {}
+  @override
+  int? get selectionEnd => 0;
+  @override
+  set selectionEnd(int? val) {}
+  @override
+  String? get selectionDirection => 'none';
+  @override
+  set selectionDirection(String? val) {}
+
+  @override
+  void setRangeText(String replacement, [int? start, int? end, String? selectionMode]) {}
+  @override
+  void setSelectionRange(int start, int end, [String? direction]) {}
+
+  // -- HTMLNumericInputElement --
+
+  @override
+  String get min => '';
+  @override
+  set min(String val) {}
+  @override
+  String get max => '';
+  @override
+  set max(String val) {}
+  @override
+  String get step => '';
+  @override
+  set step(String val) {}
+  @override
+  double? get valueAsNumber => 0.0;
+  @override
+  set valueAsNumber(double? val) {}
+  @override
+  DateTime? get valueAsDate => null;
+  @override
+  set valueAsDate(DateTime? val) {}
+
+  @override
+  void stepDown([int n = 1]) {}
+  @override
+  void stepUp([int n = 1]) {}
+
+  // -- HTMLCheckableInputElement --
+
+  @override
   bool get checked => false;
   @override
   set checked(bool val) {}
   @override
-  String get name => '';
+  bool get defaultChecked => false;
   @override
-  set name(String val) {}
+  set defaultChecked(bool val) {}
+  @override
+  bool get indeterminate => false;
+  @override
+  set indeterminate(bool val) {}
+
+  // -- HTMLFileInputElement --
+
+  @override
+  String get accept => '';
+  @override
+  set accept(String val) {}
+  @override
+  String get capture => '';
+  @override
+  set capture(String val) {}
+  @override
+  bool get multiple => false;
+  @override
+  set multiple(bool val) {}
+  @override
+  iface.FileList? get files => ServerFileList();
+  @override
+  set files(iface.FileList? val) {}
+
+  // -- HTMLButtonInputElement --
+
+  @override
+  String get alt => '';
+  @override
+  set alt(String val) {}
+  @override
+  String get src => '';
+  @override
+  set src(String val) {}
+  @override
+  int get height => 0;
+  @override
+  set height(int val) {}
+  @override
+  int get width => 0;
+  @override
+  set width(int val) {}
+
+  @override
+  String get formAction => '';
+  @override
+  set formAction(String val) {}
+  @override
+  String get formEnctype => '';
+  @override
+  set formEnctype(String val) {}
+  @override
+  String get formMethod => '';
+  @override
+  set formMethod(String val) {}
+  @override
+  bool get formNoValidate => false;
+  @override
+  set formNoValidate(bool val) {}
+  @override
+  String get formTarget => '';
+  @override
+  set formTarget(String val) {}
 }
 
 class ServerHTMLButtonElement extends ServerHTMLElement
@@ -333,6 +556,12 @@ class ServerHTMLTemplateElement extends ServerHTMLElement
     implements iface.HTMLTemplateElement {
   @override
   iface.DocumentFragment get content => ServerDocumentFragment();
+}
+
+class ServerHTMLDataListElement extends ServerHTMLElement
+    implements iface.HTMLDataListElement {
+  @override
+  iface.HTMLCollection get options => ServerHTMLCollection();
 }
 
 class ServerHTMLCanvasElement extends ServerHTMLElement
@@ -754,6 +983,8 @@ class ServerDocument extends ServerNode implements iface.Document {
         return ServerHTMLLabelElement();
       case 'template':
         return ServerHTMLTemplateElement();
+      case 'datalist':
+        return ServerHTMLDataListElement();
       case 'canvas':
         return ServerHTMLCanvasElement();
       case 'video':

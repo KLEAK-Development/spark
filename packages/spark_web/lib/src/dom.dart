@@ -7,6 +7,28 @@ import 'canvas.dart';
 import 'core.dart';
 import 'collections.dart';
 import 'css.dart';
+import 'file.dart';
+
+// ---------------------------------------------------------------------------
+// ValidityState
+// ---------------------------------------------------------------------------
+
+/// The validity state of a form element.
+///
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/ValidityState
+abstract class ValidityState {
+  bool get valueMissing;
+  bool get typeMismatch;
+  bool get patternMismatch;
+  bool get tooLong;
+  bool get tooShort;
+  bool get rangeUnderflow;
+  bool get rangeOverflow;
+  bool get stepMismatch;
+  bool get badInput;
+  bool get customError;
+  bool get valid;
+}
 
 // ---------------------------------------------------------------------------
 // HTMLCollection
@@ -99,20 +121,176 @@ abstract class HTMLSpanElement implements HTMLElement {}
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLParagraphElement
 abstract class HTMLParagraphElement implements HTMLElement {}
 
+/// The base interface for `<input>` elements.
+///
+/// This interface contains only the properties and methods that apply to
+/// almost all input types. For type-specific properties (like `min`/`max`
+/// for numbers or `checked` for checkboxes), cast this to one of the
+/// specialized sub-interfaces like [HTMLNumericInputElement] or
+/// [HTMLCheckableInputElement].
+///
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement
 abstract class HTMLInputElement implements HTMLElement {
-  String get value;
-  set value(String val);
   String get type;
   set type(String val);
-  String get placeholder;
-  set placeholder(String val);
-  bool get disabled;
-  set disabled(bool val);
-  bool get checked;
-  set checked(bool val);
+  String get value;
+  set value(String val);
+  String get defaultValue;
+  set defaultValue(String val);
   String get name;
   set name(String val);
+  bool get disabled;
+  set disabled(bool val);
+  bool get autofocus;
+  set autofocus(bool val);
+  bool get required;
+  set required(bool val);
+
+  /// Returns the form element that contains this input.
+  HTMLFormElement? get form;
+
+  /// Returns a list of label elements associated with this input.
+  NodeList get labels;
+
+  /// Returns the datalist element that contains the options for this input.
+  HTMLDataListElement? get list;
+
+  // -- Validation -----------------------------------------------------------
+
+  /// Whether the element is a candidate for constraint validation.
+  bool get willValidate;
+
+  /// The current validity state of the element.
+  ValidityState get validity;
+
+  /// The localized message that describes the validation constraints.
+  String get validationMessage;
+
+  /// Checks if the element has any constraints and whether it satisfies them.
+  bool checkValidity();
+
+  /// Reports the validity of the element to the user agent.
+  bool reportValidity();
+
+  /// Sets a custom validation message.
+  void setCustomValidity(String error);
+
+  // -- Methods --------------------------------------------------------------
+
+  /// Selects all text in the input element.
+  void select();
+
+  /// Shows a browser picker for the input (e.g. date picker, color picker).
+  void showPicker();
+}
+
+/// Specialized interface for text-like input types.
+///
+/// Applies to: `text`, `search`, `url`, `tel`, `email`, `password`.
+abstract class HTMLTextInputElement implements HTMLInputElement {
+  String get placeholder;
+  set placeholder(String val);
+  bool get readOnly;
+  set readOnly(bool val);
+  int get size;
+  set size(int val);
+  int get maxLength;
+  set maxLength(int val);
+  int get minLength;
+  set minLength(int val);
+  String get pattern;
+  set pattern(String val);
+  String get autocomplete;
+  set autocomplete(String val);
+  String get dirName;
+  set dirName(String val);
+
+  int? get selectionStart;
+  set selectionStart(int? val);
+  int? get selectionEnd;
+  set selectionEnd(int? val);
+  String? get selectionDirection;
+  set selectionDirection(String? val);
+
+  void setRangeText(
+    String replacement, [
+    int? start,
+    int? end,
+    String? selectionMode,
+  ]);
+  void setSelectionRange(int start, int end, [String? direction]);
+}
+
+/// Specialized interface for numeric and date/time input types.
+///
+/// Applies to: `number`, `range`, `date`, `datetime-local`, `month`, `time`, `week`.
+abstract class HTMLNumericInputElement implements HTMLInputElement {
+  String get min;
+  set min(String val);
+  String get max;
+  set max(String val);
+  String get step;
+  set step(String val);
+  double? get valueAsNumber;
+  set valueAsNumber(double? val);
+  DateTime? get valueAsDate;
+  set valueAsDate(DateTime? val);
+
+  void stepDown([int n]);
+  void stepUp([int n]);
+}
+
+/// Specialized interface for checkable input types.
+///
+/// Applies to: `checkbox`, `radio`.
+abstract class HTMLCheckableInputElement implements HTMLInputElement {
+  bool get checked;
+  set checked(bool val);
+  bool get defaultChecked;
+  set defaultChecked(bool val);
+  bool get indeterminate;
+  set indeterminate(bool val);
+}
+
+/// Specialized interface for file input types.
+///
+/// Applies to: `file`.
+abstract class HTMLFileInputElement implements HTMLInputElement {
+  String get accept;
+  set accept(String val);
+  String get capture;
+  set capture(String val);
+  bool get multiple;
+  set multiple(bool val);
+  FileList? get files;
+  set files(FileList? val);
+}
+
+/// Specialized interface for button and image input types.
+///
+/// Applies to: `button`, `submit`, `reset`, `image`.
+abstract class HTMLButtonInputElement implements HTMLInputElement {
+  // Only for `image` type
+  String get alt;
+  set alt(String val);
+  String get src;
+  set src(String val);
+  int get height;
+  set height(int val);
+  int get width;
+  set width(int val);
+
+  // For `submit` and `image` types
+  String get formAction;
+  set formAction(String val);
+  String get formEnctype;
+  set formEnctype(String val);
+  String get formMethod;
+  set formMethod(String val);
+  bool get formNoValidate;
+  set formNoValidate(bool val);
+  String get formTarget;
+  set formTarget(String val);
 }
 
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTextAreaElement
@@ -197,6 +375,11 @@ abstract class HTMLLabelElement implements HTMLElement {
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLTemplateElement
 abstract class HTMLTemplateElement implements HTMLElement {
   DocumentFragment get content;
+}
+
+/// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLDataListElement
+abstract class HTMLDataListElement implements HTMLElement {
+  HTMLCollection get options;
 }
 
 /// See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement
