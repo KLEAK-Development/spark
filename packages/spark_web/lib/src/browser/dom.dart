@@ -651,6 +651,12 @@ class BrowserElement extends BrowserNode implements iface.Element {
       BrowserNodeList(_nativeElement.querySelectorAll(selectors));
 
   @override
+  iface.Element? closest(String selectors) {
+    final el = _nativeElement.closest(selectors);
+    return el != null ? wrapElement(el) : null;
+  }
+
+  @override
   iface.HTMLCollection get children =>
       BrowserHTMLCollection(_nativeElement.children);
 

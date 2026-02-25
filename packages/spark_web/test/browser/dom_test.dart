@@ -221,6 +221,22 @@ void main() {
       el.append(spark.document.createElement('b'));
       expect(el.children.length, 2);
     });
+
+    test('closest() finds nearest matching ancestor', () {
+      final outer = spark.document.createElement('div');
+      outer.className = 'outer';
+      final inner = spark.document.createElement('div');
+      inner.className = 'inner';
+      final target = spark.document.createElement('span');
+
+      outer.appendChild(inner);
+      inner.appendChild(target);
+
+      expect(target.closest('span')?.raw, equals(target.raw));
+      expect(target.closest('.inner')?.raw, equals(inner.raw));
+      expect(target.closest('.outer')?.raw, equals(outer.raw));
+      expect(target.closest('section'), isNull);
+    });
   });
 
   group('BrowserHTMLElement', () {

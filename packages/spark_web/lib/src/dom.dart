@@ -72,6 +72,7 @@ abstract class Element implements Node {
 
   Element? querySelector(String selectors);
   NodeList querySelectorAll(String selectors);
+  Element? closest(String selectors);
   HTMLCollection get children;
 
   void remove();

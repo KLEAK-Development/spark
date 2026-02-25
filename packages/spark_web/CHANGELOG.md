@@ -2,6 +2,12 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.10
+
+### Added
+
+- **Feat**: Added `Element.closest()` method support for both browser and server.
+
 ## 1.0.0-alpha.9
 
 ### Added

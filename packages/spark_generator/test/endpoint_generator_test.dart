@@ -289,10 +289,10 @@ void main() {
             ),
           );
           expect(output, contains('endpoint.handler(sparkRequest, body)'));
-          // Should NOT generate validation map or check for DTO without validation annotations
+          // Should generate validation map for structural validation
           expect(
             output,
-            isNot(contains('final validationErrors = <String, dynamic>{};')),
+            contains('final validationErrors = <String, dynamic>{};'),
           );
         },
       );

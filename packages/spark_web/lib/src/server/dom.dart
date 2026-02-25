@@ -156,6 +156,8 @@ class ServerElement extends ServerNode implements iface.Element {
   @override
   NodeList querySelectorAll(String selectors) => ServerNodeList();
   @override
+  iface.Element? closest(String selectors) => null;
+  @override
   iface.HTMLCollection get children => ServerHTMLCollection();
   @override
   void remove() {}

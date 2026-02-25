@@ -1,3 +1,4 @@
+@TestOn('vm')
 import 'package:spark_web/spark_web.dart' as web;
 import 'package:test/test.dart';
 

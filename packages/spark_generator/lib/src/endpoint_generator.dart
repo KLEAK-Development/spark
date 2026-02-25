@@ -277,6 +277,12 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       }
     }
 
+    buffer.writeln('    final validationErrors = <String, dynamic>{};');
+    _generateStructuralValidation(buffer, bodyType, 'rawBody', "''");
+    buffer.writeln('    if (validationErrors.isNotEmpty) {');
+    buffer.writeln('      throw SparkValidationException(validationErrors);');
+    buffer.writeln('    }');
+
     if (bodyType.isDartCoreString) {
       buffer.writeln('    final body = rawBody.toString();');
     } else if (bodyType.isDartCoreInt) {
@@ -285,6 +291,9 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       buffer.writeln('    final body = rawBody.toString() == "true";');
     } else if (bodyType.isDartCoreDouble || bodyType.isDartCoreNum) {
       buffer.writeln('    final body = num.parse(rawBody.toString());');
+    } else if (bodyType.element?.name == 'DateTime' &&
+        bodyType.element?.library?.name == 'dart.core') {
+      buffer.writeln('    final body = DateTime.parse(rawBody.toString());');
     } else if (bodyType.isDartCoreList) {
       buffer.writeln('    final body = rawBody as List<dynamic>;');
     } else if (bodyType.isDartCoreMap) {
@@ -319,6 +328,9 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
       return 'num.parse($varName.toString())';
     } else if (type.isDartCoreBool) {
       return '$varName.toString() == "true"';
+    } else if (type.element?.name == 'DateTime' &&
+        type.element?.library?.name == 'dart.core') {
+      return 'DateTime.parse($varName.toString())';
     } else if (type.isDartCoreList) {
       final typeArg = (type as InterfaceType).typeArguments.first;
       return '($varName as List).map((e) => ${_generateTypeParsing(typeArg, 'e')}).toList()';
@@ -458,6 +470,9 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
         type.isDartCoreNum ||
         type.isDartCoreBool) {
       return varName;
+    } else if (type.element?.name == 'DateTime' &&
+        type.element?.library?.name == 'dart.core') {
+      return '$varName.toIso8601String()';
     } else if (type.isDartCoreList) {
       final typeArg = (type as InterfaceType).typeArguments.first;
       return '$varName.map((e) => ${_generateTypeSerialization(typeArg, 'e')}).toList()';
@@ -501,6 +516,150 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
 
   bool _isResponse(DartType type) {
     return type.element?.name == 'Response';
+  }
+
+  void _generateStructuralValidation(
+    StringBuffer buffer,
+    DartType type,
+    String jsonExpr,
+    String pathExpr,
+  ) {
+    final isNullable = type.nullabilitySuffix == NullabilitySuffix.question;
+    // For error messages, we want a friendly name.
+    // If pathExpr is like "'user.name'", we want "user.name".
+    // If pathExpr is a variable like "subPath", we use its value in Dart interpolation.
+    final isLiteral = pathExpr.startsWith("'") && pathExpr.endsWith("'");
+    final displayPath = isLiteral
+        ? (pathExpr == "''" ? 'body' : pathExpr.substring(1, pathExpr.length - 1))
+        : "\$$pathExpr";
+
+    if (!isNullable) {
+      buffer.writeln('''
+        if ($jsonExpr == null) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_REQUIRED',
+            'message': "Field '$displayPath' is required"
+          };
+        }
+      ''');
+    }
+
+    buffer.writeln('    if ($jsonExpr != null) {');
+
+    if (type.isDartCoreString) {
+      buffer.writeln('''
+        if ($jsonExpr is! String) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a String"
+          };
+        }
+      ''');
+    } else if (type.isDartCoreInt) {
+      buffer.writeln('''
+        if ($jsonExpr is! int && int.tryParse($jsonExpr.toString()) == null) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be an integer"
+          };
+        }
+      ''');
+    } else if (type.isDartCoreDouble || type.isDartCoreNum) {
+      buffer.writeln('''
+        if ($jsonExpr is! num && double.tryParse($jsonExpr.toString()) == null) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a number"
+          };
+        }
+      ''');
+    } else if (type.isDartCoreBool) {
+      buffer.writeln('''
+        if ($jsonExpr is! bool && $jsonExpr.toString().toLowerCase() != 'true' && $jsonExpr.toString().toLowerCase() != 'false') {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a boolean"
+          };
+        }
+      ''');
+    } else if (type.element?.name == 'DateTime' &&
+        type.element?.library?.name == 'dart.core') {
+      buffer.writeln('''
+        if (DateTime.tryParse($jsonExpr.toString()) == null) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a valid ISO8601 date string"
+          };
+        }
+      ''');
+    } else if (type.isDartCoreList) {
+      final typeArg = (type as InterfaceType).typeArguments.first;
+      buffer.writeln('''
+        if ($jsonExpr is! List) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a List"
+          };
+        } else {
+          final list = $jsonExpr as List;
+          for (var i = 0; i < list.length; i++) {
+            final element = list[i];
+            final subPath = $pathExpr == '' ? '[\$i]' : "\${$pathExpr}[\$i]";
+      ''');
+      _generateStructuralValidation(buffer, typeArg, 'element', 'subPath');
+      buffer.writeln('      }');
+      buffer.writeln('    }');
+    } else if (type.isDartCoreMap) {
+      buffer.writeln('''
+        if ($jsonExpr is! Map) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a Map"
+          };
+        }
+      ''');
+    } else if (type is InterfaceType &&
+        !type.isDartCoreString &&
+        !type.isDartCoreInt &&
+        !type.isDartCoreDouble &&
+        !type.isDartCoreBool &&
+        !type.isDartCoreNum &&
+        !type.isDartCoreList &&
+        !type.isDartCoreMap) {
+      // It's a DTO
+      buffer.writeln('''
+        if ($jsonExpr is! Map) {
+          validationErrors[$pathExpr] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field '$displayPath' must be a Map/Object"
+          };
+        } else {
+          final map = $jsonExpr as Map<String, dynamic>;
+      ''');
+
+      final element = type.element as ClassElement;
+      for (final field in element.fields) {
+        if (field.isStatic) continue;
+        final jsonKey = _camelToSnake(field.name ?? '');
+        final fieldType = field.type;
+        // Construct the subPath expression
+        final subPath = isLiteral
+            ? (pathExpr == "''"
+                ? "'$jsonKey'"
+                : "'${pathExpr.substring(1, pathExpr.length - 1)}.$jsonKey'")
+            : "$pathExpr + '.$jsonKey'";
+
+        _generateStructuralValidation(
+          buffer,
+          fieldType,
+          'map["$jsonKey"]',
+          subPath,
+        );
+      }
+      buffer.writeln('    }');
+    }
+
+    buffer.writeln('    }');
   }
 
   void _generateValidation(StringBuffer buffer, ClassElement element) {
@@ -669,7 +828,6 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
     }
 
     if (validationBuffer.isNotEmpty) {
-      buffer.writeln('    final validationErrors = <String, dynamic>{};');
       buffer.write(validationBuffer);
       buffer.writeln('    if (validationErrors.isNotEmpty) {');
       buffer.writeln('      throw SparkValidationException(validationErrors);');

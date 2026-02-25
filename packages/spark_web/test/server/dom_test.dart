@@ -48,6 +48,7 @@ void main() {
       expect(el.hasAttribute('id'), isFalse);
       expect(el.querySelector('.foo'), isNull);
       expect(el.querySelectorAll('.foo').length, 0);
+      expect(el.closest('.foo'), isNull);
       expect(el.children.length, 0);
       el.remove();
       el.append(web.document.createTextNode('text'));
