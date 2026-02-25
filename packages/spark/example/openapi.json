@@ -245,6 +245,44 @@
           }
         ]
       }
+    },
+    "/api/repro": {
+      "get": {
+        "summary": "Repro Endpoint",
+        "description": "Reproduction for nullable Map serialization",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReproDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "INTERNAL_ERROR"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -260,6 +298,14 @@
         "required": [
           "name"
         ]
+      },
+      "ReproDto": {
+        "type": "object",
+        "properties": {
+          "nextTier": {
+            "type": "object"
+          }
+        }
       }
     },
     "securitySchemes": {
