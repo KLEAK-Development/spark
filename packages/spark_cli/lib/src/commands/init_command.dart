@@ -162,7 +162,7 @@ class Counter {
         style: .solid,
         color: .hex('#ccc'),
       ),
-      borderRadius: .px(8),
+      borderRadius: .all(.px(8)),
       fontFamily: .raw('sans-serif'),
     ),
     'button': .typed(

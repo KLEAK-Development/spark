@@ -1,3 +1,7 @@
+## 1.0.0-alpha.11
+
+- Fixe init command generating old border radius
+
 ## 1.0.0-alpha.10
 
 - Fixed init command generated code.
