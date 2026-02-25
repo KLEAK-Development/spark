@@ -81,8 +81,12 @@ void main() {
               .firstWhere((e) => e.name == 'CreateUserEndpoint');
 
           final annotations = createUserClass.metadata.annotations;
-          final annotation = annotations.firstWhere((a) => a.element?.enclosingElement?.name == 'Endpoint');
-          final constantReader = ConstantReader(annotation.computeConstantValue());
+          final annotation = annotations.firstWhere(
+            (a) => a.element?.enclosingElement?.name == 'Endpoint',
+          );
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
 
           final generator = EndpointGenerator();
           final output = generator.generateForAnnotatedElement(
@@ -106,7 +110,12 @@ void main() {
           expect(output, contains('if (map["name"] is! String)'));
           expect(output, contains("Field 'name' must be a String"));
 
-          expect(output, contains('if (map["age"] is! int && int.tryParse(map["age"].toString()) == null)'));
+          expect(
+            output,
+            contains(
+              'if (map["age"] is! int && int.tryParse(map["age"].toString()) == null)',
+            ),
+          );
           expect(output, contains("Field 'age' must be an integer"));
         },
       );
@@ -121,9 +130,12 @@ void main() {
             export 'src/endpoint/spark_endpoint.dart';
             export 'src/errors/errors.dart';
           ''',
-          'spark|lib/src/annotations/endpoint.dart': 'class Endpoint { final String path; final String method; const Endpoint({required this.path, required this.method}); }',
-          'spark|lib/src/endpoint/spark_endpoint.dart': 'abstract class SparkEndpointWithBody<T> { Future<dynamic> handler(dynamic request, T body); List<dynamic> get middleware => []; }',
-          'spark|lib/src/errors/errors.dart': 'class SparkValidationException implements Exception { final Map<String, dynamic> errors; SparkValidationException(this.errors); }',
+          'spark|lib/src/annotations/endpoint.dart':
+              'class Endpoint { final String path; final String method; const Endpoint({required this.path, required this.method}); }',
+          'spark|lib/src/endpoint/spark_endpoint.dart':
+              'abstract class SparkEndpointWithBody<T> { Future<dynamic> handler(dynamic request, T body); List<dynamic> get middleware => []; }',
+          'spark|lib/src/errors/errors.dart':
+              'class SparkValidationException implements Exception { final Map<String, dynamic> errors; SparkValidationException(this.errors); }',
           'a|lib/test_lib.dart': '''
           library a;
           import 'package:spark/spark.dart';
@@ -158,7 +170,9 @@ void main() {
               .firstWhere((e) => e.name == 'CreateUserEndpoint');
 
           final annotation = createUserClass.metadata.annotations.first;
-          final constantReader = ConstantReader(annotation.computeConstantValue());
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
 
           final generator = EndpointGenerator();
           final output = generator.generateForAnnotatedElement(
@@ -180,7 +194,7 @@ void main() {
     });
 
     test('supports DateTime validation and parsing', () async {
-       await resolveSources(
+      await resolveSources(
         {
           'spark|lib/spark.dart': '''
             library spark;
@@ -188,9 +202,12 @@ void main() {
             export 'src/endpoint/spark_endpoint.dart';
             export 'src/errors/errors.dart';
           ''',
-          'spark|lib/src/annotations/endpoint.dart': 'class Endpoint { final String path; final String method; const Endpoint({required this.path, required this.method}); }',
-          'spark|lib/src/endpoint/spark_endpoint.dart': 'abstract class SparkEndpointWithBody<T> { Future<dynamic> handler(dynamic request, T body); List<dynamic> get middleware => []; }',
-          'spark|lib/src/errors/errors.dart': 'class SparkValidationException implements Exception { final Map<String, dynamic> errors; SparkValidationException(this.errors); }',
+          'spark|lib/src/annotations/endpoint.dart':
+              'class Endpoint { final String path; final String method; const Endpoint({required this.path, required this.method}); }',
+          'spark|lib/src/endpoint/spark_endpoint.dart':
+              'abstract class SparkEndpointWithBody<T> { Future<dynamic> handler(dynamic request, T body); List<dynamic> get middleware => []; }',
+          'spark|lib/src/errors/errors.dart':
+              'class SparkValidationException implements Exception { final Map<String, dynamic> errors; SparkValidationException(this.errors); }',
           'a|lib/test_lib.dart': '''
           library a;
           import 'package:spark/spark.dart';
@@ -219,7 +236,9 @@ void main() {
               .firstWhere((e) => e.name == 'CreateEventEndpoint');
 
           final annotation = createUserClass.metadata.annotations.first;
-          final constantReader = ConstantReader(annotation.computeConstantValue());
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
 
           final generator = EndpointGenerator();
           final output = generator.generateForAnnotatedElement(
@@ -229,17 +248,28 @@ void main() {
           );
 
           // Structural validation
-          expect(output, contains('if (DateTime.tryParse(map["date"].toString()) == null)'));
-          expect(output, contains("Field 'date' must be a valid ISO8601 date string"));
+          expect(
+            output,
+            contains('if (DateTime.tryParse(map["date"].toString()) == null)'),
+          );
+          expect(
+            output,
+            contains("Field 'date' must be a valid ISO8601 date string"),
+          );
 
           // Parsing
-          expect(output, contains('EventDto(date: DateTime.parse((rawBody as Map<String, dynamic>)["date"].toString()))'));
+          expect(
+            output,
+            contains(
+              'EventDto(date: DateTime.parse((rawBody as Map<String, dynamic>)["date"].toString()))',
+            ),
+          );
         },
       );
     });
 
     test('supports List validation', () async {
-       await resolveSources(
+      await resolveSources(
         {
           'spark|lib/spark.dart': '''
             library spark;
@@ -247,9 +277,12 @@ void main() {
             export 'src/endpoint/spark_endpoint.dart';
             export 'src/errors/errors.dart';
           ''',
-          'spark|lib/src/annotations/endpoint.dart': 'class Endpoint { final String path; final String method; const Endpoint({required this.path, required this.method}); }',
-          'spark|lib/src/endpoint/spark_endpoint.dart': 'abstract class SparkEndpointWithBody<T> { Future<dynamic> handler(dynamic request, T body); List<dynamic> get middleware => []; }',
-          'spark|lib/src/errors/errors.dart': 'class SparkValidationException implements Exception { final Map<String, dynamic> errors; SparkValidationException(this.errors); }',
+          'spark|lib/src/annotations/endpoint.dart':
+              'class Endpoint { final String path; final String method; const Endpoint({required this.path, required this.method}); }',
+          'spark|lib/src/endpoint/spark_endpoint.dart':
+              'abstract class SparkEndpointWithBody<T> { Future<dynamic> handler(dynamic request, T body); List<dynamic> get middleware => []; }',
+          'spark|lib/src/errors/errors.dart':
+              'class SparkValidationException implements Exception { final Map<String, dynamic> errors; SparkValidationException(this.errors); }',
           'a|lib/test_lib.dart': '''
           library a;
           import 'package:spark/spark.dart';
@@ -278,7 +311,9 @@ void main() {
               .firstWhere((e) => e.name == 'CreateUserEndpoint');
 
           final annotation = createUserClass.metadata.annotations.first;
-          final constantReader = ConstantReader(annotation.computeConstantValue());
+          final constantReader = ConstantReader(
+            annotation.computeConstantValue(),
+          );
 
           final generator = EndpointGenerator();
           final output = generator.generateForAnnotatedElement(

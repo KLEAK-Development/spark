@@ -312,7 +312,12 @@ class ServerHTMLInputElement extends ServerHTMLElement
   set selectionDirection(String? val) {}
 
   @override
-  void setRangeText(String replacement, [int? start, int? end, String? selectionMode]) {}
+  void setRangeText(
+    String replacement, [
+    int? start,
+    int? end,
+    String? selectionMode,
+  ]) {}
   @override
   void setSelectionRange(int start, int end, [String? direction]) {}
 

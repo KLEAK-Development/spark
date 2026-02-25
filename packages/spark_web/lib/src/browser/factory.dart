@@ -31,8 +31,12 @@ iface.Blob createBlob([List<Object>? parts, String? type]) {
   }).toList();
 
   if (type != null) {
-    return BrowserBlob(web.Blob(
-        jsParts.toJS as JSArray<web.BlobPart>, web.BlobPropertyBag(type: type)));
+    return BrowserBlob(
+      web.Blob(
+        jsParts.toJS as JSArray<web.BlobPart>,
+        web.BlobPropertyBag(type: type),
+      ),
+    );
   }
   return BrowserBlob(web.Blob(jsParts.toJS as JSArray<web.BlobPart>));
 }

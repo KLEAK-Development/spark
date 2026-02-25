@@ -189,6 +189,11 @@ class WebEntryBuilder implements Builder {
         if (element is ClassElement && !element.isAbstract) {
           classes.add(element);
         }
+      } else if (n is TypeLiteral) {
+        final element = n.type.element;
+        if (element is ClassElement) {
+          classes.add(element);
+        }
       }
       n.childEntities.whereType<AstNode>().forEach(visit);
     }

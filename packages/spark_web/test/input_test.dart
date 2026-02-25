@@ -28,7 +28,7 @@ void main() {
 
     test('can be cast to specialized interfaces', () {
       final input = web.document.createElement('input') as web.HTMLInputElement;
-      
+
       final textInput = input as web.HTMLTextInputElement;
       textInput.placeholder = 'foo';
       expect(textInput.placeholder, '');

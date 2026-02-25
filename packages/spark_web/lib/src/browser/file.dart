@@ -26,8 +26,9 @@ class BrowserBlob implements iface.Blob {
   @override
   iface.Blob slice([int? start, int? end, String? contentType]) {
     if (contentType != null) {
-      return BrowserBlob(_nativeBlob.slice(
-          start ?? 0, end ?? size, contentType));
+      return BrowserBlob(
+        _nativeBlob.slice(start ?? 0, end ?? size, contentType),
+      );
     }
     return BrowserBlob(_nativeBlob.slice(start ?? 0, end ?? size));
   }

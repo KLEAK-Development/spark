@@ -18,7 +18,7 @@ void main() {
       expect(input.required, isTrue);
       input.autofocus = true;
       expect(input.autofocus, isTrue);
-      
+
       expect(input.validity, isNotNull);
       expect(input.validity.valid, isTrue);
     });
@@ -26,22 +26,22 @@ void main() {
     test('specialized interfaces', () {
       final input = web.document.createElement('input') as web.HTMLInputElement;
       input.type = 'number';
-      
+
       final numInput = input as web.HTMLNumericInputElement;
       numInput.min = '0';
       numInput.max = '100';
       numInput.step = '1';
       expect(numInput.min, '0');
       expect(numInput.max, '100');
-      
+
       numInput.value = '50';
       expect(numInput.valueAsNumber, 50);
-      
+
       input.type = 'checkbox';
       final checkInput = input as web.HTMLCheckableInputElement;
       checkInput.checked = true;
       expect(checkInput.checked, isTrue);
-      
+
       input.type = 'text';
       final textInput = input as web.HTMLTextInputElement;
       textInput.placeholder = 'Search...';
@@ -51,18 +51,19 @@ void main() {
     });
 
     test('selection properties', () {
-      final input = web.document.createElement('input') as web.HTMLTextInputElement;
+      final input =
+          web.document.createElement('input') as web.HTMLTextInputElement;
       input.type = 'text';
       web.document.body!.appendChild(input);
       input.value = 'abcdefghij';
       input.select();
-      
+
       // Some browsers might not support these if not focused
       input.focus();
       input.setSelectionRange(2, 5);
       expect(input.selectionStart, 2);
       expect(input.selectionEnd, 5);
-      
+
       input.remove();
     });
   });

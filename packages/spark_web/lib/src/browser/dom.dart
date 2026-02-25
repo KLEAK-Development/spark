@@ -761,8 +761,9 @@ class BrowserHTMLInputElement extends BrowserHTMLElement
   set required(bool val) => _nativeInput.required = val;
 
   @override
-  iface.HTMLFormElement? get form =>
-      _nativeInput.form != null ? BrowserHTMLFormElement(_nativeInput.form!) : null;
+  iface.HTMLFormElement? get form => _nativeInput.form != null
+      ? BrowserHTMLFormElement(_nativeInput.form!)
+      : null;
 
   @override
   NodeList get labels => BrowserNodeList(_nativeInput.labels);
@@ -775,7 +776,8 @@ class BrowserHTMLInputElement extends BrowserHTMLElement
   @override
   bool get willValidate => _nativeInput.willValidate;
   @override
-  iface.ValidityState get validity => BrowserValidityState(_nativeInput.validity);
+  iface.ValidityState get validity =>
+      BrowserValidityState(_nativeInput.validity);
   @override
   String get validationMessage => _nativeInput.validationMessage;
   @override
@@ -836,12 +838,23 @@ class BrowserHTMLInputElement extends BrowserHTMLElement
   @override
   String? get selectionDirection => _nativeInput.selectionDirection;
   @override
-  set selectionDirection(String? val) => _nativeInput.selectionDirection = val ?? 'none';
+  set selectionDirection(String? val) =>
+      _nativeInput.selectionDirection = val ?? 'none';
 
   @override
-  void setRangeText(String replacement, [int? start, int? end, String? selectionMode]) {
+  void setRangeText(
+    String replacement, [
+    int? start,
+    int? end,
+    String? selectionMode,
+  ]) {
     if (start != null && end != null) {
-      _nativeInput.setRangeText(replacement, start, end, selectionMode ?? 'preserve');
+      _nativeInput.setRangeText(
+        replacement,
+        start,
+        end,
+        selectionMode ?? 'preserve',
+      );
     } else {
       _nativeInput.setRangeText(replacement);
     }

@@ -530,7 +530,9 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
     // If pathExpr is a variable like "subPath", we use its value in Dart interpolation.
     final isLiteral = pathExpr.startsWith("'") && pathExpr.endsWith("'");
     final displayPath = isLiteral
-        ? (pathExpr == "''" ? 'body' : pathExpr.substring(1, pathExpr.length - 1))
+        ? (pathExpr == "''"
+              ? 'body'
+              : pathExpr.substring(1, pathExpr.length - 1))
         : "\$$pathExpr";
 
     if (!isNullable) {
@@ -645,8 +647,8 @@ class EndpointGenerator extends GeneratorForAnnotation<Endpoint> {
         // Construct the subPath expression
         final subPath = isLiteral
             ? (pathExpr == "''"
-                ? "'$jsonKey'"
-                : "'${pathExpr.substring(1, pathExpr.length - 1)}.$jsonKey'")
+                  ? "'$jsonKey'"
+                  : "'${pathExpr.substring(1, pathExpr.length - 1)}.$jsonKey'")
             : "$pathExpr + '.$jsonKey'";
 
         _generateStructuralValidation(

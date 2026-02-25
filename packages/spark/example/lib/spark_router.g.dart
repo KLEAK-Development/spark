@@ -173,10 +173,46 @@ Future<Response> _$handleEchoUserEndpoint(Request request) async {
         final bodyString = await req.readAsString();
         rawBody = jsonDecode(bodyString);
       }
+      final validationErrors = <String, dynamic>{};
+      if (rawBody == null) {
+        validationErrors[''] = {
+          'code': 'VALIDATION_REQUIRED',
+          'message': "Field 'body' is required",
+        };
+      }
+
+      if (rawBody != null) {
+        if (rawBody is! Map) {
+          validationErrors[''] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field 'body' must be a Map/Object",
+          };
+        } else {
+          final map = rawBody as Map<String, dynamic>;
+
+          if (map["name"] == null) {
+            validationErrors['name'] = {
+              'code': 'VALIDATION_REQUIRED',
+              'message': "Field 'name' is required",
+            };
+          }
+
+          if (map["name"] != null) {
+            if (map["name"] is! String) {
+              validationErrors['name'] = {
+                'code': 'VALIDATION_TYPE',
+                'message': "Field 'name' must be a String",
+              };
+            }
+          }
+        }
+      }
+      if (validationErrors.isNotEmpty) {
+        throw SparkValidationException(validationErrors);
+      }
       final body = UserDto(
         name: (rawBody as Map<String, dynamic>)["name"].toString(),
       );
-      final validationErrors = <String, dynamic>{};
       if (body.name.length < 10) {
         validationErrors['name'] = {
           'code': 'VALIDATION_MIN_LENGTH',
@@ -254,6 +290,25 @@ Future<Response> _$handleEchoDetailsEndpoint(Request request) async {
         rawBody = jsonDecode(bodyString);
       } else {
         rawBody = await req.readAsString();
+      }
+      final validationErrors = <String, dynamic>{};
+      if (rawBody == null) {
+        validationErrors[''] = {
+          'code': 'VALIDATION_REQUIRED',
+          'message': "Field 'body' is required",
+        };
+      }
+
+      if (rawBody != null) {
+        if (rawBody is! Map) {
+          validationErrors[''] = {
+            'code': 'VALIDATION_TYPE',
+            'message': "Field 'body' must be a Map",
+          };
+        }
+      }
+      if (validationErrors.isNotEmpty) {
+        throw SparkValidationException(validationErrors);
       }
       final body = rawBody as Map<String, dynamic>;
       final result = await endpoint.handler(sparkRequest, body);

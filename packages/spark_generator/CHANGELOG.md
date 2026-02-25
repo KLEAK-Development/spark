@@ -1,3 +1,7 @@
+## 1.0.0-alpha.17
+
+- Fix/Improvement to support latest version of the analyzer
+
 ## 1.0.0-alpha.16
 
 - Fix: prevent mis-extraction of method calls starting at line beginning in `ComponentGenerator` by refining the regex to require return types or modifiers.
