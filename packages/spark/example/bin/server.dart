@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:shelf/shelf.dart';
 import 'package:spark_framework/spark.dart';
 
@@ -24,7 +26,8 @@ import 'package:spark_example/pages/not_found_page.dart';
 void main() async {
   final server = await createSparkServer(
     SparkServerConfig(
-      port: 9004,
+      host: InternetAddress.anyIPv4,
+      port: 8080,
       middleware: [logRequests()],
       notFoundPage: NotFoundPage(),
     ),
