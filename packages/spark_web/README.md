@@ -56,6 +56,15 @@ final sparkElement = web.document.querySelector('div');
 final nativeElement = sparkElement?.raw; // web.Element from package:web (null on server)
 ```
 
+### Permissions
+
+```dart
+final status = await web.window.navigator.permissions.query(
+  const web.PermissionDescriptor(name: web.PermissionName.camera),
+);
+print(status.state); // PermissionState(prompt)
+```
+
 ### Platform detection
 
 ```dart
@@ -302,7 +311,7 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | `queueMicrotask()` | ❌ TODO | |
 | `Notification` | ❌ TODO | |
 | `Geolocation` | ✅ Done | |
-| `Permissions` | ❌ TODO | |
+| `Permissions` | ✅ Done | `query()`, `PermissionStatus`, `PermissionDescriptor` |
 | `FullScreen API` | ❌ TODO | `requestFullscreen()`, `exitFullscreen()` |
 
 ---

@@ -2,6 +2,20 @@
 
 All notable changes to `spark_web` will be documented in this file.
 
+## 1.0.0-alpha.11
+
+### Added
+
+- **Feat**: Added complete Permissions API support (`permissions.dart`).
+  - `PermissionState` enum (`granted`, `denied`, `prompt`).
+  - `PermissionName` enum with constants for all standard permissions (`geolocation`, `notifications`, `push`, `persistent-storage`, `clipboard-read`, `clipboard-write`, `camera`, `microphone`, `background-fetch`, `background-sync`).
+  - `PermissionDescriptor` base class and specialized descriptors: `PushPermissionDescriptor`, `MidiPermissionDescriptor`, `DevicePermissionDescriptor`.
+  - `PermissionStatus` abstract interface with `state`, `name`, and `onchange`.
+  - `Permissions` abstract interface with `query()`.
+  - `Navigator.permissions` getter for both browser and server.
+  - Server implementation returns `PermissionState.prompt` for all queries.
+  - Browser implementation wraps native `window.navigator.permissions` API.
+
 ## 1.0.0-alpha.10
 
 ### Added
