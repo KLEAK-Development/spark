@@ -113,14 +113,8 @@ void main() {
     test('multiple outputs correct CSS', () {
       expect(
         CssTransition.multiple([
-          CssTransition.simple(
-            CssTransitionProperty.opacity,
-            CssDuration.s(1),
-          ),
-          CssTransition.simple(
-            CssTransitionProperty.width,
-            CssDuration.s(2),
-          ),
+          CssTransition.simple(CssTransitionProperty.opacity, CssDuration.s(1)),
+          CssTransition.simple(CssTransitionProperty.width, CssDuration.s(2)),
         ]).toCss(),
         equals('opacity 1s, width 2s'),
       );

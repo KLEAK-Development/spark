@@ -92,48 +92,60 @@ final class _CssTimingFunctionRaw extends CssTimingFunction {
 sealed class CssTransitionProperty implements CssValue {
   const CssTransitionProperty._();
 
-  static const CssTransitionProperty all =
-      _CssTransitionPropertyKeyword('all');
-  static const CssTransitionProperty opacity =
-      _CssTransitionPropertyKeyword('opacity');
-  static const CssTransitionProperty transform =
-      _CssTransitionPropertyKeyword('transform');
+  static const CssTransitionProperty all = _CssTransitionPropertyKeyword('all');
+  static const CssTransitionProperty opacity = _CssTransitionPropertyKeyword(
+    'opacity',
+  );
+  static const CssTransitionProperty transform = _CssTransitionPropertyKeyword(
+    'transform',
+  );
   static const CssTransitionProperty backgroundColor =
       _CssTransitionPropertyKeyword('background-color');
-  static const CssTransitionProperty color =
-      _CssTransitionPropertyKeyword('color');
-  static const CssTransitionProperty width =
-      _CssTransitionPropertyKeyword('width');
-  static const CssTransitionProperty height =
-      _CssTransitionPropertyKeyword('height');
-  static const CssTransitionProperty margin =
-      _CssTransitionPropertyKeyword('margin');
-  static const CssTransitionProperty padding =
-      _CssTransitionPropertyKeyword('padding');
-  static const CssTransitionProperty border =
-      _CssTransitionPropertyKeyword('border');
+  static const CssTransitionProperty color = _CssTransitionPropertyKeyword(
+    'color',
+  );
+  static const CssTransitionProperty width = _CssTransitionPropertyKeyword(
+    'width',
+  );
+  static const CssTransitionProperty height = _CssTransitionPropertyKeyword(
+    'height',
+  );
+  static const CssTransitionProperty margin = _CssTransitionPropertyKeyword(
+    'margin',
+  );
+  static const CssTransitionProperty padding = _CssTransitionPropertyKeyword(
+    'padding',
+  );
+  static const CssTransitionProperty border = _CssTransitionPropertyKeyword(
+    'border',
+  );
   static const CssTransitionProperty borderRadius =
       _CssTransitionPropertyKeyword('border-radius');
-  static const CssTransitionProperty boxShadow =
-      _CssTransitionPropertyKeyword('box-shadow');
-  static const CssTransitionProperty top =
-      _CssTransitionPropertyKeyword('top');
-  static const CssTransitionProperty right =
-      _CssTransitionPropertyKeyword('right');
-  static const CssTransitionProperty bottom =
-      _CssTransitionPropertyKeyword('bottom');
-  static const CssTransitionProperty left =
-      _CssTransitionPropertyKeyword('left');
-  static const CssTransitionProperty visibility =
-      _CssTransitionPropertyKeyword('visibility');
-  static const CssTransitionProperty fontSize =
-      _CssTransitionPropertyKeyword('font-size');
-  static const CssTransitionProperty lineHeight =
-      _CssTransitionPropertyKeyword('line-height');
+  static const CssTransitionProperty boxShadow = _CssTransitionPropertyKeyword(
+    'box-shadow',
+  );
+  static const CssTransitionProperty top = _CssTransitionPropertyKeyword('top');
+  static const CssTransitionProperty right = _CssTransitionPropertyKeyword(
+    'right',
+  );
+  static const CssTransitionProperty bottom = _CssTransitionPropertyKeyword(
+    'bottom',
+  );
+  static const CssTransitionProperty left = _CssTransitionPropertyKeyword(
+    'left',
+  );
+  static const CssTransitionProperty visibility = _CssTransitionPropertyKeyword(
+    'visibility',
+  );
+  static const CssTransitionProperty fontSize = _CssTransitionPropertyKeyword(
+    'font-size',
+  );
+  static const CssTransitionProperty lineHeight = _CssTransitionPropertyKeyword(
+    'line-height',
+  );
   static const CssTransitionProperty letterSpacing =
       _CssTransitionPropertyKeyword('letter-spacing');
-  static const CssTransitionProperty gap =
-      _CssTransitionPropertyKeyword('gap');
+  static const CssTransitionProperty gap = _CssTransitionPropertyKeyword('gap');
 
   /// CSS variable reference.
   factory CssTransitionProperty.variable(String varName) =
