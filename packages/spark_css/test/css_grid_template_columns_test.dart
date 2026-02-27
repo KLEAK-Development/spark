@@ -10,10 +10,7 @@ void main() {
 
     test('length outputs correct CSS', () {
       expect(CssTrackSize.length(CssLength.px(200)).toCss(), equals('200px'));
-      expect(
-        CssTrackSize.length(CssLength.percent(50)).toCss(),
-        equals('50%'),
-      );
+      expect(CssTrackSize.length(CssLength.percent(50)).toCss(), equals('50%'));
     });
 
     test('minmax outputs correct CSS', () {

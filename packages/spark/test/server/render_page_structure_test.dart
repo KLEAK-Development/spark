@@ -92,9 +92,7 @@ void main() {
     test('renders inline styles as Stylesheet', () {
       final stylesheet = Stylesheet({
         'body': Style.typed(backgroundColor: CssColor.named('red')),
-        '.container': Style.typed(
-          padding: CssSpacing.all(CssLength.px(10)),
-        ),
+        '.container': Style.typed(padding: CssSpacing.all(CssLength.px(10))),
       });
 
       final html = renderPage(

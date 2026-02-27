@@ -68,22 +68,22 @@ sealed class CssGridTemplateColumns implements CssValue {
   const CssGridTemplateColumns._();
 
   /// The `none` keyword.
-  static const CssGridTemplateColumns none =
-      _CssGridTemplateColumnsKeyword('none');
+  static const CssGridTemplateColumns none = _CssGridTemplateColumnsKeyword(
+    'none',
+  );
 
   /// The `subgrid` keyword.
-  static const CssGridTemplateColumns subgrid =
-      _CssGridTemplateColumnsKeyword('subgrid');
+  static const CssGridTemplateColumns subgrid = _CssGridTemplateColumnsKeyword(
+    'subgrid',
+  );
 
   /// Explicit track list (e.g., `1fr 2fr 100px`).
   factory CssGridTemplateColumns.tracks(List<CssTrackSize> tracks) =
       _CssGridTemplateColumnsTracks;
 
   /// The `repeat()` function with a fixed count (e.g., `repeat(3, 1fr)`).
-  factory CssGridTemplateColumns.repeat(
-    int count,
-    List<CssTrackSize> tracks,
-  ) = _CssGridTemplateColumnsRepeat;
+  factory CssGridTemplateColumns.repeat(int count, List<CssTrackSize> tracks) =
+      _CssGridTemplateColumnsRepeat;
 
   /// The `repeat(auto-fill, ...)` function.
   factory CssGridTemplateColumns.autoFill(List<CssTrackSize> tracks) =
@@ -98,8 +98,7 @@ sealed class CssGridTemplateColumns implements CssValue {
       _CssGridTemplateColumnsVariable;
 
   /// Raw CSS value escape hatch.
-  factory CssGridTemplateColumns.raw(String value) =
-      _CssGridTemplateColumnsRaw;
+  factory CssGridTemplateColumns.raw(String value) = _CssGridTemplateColumnsRaw;
 
   /// Global keyword (inherit, initial, unset, revert).
   factory CssGridTemplateColumns.global(CssGlobal global) =
@@ -128,8 +127,7 @@ final class _CssGridTemplateColumnsRepeat extends CssGridTemplateColumns {
   const _CssGridTemplateColumnsRepeat(this.count, this.tracks) : super._();
 
   @override
-  String toCss() =>
-      'repeat($count, ${tracks.map((t) => t.toCss()).join(' ')})';
+  String toCss() => 'repeat($count, ${tracks.map((t) => t.toCss()).join(' ')})';
 }
 
 final class _CssGridTemplateColumnsAutoFill extends CssGridTemplateColumns {

@@ -78,10 +78,7 @@ void main() {
     });
 
     test('variable outputs correct CSS', () {
-      expect(
-        CssBackground.variable('bg').toCss(),
-        equals('var(--bg)'),
-      );
+      expect(CssBackground.variable('bg').toCss(), equals('var(--bg)'));
     });
 
     test('raw outputs value as-is', () {
