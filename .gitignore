@@ -17,4 +17,6 @@ build/
 coverage
 
 .claude
-.gemini
+
+.gemini/
+gha-creds-*.json
