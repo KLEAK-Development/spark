@@ -609,7 +609,9 @@ void main() {
           blur: CssLength.px(6),
           color: CssColor.rgba(0, 0, 0, 0.1),
         ),
-        gridTemplateColumns: 'repeat(3, 1fr)',
+        gridTemplateColumns: CssGridTemplateColumns.repeat(3, [
+          CssTrackSize.fr(1),
+        ]),
       );
       expect(style.toCss(), contains('transform: translateY(-2px);'));
       expect(
@@ -673,12 +675,14 @@ void main() {
 
   group('backward compatibility', () {
     test('original Style constructor still works', () {
+      // ignore: deprecated_member_use_from_same_package
       final style = Style(color: 'red', fontSize: '12px');
       expect(style.toCss(), contains('color: red;'));
       expect(style.toCss(), contains('font-size: 12px;'));
     });
 
     test('both constructors produce same output for equivalent values', () {
+      // ignore: deprecated_member_use_from_same_package
       final styleOld = Style(
         display: 'flex',
         justifyContent: 'center',

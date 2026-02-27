@@ -11,17 +11,21 @@ class StyleBenchmark extends BenchmarkBase {
     // Create a moderately complex stylesheet
     final rules = <String, Style>{};
     for (var i = 0; i < 1000; i++) {
-      rules['.item-$i'] = Style(
-        color: 'red',
-        backgroundColor: 'blue',
-        margin: '10px',
-        padding: '20px',
-        display: 'flex',
-        fontSize: '${i}px',
-        width: '100%',
-        height: '50px',
-        borderRadius: '5px',
-        border: '1px solid black',
+      rules['.item-$i'] = Style.typed(
+        color: CssColor.red,
+        backgroundColor: CssColor.blue,
+        margin: CssSpacing.all(CssLength.px(10)),
+        padding: CssSpacing.all(CssLength.px(20)),
+        display: CssDisplay.flex,
+        fontSize: CssLength.px(i),
+        width: CssLength.percent(100),
+        height: CssLength.px(50),
+        borderRadius: CssBorderRadius.all(CssLength.px(5)),
+        border: CssBorder(
+          width: CssLength.px(1),
+          style: CssBorderStyle.solid,
+          color: CssColor.black,
+        ),
       );
     }
     _stylesheet = css(rules);

@@ -50,7 +50,7 @@ void main() {
       await script.writeAsString('''
         import 'package:spark_framework/spark.dart';
         void main() {
-          print(Style(color: 'red').toCss());
+          print(Style.typed(color: CssColor.named('red')).toCss());
         }
       ''');
 
@@ -73,7 +73,7 @@ void main() {
       await script.writeAsString('''
         import 'package:spark_framework/spark.dart';
         void main() {
-          print(Style(color: 'red').toCss());
+          print(Style.typed(color: CssColor.named('red')).toCss());
         }
       ''');
 
