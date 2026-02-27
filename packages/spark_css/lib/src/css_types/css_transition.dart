@@ -88,6 +88,134 @@ final class _CssTimingFunctionRaw extends CssTimingFunction {
   String toCss() => value;
 }
 
+/// CSS transition property names.
+sealed class CssTransitionProperty implements CssValue {
+  const CssTransitionProperty._();
+
+  static const CssTransitionProperty all =
+      _CssTransitionPropertyKeyword('all');
+  static const CssTransitionProperty opacity =
+      _CssTransitionPropertyKeyword('opacity');
+  static const CssTransitionProperty transform =
+      _CssTransitionPropertyKeyword('transform');
+  static const CssTransitionProperty backgroundColor =
+      _CssTransitionPropertyKeyword('background-color');
+  static const CssTransitionProperty color =
+      _CssTransitionPropertyKeyword('color');
+  static const CssTransitionProperty width =
+      _CssTransitionPropertyKeyword('width');
+  static const CssTransitionProperty height =
+      _CssTransitionPropertyKeyword('height');
+  static const CssTransitionProperty margin =
+      _CssTransitionPropertyKeyword('margin');
+  static const CssTransitionProperty padding =
+      _CssTransitionPropertyKeyword('padding');
+  static const CssTransitionProperty border =
+      _CssTransitionPropertyKeyword('border');
+  static const CssTransitionProperty borderRadius =
+      _CssTransitionPropertyKeyword('border-radius');
+  static const CssTransitionProperty boxShadow =
+      _CssTransitionPropertyKeyword('box-shadow');
+  static const CssTransitionProperty top =
+      _CssTransitionPropertyKeyword('top');
+  static const CssTransitionProperty right =
+      _CssTransitionPropertyKeyword('right');
+  static const CssTransitionProperty bottom =
+      _CssTransitionPropertyKeyword('bottom');
+  static const CssTransitionProperty left =
+      _CssTransitionPropertyKeyword('left');
+  static const CssTransitionProperty visibility =
+      _CssTransitionPropertyKeyword('visibility');
+  static const CssTransitionProperty fontSize =
+      _CssTransitionPropertyKeyword('font-size');
+  static const CssTransitionProperty lineHeight =
+      _CssTransitionPropertyKeyword('line-height');
+  static const CssTransitionProperty letterSpacing =
+      _CssTransitionPropertyKeyword('letter-spacing');
+  static const CssTransitionProperty gap =
+      _CssTransitionPropertyKeyword('gap');
+
+  /// CSS variable reference.
+  factory CssTransitionProperty.variable(String varName) =
+      _CssTransitionPropertyVariable;
+
+  /// Raw CSS value escape hatch.
+  factory CssTransitionProperty.raw(String value) = _CssTransitionPropertyRaw;
+}
+
+final class _CssTransitionPropertyKeyword extends CssTransitionProperty {
+  final String keyword;
+  const _CssTransitionPropertyKeyword(this.keyword) : super._();
+
+  @override
+  String toCss() => keyword;
+}
+
+final class _CssTransitionPropertyVariable extends CssTransitionProperty {
+  final String varName;
+  const _CssTransitionPropertyVariable(this.varName) : super._();
+
+  @override
+  String toCss() => 'var(--$varName)';
+}
+
+final class _CssTransitionPropertyRaw extends CssTransitionProperty {
+  final String value;
+  const _CssTransitionPropertyRaw(this.value) : super._();
+
+  @override
+  String toCss() => value;
+}
+
+/// CSS duration values.
+sealed class CssDuration implements CssValue {
+  const CssDuration._();
+
+  /// Duration in milliseconds.
+  factory CssDuration.ms(num milliseconds) = _CssDurationMs;
+
+  /// Duration in seconds.
+  factory CssDuration.s(num seconds) = _CssDurationS;
+
+  /// CSS variable reference.
+  factory CssDuration.variable(String varName) = _CssDurationVariable;
+
+  /// Raw CSS value escape hatch.
+  factory CssDuration.raw(String value) = _CssDurationRaw;
+}
+
+final class _CssDurationMs extends CssDuration {
+  final num milliseconds;
+  const _CssDurationMs(this.milliseconds) : super._();
+
+  @override
+  String toCss() => '${milliseconds}ms';
+}
+
+final class _CssDurationS extends CssDuration {
+  final num seconds;
+  const _CssDurationS(this.seconds) : super._();
+
+  @override
+  String toCss() => '${seconds}s';
+}
+
+final class _CssDurationVariable extends CssDuration {
+  final String varName;
+  const _CssDurationVariable(this.varName) : super._();
+
+  @override
+  String toCss() => 'var(--$varName)';
+}
+
+final class _CssDurationRaw extends CssDuration {
+  final String value;
+  const _CssDurationRaw(this.value) : super._();
+
+  @override
+  String toCss() => value;
+}
+
 /// CSS transition value.
 sealed class CssTransition implements CssValue {
   const CssTransition._();
@@ -96,16 +224,16 @@ sealed class CssTransition implements CssValue {
 
   /// Single transition.
   factory CssTransition({
-    required String property,
-    required String duration,
+    required CssTransitionProperty property,
+    required CssDuration duration,
     CssTimingFunction? timingFunction,
-    String? delay,
+    CssDuration? delay,
   }) = _CssTransitionSingle;
 
   /// Shorthand for a simple transition.
   factory CssTransition.simple(
-    String property,
-    String duration, [
+    CssTransitionProperty property,
+    CssDuration duration, [
     CssTimingFunction? timingFunction,
   ]) => _CssTransitionSingle(
     property: property,
@@ -136,10 +264,10 @@ final class _CssTransitionKeyword extends CssTransition {
 }
 
 final class _CssTransitionSingle extends CssTransition {
-  final String property;
-  final String duration;
+  final CssTransitionProperty property;
+  final CssDuration duration;
   final CssTimingFunction? timingFunction;
-  final String? delay;
+  final CssDuration? delay;
 
   const _CssTransitionSingle({
     required this.property,
@@ -150,9 +278,9 @@ final class _CssTransitionSingle extends CssTransition {
 
   @override
   String toCss() {
-    final parts = [property, duration];
+    final parts = [property.toCss(), duration.toCss()];
     if (timingFunction != null) parts.add(timingFunction!.toCss());
-    if (delay != null) parts.add(delay!);
+    if (delay != null) parts.add(delay!.toCss());
     return parts.join(' ');
   }
 }

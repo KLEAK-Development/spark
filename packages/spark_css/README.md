@@ -98,6 +98,47 @@ Style.typed(
 )
 ```
 
+### Transitions
+
+`CssTransition` uses typed parameters for property names, durations, and timing functions:
+
+```dart
+Style.typed(
+  transition: CssTransition.simple(
+    CssTransitionProperty.opacity,
+    CssDuration.ms(200),
+    CssTimingFunction.ease,
+  ),
+)
+```
+
+Use the named constructor for full control including delay:
+
+```dart
+CssTransition(
+  property: CssTransitionProperty.transform,
+  duration: CssDuration.s(0.3),
+  timingFunction: CssTimingFunction.easeInOut,
+  delay: CssDuration.ms(100),
+)
+```
+
+Combine multiple transitions:
+
+```dart
+CssTransition.multiple([
+  CssTransition.simple(CssTransitionProperty.opacity, CssDuration.ms(200)),
+  CssTransition.simple(CssTransitionProperty.transform, CssDuration.ms(300)),
+])
+```
+
+Use `.raw()` for values not covered by the typed constructors:
+
+```dart
+CssTransitionProperty.raw('max-width')
+CssDuration.raw('200ms')
+```
+
 ### Custom Properties
 
 For properties not covered by the typed constructors, use `.add()`:
