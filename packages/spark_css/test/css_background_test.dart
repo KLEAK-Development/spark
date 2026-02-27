@@ -46,6 +46,15 @@ void main() {
       );
     });
 
+    test('shorthand with size only', () {
+      expect(
+        CssBackground.shorthand(
+          size: CssBackgroundSize.cover,
+        ).toCss(),
+        equals('cover'),
+      );
+    });
+
     test('shorthand with all components', () {
       expect(
         CssBackground.shorthand(
