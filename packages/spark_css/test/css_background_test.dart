@@ -48,9 +48,7 @@ void main() {
 
     test('shorthand with size only', () {
       expect(
-        CssBackground.shorthand(
-          size: CssBackgroundSize.cover,
-        ).toCss(),
+        CssBackground.shorthand(size: CssBackgroundSize.cover).toCss(),
         equals('cover'),
       );
     });
