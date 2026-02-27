@@ -32,6 +32,70 @@ void main() {
     });
   });
 
+  group('CssTransitionProperty', () {
+    test('keywords output correct CSS', () {
+      expect(CssTransitionProperty.all.toCss(), equals('all'));
+      expect(CssTransitionProperty.opacity.toCss(), equals('opacity'));
+      expect(CssTransitionProperty.transform.toCss(), equals('transform'));
+      expect(
+        CssTransitionProperty.backgroundColor.toCss(),
+        equals('background-color'),
+      );
+      expect(CssTransitionProperty.color.toCss(), equals('color'));
+      expect(CssTransitionProperty.width.toCss(), equals('width'));
+      expect(CssTransitionProperty.height.toCss(), equals('height'));
+      expect(CssTransitionProperty.margin.toCss(), equals('margin'));
+      expect(CssTransitionProperty.padding.toCss(), equals('padding'));
+      expect(CssTransitionProperty.border.toCss(), equals('border'));
+      expect(
+        CssTransitionProperty.borderRadius.toCss(),
+        equals('border-radius'),
+      );
+      expect(CssTransitionProperty.boxShadow.toCss(), equals('box-shadow'));
+      expect(CssTransitionProperty.top.toCss(), equals('top'));
+      expect(CssTransitionProperty.right.toCss(), equals('right'));
+      expect(CssTransitionProperty.bottom.toCss(), equals('bottom'));
+      expect(CssTransitionProperty.left.toCss(), equals('left'));
+      expect(CssTransitionProperty.visibility.toCss(), equals('visibility'));
+      expect(CssTransitionProperty.fontSize.toCss(), equals('font-size'));
+      expect(CssTransitionProperty.lineHeight.toCss(), equals('line-height'));
+      expect(
+        CssTransitionProperty.letterSpacing.toCss(),
+        equals('letter-spacing'),
+      );
+      expect(CssTransitionProperty.gap.toCss(), equals('gap'));
+    });
+    test('variable outputs correct CSS', () {
+      expect(
+        CssTransitionProperty.variable('prop').toCss(),
+        equals('var(--prop)'),
+      );
+    });
+    test('raw outputs value as-is', () {
+      expect(
+        CssTransitionProperty.raw('max-width').toCss(),
+        equals('max-width'),
+      );
+    });
+  });
+
+  group('CssDuration', () {
+    test('ms outputs correct CSS', () {
+      expect(CssDuration.ms(200).toCss(), equals('200ms'));
+      expect(CssDuration.ms(1.5).toCss(), equals('1.5ms'));
+    });
+    test('s outputs correct CSS', () {
+      expect(CssDuration.s(1).toCss(), equals('1s'));
+      expect(CssDuration.s(0.3).toCss(), equals('0.3s'));
+    });
+    test('variable outputs correct CSS', () {
+      expect(CssDuration.variable('dur').toCss(), equals('var(--dur)'));
+    });
+    test('raw outputs value as-is', () {
+      expect(CssDuration.raw('200ms').toCss(), equals('200ms'));
+    });
+  });
+
   group('CssTransition', () {
     test('none outputs correct CSS', () {
       expect(CssTransition.none.toCss(), equals('none'));
@@ -39,9 +103,9 @@ void main() {
     test('single outputs correct CSS', () {
       expect(
         CssTransition(
-          property: 'opacity',
-          duration: '1s',
-          delay: '0.5s',
+          property: CssTransitionProperty.opacity,
+          duration: CssDuration.s(1),
+          delay: CssDuration.s(0.5),
         ).toCss(),
         equals('opacity 1s 0.5s'),
       );
@@ -49,8 +113,8 @@ void main() {
     test('multiple outputs correct CSS', () {
       expect(
         CssTransition.multiple([
-          CssTransition.simple('opacity', '1s'),
-          CssTransition.simple('width', '2s'),
+          CssTransition.simple(CssTransitionProperty.opacity, CssDuration.s(1)),
+          CssTransition.simple(CssTransitionProperty.width, CssDuration.s(2)),
         ]).toCss(),
         equals('opacity 1s, width 2s'),
       );

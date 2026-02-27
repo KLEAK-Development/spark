@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0-alpha.4
+
+### Added
+
+- **Feat**: Added `CssTransitionProperty` sealed class with typed constants for common animatable CSS properties (`all`, `opacity`, `transform`, `backgroundColor`, `color`, `width`, `height`, `margin`, `padding`, `border`, `borderRadius`, `boxShadow`, `top`, `right`, `bottom`, `left`, `visibility`, `fontSize`, `lineHeight`, `letterSpacing`, `gap`) plus `variable()` and `raw()` constructors.
+- **Feat**: Added `CssDuration` sealed class with `ms()`, `s()`, `variable()`, and `raw()` constructors for type-safe CSS duration values.
+
+### Changed
+
+- **Breaking Change**: `CssTransition` now accepts `CssTransitionProperty` instead of `String` for the `property` parameter, and `CssDuration` instead of `String` for `duration` and `delay` parameters.
+
 ## 1.0.0-alpha.3
 
 ### Added

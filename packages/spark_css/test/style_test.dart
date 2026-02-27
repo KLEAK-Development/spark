@@ -117,7 +117,10 @@ void main() {
         backgroundClip: CssBackgroundClip.borderBox,
         backgroundOrigin: CssBackgroundOrigin.paddingBox,
         backgroundAttachment: CssBackgroundAttachment.fixed,
-        transition: CssTransition.simple('opacity', '1s'),
+        transition: CssTransition.simple(
+          CssTransitionProperty.opacity,
+          CssDuration.s(1),
+        ),
         transform: CssTransform.scale(1.1),
         background: 'red',
         gridTemplateColumns: '1fr 1fr',

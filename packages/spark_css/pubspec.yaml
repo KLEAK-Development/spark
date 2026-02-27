@@ -1,6 +1,6 @@
 name: spark_css
 description: Type-safe CSS style system for Spark framework.
-version: 1.0.0-alpha.3
+version: 1.0.0-alpha.4
 resolution: workspace
 
 homepage: https://spark.kleak.dev

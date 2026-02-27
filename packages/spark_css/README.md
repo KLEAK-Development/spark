@@ -262,20 +262,36 @@ Typed background properties: `backgroundSize`, `backgroundPosition`, `background
 
 ### Transitions
 
-`CssTransition` supports single and multiple transitions:
+`CssTransition` uses typed parameters for property names, durations, and timing functions:
 
 ```dart
 Style.typed(
-  transition: CssTransition.simple('opacity', '200ms', CssTimingFunction.easeInOut),
+  transition: CssTransition.simple(
+    CssTransitionProperty.opacity,
+    CssDuration.ms(200),
+    CssTimingFunction.easeInOut,
+  ),
+)
+
+// Full control with delay
+CssTransition(
+  property: CssTransitionProperty.transform,
+  duration: CssDuration.s(0.3),
+  timingFunction: CssTimingFunction.easeInOut,
+  delay: CssDuration.ms(100),
 )
 
 // Multiple transitions
 Style.typed(
   transition: CssTransition.multiple([
-    CssTransition.simple('opacity', '200ms', CssTimingFunction.ease),
-    CssTransition.simple('transform', '300ms', CssTimingFunction.easeOut),
+    CssTransition.simple(CssTransitionProperty.opacity, CssDuration.ms(200)),
+    CssTransition.simple(CssTransitionProperty.transform, CssDuration.ms(300)),
   ]),
 )
+
+// Raw escape hatches for unsupported values
+CssTransitionProperty.raw('max-width')
+CssDuration.raw('200ms')
 
 // Custom timing function
 CssTimingFunction.cubicBezier(0.4, 0, 0.2, 1)

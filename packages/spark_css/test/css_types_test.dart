@@ -424,8 +424,8 @@ void main() {
     test('single transition outputs correct CSS', () {
       expect(
         CssTransition(
-          property: 'all',
-          duration: '0.3s',
+          property: CssTransitionProperty.all,
+          duration: CssDuration.s(0.3),
           timingFunction: CssTimingFunction.ease,
         ).toCss(),
         equals('all 0.3s ease'),
@@ -434,7 +434,10 @@ void main() {
 
     test('simple transition outputs correct CSS', () {
       expect(
-        CssTransition.simple('opacity', '200ms').toCss(),
+        CssTransition.simple(
+          CssTransitionProperty.opacity,
+          CssDuration.ms(200),
+        ).toCss(),
         equals('opacity 200ms'),
       );
     });
@@ -442,10 +445,13 @@ void main() {
     test('multiple transitions output correct CSS', () {
       expect(
         CssTransition.multiple([
-          CssTransition.simple('opacity', '200ms'),
           CssTransition.simple(
-            'transform',
-            '300ms',
+            CssTransitionProperty.opacity,
+            CssDuration.ms(200),
+          ),
+          CssTransition.simple(
+            CssTransitionProperty.transform,
+            CssDuration.ms(300),
             CssTimingFunction.easeInOut,
           ),
         ]).toCss(),
