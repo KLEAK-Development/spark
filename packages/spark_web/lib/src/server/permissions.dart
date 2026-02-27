@@ -35,6 +35,5 @@ class ServerPermissions implements iface.Permissions {
   @override
   Future<iface.PermissionStatus> query(
     iface.PermissionDescriptor descriptor,
-  ) async =>
-      ServerPermissionStatus(descriptor.name);
+  ) async => ServerPermissionStatus(descriptor.name);
 }

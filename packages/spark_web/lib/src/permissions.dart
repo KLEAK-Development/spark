@@ -78,8 +78,7 @@ class PermissionName {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PermissionName && other.value == value;
+      identical(this, other) || other is PermissionName && other.value == value;
 
   @override
   int get hashCode => value.hashCode;
@@ -115,7 +114,7 @@ class PushPermissionDescriptor extends PermissionDescriptor {
   final bool userVisibleOnly;
 
   const PushPermissionDescriptor({this.userVisibleOnly = false})
-      : super(name: PermissionName.push);
+    : super(name: PermissionName.push);
 }
 
 // ---------------------------------------------------------------------------
@@ -130,7 +129,7 @@ class MidiPermissionDescriptor extends PermissionDescriptor {
   final bool sysex;
 
   const MidiPermissionDescriptor({this.sysex = false})
-      : super(name: const PermissionName('midi'));
+    : super(name: const PermissionName('midi'));
 }
 
 // ---------------------------------------------------------------------------
