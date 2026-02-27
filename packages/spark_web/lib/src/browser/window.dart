@@ -7,9 +7,11 @@ import 'package:web/web.dart' as web;
 import '../core.dart';
 import '../dom.dart' as iface;
 import '../geolocation.dart' as iface;
+import '../permissions.dart' as iface;
 import '../window.dart' as iface;
 import 'dom.dart';
 import 'geolocation.dart';
+import 'permissions.dart';
 
 // ---------------------------------------------------------------------------
 // Window
@@ -182,6 +184,8 @@ class BrowserNavigator implements iface.Navigator {
   iface.Clipboard get clipboard => BrowserClipboard(_native.clipboard);
   @override
   iface.Geolocation get geolocation => BrowserGeolocation(_native.geolocation);
+  @override
+  iface.Permissions get permissions => BrowserPermissions(_native.permissions);
 }
 
 // ---------------------------------------------------------------------------

@@ -11,9 +11,11 @@ import 'dart:math';
 import '../core.dart';
 import '../dom.dart' as iface;
 import '../geolocation.dart' as iface;
+import '../permissions.dart' as iface;
 import '../window.dart' as iface;
 import 'dom.dart';
 import 'geolocation.dart';
+import 'permissions.dart';
 
 // ---------------------------------------------------------------------------
 // Window
@@ -190,6 +192,8 @@ class ServerNavigator implements iface.Navigator {
   iface.Clipboard get clipboard => ServerClipboard();
   @override
   iface.Geolocation get geolocation => ServerGeolocation();
+  @override
+  iface.Permissions get permissions => ServerPermissions();
 }
 
 // ---------------------------------------------------------------------------

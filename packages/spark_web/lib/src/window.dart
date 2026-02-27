@@ -4,6 +4,7 @@ library;
 import 'core.dart';
 import 'dom.dart';
 import 'geolocation.dart';
+import 'permissions.dart';
 
 // ---------------------------------------------------------------------------
 // Window
@@ -116,6 +117,7 @@ abstract class Navigator {
   bool get onLine;
   Clipboard get clipboard;
   Geolocation get geolocation;
+  Permissions get permissions;
 }
 
 // ---------------------------------------------------------------------------

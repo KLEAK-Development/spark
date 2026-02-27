@@ -41,6 +41,7 @@ export 'src/css.dart';
 export 'src/file.dart';
 export 'src/geolocation.dart';
 export 'src/notification.dart';
+export 'src/permissions.dart';
 export 'src/window.dart';
 
 // Re-export factory functions (platform-aware constructors).
