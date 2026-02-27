@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.0-alpha.5 (unpublished)
+
+### Added
+
+- **Feat**: Added `CssBackground` sealed class for the `background` shorthand property with `.none`, `.color()`, `.shorthand()` (assembles full shorthand with `position / size` slash syntax), `.layers()` (multiple backgrounds), plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssGridTemplateColumns` sealed class for `grid-template-columns` with `.none`, `.subgrid`, `.tracks()`, `.repeat()`, `.autoFill()`, `.autoFit()`, plus `.variable()`, `.raw()`, and `.global()`.
+- **Feat**: Added `CssTrackSize` sealed class for individual grid track sizes with `.fr()`, `.length()`, `.minmax()`, `.fitContent()`, and `.raw()`.
+- **Feat**: Added `accent-color` CSS property support via `CssColor? accentColor` parameter in `Style.typed()`.
+
+### Changed
+
+- **Breaking Change**: `Style.typed()` `background` parameter changed from `String?` to `CssBackground?`.
+- **Breaking Change**: `Style.typed()` `gridTemplateColumns` parameter changed from `String?` to `CssGridTemplateColumns?`.
+
+### Deprecated
+
+- **Deprecated**: The `Style()` untyped constructor is now deprecated in favor of `Style.typed()`. All CSS properties are now available as typed parameters.
+
 ## 1.0.0-alpha.4
 
 ### Added

@@ -30,3 +30,5 @@ export 'css_background_repeat.dart';
 export 'css_background_clip.dart';
 export 'css_background_origin.dart';
 export 'css_background_attachment.dart';
+export 'css_background.dart';
+export 'css_grid_template_columns.dart';

@@ -12,7 +12,8 @@ class SimpleComponent extends SparkComponent {
   Map<String, String> get dumpedAttributes => {'data-test': 'true'};
 
   @override
-  Stylesheet? get adoptedStyleSheets => css({':host': Style(display: 'block')});
+  Stylesheet? get adoptedStyleSheets =>
+      css({':host': Style.typed(display: CssDisplay.block)});
 }
 
 void main() {

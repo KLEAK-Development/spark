@@ -4,6 +4,7 @@ import 'package:spark_css/spark_css.dart';
 void main() {
   group('Style Optimization', () {
     test('caches toCss result', () {
+      // ignore: deprecated_member_use_from_same_package
       final style = Style(color: 'red');
       final css1 = style.toCss();
       final css2 = style.toCss();
@@ -16,6 +17,7 @@ void main() {
     });
 
     test('invalidates cache on add', () {
+      // ignore: deprecated_member_use_from_same_package
       final style = Style(color: 'red');
       final css1 = style.toCss();
       expect(css1, contains('color: red;'));
@@ -39,6 +41,7 @@ void main() {
     });
 
     test('Stylesheet caches toCss result', () {
+      // ignore: deprecated_member_use_from_same_package
       final sheet = css({'.foo': Style(color: 'red')});
       final css1 = sheet.toCss();
       final css2 = sheet.toCss();

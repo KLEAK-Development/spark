@@ -72,6 +72,7 @@ class Style implements CssStyle {
   /// Creates a style with raw string values.
   ///
   /// For type safety, prefer [Style.typed].
+  @Deprecated('Use Style.typed() instead')
   Style({
     String? color,
     String? backgroundColor,
@@ -80,7 +81,6 @@ class Style implements CssStyle {
     String? fontWeight,
     String? fontFamily,
     String? display,
-    // ... (other properties are standard CSS)
     String? flexDirection,
     String? justifyContent,
     String? alignItems,
@@ -135,6 +135,7 @@ class Style implements CssStyle {
     String? boxShadow,
     String? transform,
     String? borderColor,
+    String? accentColor,
     Stylesheet? css,
   }) : stylesheet = css {
     if (color != null) _properties['color'] = color;
@@ -202,6 +203,7 @@ class Style implements CssStyle {
     if (boxShadow != null) _properties['box-shadow'] = boxShadow;
     if (transform != null) _properties['transform'] = transform;
     if (borderColor != null) _properties['border-color'] = borderColor;
+    if (accentColor != null) _properties['accent-color'] = accentColor;
   }
 
   /// Type-safe constructor with CSS value types.
@@ -230,6 +232,7 @@ class Style implements CssStyle {
     CssColor? color,
     CssColor? backgroundColor,
     CssColor? borderColor,
+    CssColor? accentColor,
     CssColor? fill,
     // Layout
     CssDisplay? display,
@@ -311,9 +314,10 @@ class Style implements CssStyle {
     // Effects
     CssTransition? transition,
     CssTransform? transform,
-    // Complex properties (keep as String for flexibility)
-    String? background,
-    String? gridTemplateColumns,
+    // Background shorthand
+    CssBackground? background,
+    // Grid
+    CssGridTemplateColumns? gridTemplateColumns,
     Stylesheet? css,
   }) : stylesheet = css {
     // Colors
@@ -322,6 +326,7 @@ class Style implements CssStyle {
       _properties['background-color'] = backgroundColor.toCss();
     }
     if (borderColor != null) _properties['border-color'] = borderColor.toCss();
+    if (accentColor != null) _properties['accent-color'] = accentColor.toCss();
     if (fill != null) _properties['fill'] = fill.toCss();
 
     // Layout
@@ -454,10 +459,11 @@ class Style implements CssStyle {
     if (transition != null) _properties['transition'] = transition.toCss();
     if (transform != null) _properties['transform'] = transform.toCss();
 
-    // Complex properties (string-based)
-    if (background != null) _properties['background'] = background;
+    // Background shorthand
+    if (background != null) _properties['background'] = background.toCss();
+    // Grid
     if (gridTemplateColumns != null) {
-      _properties['grid-template-columns'] = gridTemplateColumns;
+      _properties['grid-template-columns'] = gridTemplateColumns.toCss();
     }
   }
 

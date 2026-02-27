@@ -187,8 +187,12 @@ abstract class SparkPage<T> {
   /// ```dart
   /// @override
   /// Stylesheet? get inlineStyles => css({
-  ///   'main': Style(maxWidth: '800px', margin: '0 auto', padding: '20px'),
-  ///   'h1': Style(color: '#333'),
+  ///   'main': Style.typed(
+  ///     maxWidth: CssLength.px(800),
+  ///     margin: CssSpacing.symmetric(CssLength.zero, CssLength.auto),
+  ///     padding: CssSpacing.all(CssLength.px(20)),
+  ///   ),
+  ///   'h1': Style.typed(color: CssColor.hex('333')),
   /// });
   /// ```
   Stylesheet? get inlineStyles => null;

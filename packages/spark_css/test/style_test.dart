@@ -6,16 +6,19 @@ void main() {
   group('Style', () {
     test('respects minification settings (minified via Zone)', () {
       runZoned(() {
+        // ignore: deprecated_member_use_from_same_package
         final style = Style(color: 'red', fontSize: '12px');
         final rendered = style.toCss();
         // Check for lack of spaces/newlines
         expect(rendered, equals('color:red;font-size:12px;'));
 
+        // ignore: deprecated_member_use_from_same_package
         final sheet = css({'.foo': Style(color: 'blue')});
         expect(sheet.toCss(), equals('.foo{color:blue;}'));
 
-        final nested = Style(
-          color: 'red',
+        final nested = Style.typed(
+          color: CssColor.named('red'),
+          // ignore: deprecated_member_use_from_same_package
           css: css({'.bar': Style(color: 'blue')}),
         );
         expect(nested.toCss(), equals('color:red;.bar{color:blue;}'));
@@ -23,13 +26,14 @@ void main() {
     });
 
     test('renders simple properties', () {
+      // ignore: deprecated_member_use_from_same_package
       final style = Style(color: 'red', fontSize: '12px');
       expect(style.toCss(), contains('color: red;'));
       expect(style.toCss(), contains('font-size: 12px;'));
     });
 
     test('renders added custom properties', () {
-      final style = Style();
+      final style = Style.typed();
       style.add('--custom-var', '10px');
       expect(style.toCss(), contains('--custom-var: 10px;'));
     });
@@ -39,6 +43,7 @@ void main() {
         color: CssColor.red,
         backgroundColor: CssColor.blue,
         borderColor: CssColor.black,
+        accentColor: CssColor.named('auto'),
         fill: CssColor.white,
         display: CssDisplay.flex,
         position: CssPosition.absolute,
@@ -122,13 +127,17 @@ void main() {
           CssDuration.s(1),
         ),
         transform: CssTransform.scale(1.1),
-        background: 'red',
-        gridTemplateColumns: '1fr 1fr',
+        background: CssBackground.color(CssColor.red),
+        gridTemplateColumns: CssGridTemplateColumns.tracks([
+          CssTrackSize.fr(1),
+          CssTrackSize.fr(1),
+        ]),
       );
 
       final css = style.toCss();
       expect(css, contains('color: red;'));
       expect(css, contains('background-color: blue;'));
+      expect(css, contains('accent-color: auto;'));
       expect(css, contains('display: flex;'));
       expect(css, contains('flex-direction: row;'));
       expect(css, contains('padding: 20px;'));
@@ -137,7 +146,13 @@ void main() {
       expect(css, contains('grid-template-columns: 1fr 1fr;'));
     });
 
+    test('renders accent-color property', () {
+      final style = Style.typed(accentColor: CssColor.hex('ff6600'));
+      expect(style.toCss(), contains('accent-color: #ff6600;'));
+    });
+
     test('renders all properties in default Style constructor', () {
+      // ignore: deprecated_member_use_from_same_package
       final style = Style(
         color: 'red',
         backgroundColor: 'blue',
@@ -200,26 +215,29 @@ void main() {
         boxShadow: 'none',
         transform: 'none',
         borderColor: 'black',
+        accentColor: 'auto',
       );
       final css = style.toCss();
       expect(css, contains('color: red;'));
+      expect(css, contains('accent-color: auto;'));
       expect(style.toString(), equals(css));
     });
 
     test('Stylesheet.toString() works', () {
+      // ignore: deprecated_member_use_from_same_package
       final sheet = css({'.a': Style(color: 'red')});
       expect(sheet.toString(), equals(sheet.toCss()));
     });
 
     test('renders nested stylesheet', () {
-      final style = Style(
-        color: 'red',
+      final style = Style.typed(
+        color: CssColor.named('red'),
+        // ignore: deprecated_member_use_from_same_package
         css: css({'@media (max-width: 600px)': Style(color: 'blue')}),
       );
       final output = style.toCss();
       expect(output, contains('color: red;'));
       expect(output, contains('@media (max-width: 600px) {'));
-      // The inner style properties are indented by Style.toCss but Stylesheet wraps them
       expect(output, contains('color: blue;'));
     });
   });
@@ -227,7 +245,9 @@ void main() {
   group('Stylesheet', () {
     test('renders multiple rules', () {
       final sheet = css({
+        // ignore: deprecated_member_use_from_same_package
         'body': Style(margin: '0'),
+        // ignore: deprecated_member_use_from_same_package
         '.foo': Style(color: 'red'),
       });
       final output = sheet.toCss();
@@ -241,6 +261,7 @@ void main() {
   test('respects minification settings (unminified in dev)', () {
     // In test environment (VM), dart.vm.product is false.
     // So we expect unminified CSS with indentation/newlines.
+    // ignore: deprecated_member_use_from_same_package
     final style = Style(color: 'red');
     final css = style.toCss();
     // Check for newline after property

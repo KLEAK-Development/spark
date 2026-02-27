@@ -13,7 +13,8 @@ A type-safe CSS style system for the Spark framework.
 - **CSS Variables**: Every value type supports `variable()` for CSS custom properties.
 - **Global Keywords**: Every value type supports `global()` for `inherit`, `initial`, `unset`, `revert`, and `revert-layer`.
 - **Filters & Transforms**: Full `CssFilter` and `CssTransform` APIs with composition support.
-- **Gradients & Backgrounds**: Linear and radial gradients, plus typed background-size, position, repeat, clip, origin, and attachment.
+- **Gradients & Backgrounds**: Linear and radial gradients, `CssBackground` shorthand, plus typed background-size, position, repeat, clip, origin, and attachment.
+- **Grid**: `CssGridTemplateColumns` and `CssTrackSize` for type-safe grid track definitions with `repeat()`, `auto-fill`, `auto-fit`, `minmax()`, and `fit-content()`.
 - **Shadows**: `CssBoxShadow` and `CssTextShadow` with multi-shadow support.
 - **Automatic Minification**: CSS output is minified in production builds via the `dart.vm.product` flag.
 - **Component Style Registry**: Server-side style deduplication via `componentStyles`.
@@ -260,6 +261,35 @@ Style.typed(
 
 Typed background properties: `backgroundSize`, `backgroundPosition`, `backgroundRepeat`, `backgroundClip`, `backgroundOrigin`, `backgroundAttachment`.
 
+`CssBackground` provides the `background` shorthand:
+
+```dart
+// Simple color background
+Style.typed(background: CssBackground.color(CssColor.hex('f5f5f5')))
+
+// Full shorthand with position/size slash syntax
+Style.typed(
+  background: CssBackground.shorthand(
+    image: CssBackgroundImage.url('bg.png'),
+    position: CssBackgroundPosition.center,
+    size: CssBackgroundSize.cover,
+    repeat: CssBackgroundRepeat.noRepeat,
+    color: CssColor.white,
+  ),
+)
+
+// Multiple background layers
+Style.typed(
+  background: CssBackground.layers([
+    CssBackground.shorthand(
+      image: CssBackgroundImage.url('overlay.png'),
+      repeat: CssBackgroundRepeat.noRepeat,
+    ),
+    CssBackground.color(CssColor.white),
+  ]),
+)
+```
+
 ### Transitions
 
 `CssTransition` uses typed parameters for property names, durations, and timing functions:
@@ -377,6 +407,45 @@ height: CssLength.svh(100),
 height: CssLength.lvh(100),
 ```
 
+### Grid Template Columns
+
+`CssGridTemplateColumns` and `CssTrackSize` provide type-safe grid track definitions:
+
+```dart
+// Explicit tracks
+Style.typed(
+  display: CssDisplay.grid,
+  gridTemplateColumns: CssGridTemplateColumns.tracks([
+    CssTrackSize.fr(1),
+    CssTrackSize.fr(2),
+    CssTrackSize.length(CssLength.px(200)),
+  ]),
+)
+
+// repeat()
+Style.typed(
+  gridTemplateColumns: CssGridTemplateColumns.repeat(3, [CssTrackSize.fr(1)]),
+)
+
+// auto-fill with minmax
+Style.typed(
+  gridTemplateColumns: CssGridTemplateColumns.autoFill([
+    CssTrackSize.minmax(
+      CssTrackSize.length(CssLength.px(200)),
+      CssTrackSize.fr(1),
+    ),
+  ]),
+)
+```
+
+### Accent Color
+
+The `accent-color` CSS property is supported via `CssColor`:
+
+```dart
+Style.typed(accentColor: CssColor.hex('0066ff'))
+```
+
 ### Custom Properties
 
 For properties not covered by the typed constructors, use `.add()`:
@@ -385,7 +454,7 @@ For properties not covered by the typed constructors, use `.add()`:
 final style = Style.typed(
   display: CssDisplay.grid,
 );
-style.add('grid-template-columns', 'repeat(3, 1fr)');
+style.add('grid-auto-rows', 'minmax(100px, auto)');
 ```
 
 ### Component Style Registry
