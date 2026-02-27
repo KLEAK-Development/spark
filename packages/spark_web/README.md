@@ -84,18 +84,33 @@ spark_web/lib/
     ├── dom.dart                # Element, HTMLElement, Document, ShadowRoot, Text, Comment
     ├── collections.dart        # DOMTokenList, NamedNodeMap, Attr
     ├── css.dart                # CSSStyleSheet, CSSStyleDeclaration
+    ├── canvas.dart             # CanvasRenderingContext2D, TextMetrics, ImageData
+    ├── file.dart               # Blob, File, FileList
+    ├── geolocation.dart        # Geolocation, GeolocationPosition, GeolocationCoordinates
+    ├── notification.dart       # Notification, NotificationOptions, NotificationAction
+    ├── permissions.dart        # Permissions, PermissionStatus, PermissionDescriptor
     ├── window.dart             # Window, Storage, Location, History, Navigator, Console, ...
     ├── server/                 # Server implementations (no-ops / Dart-native fallbacks)
     │   ├── factory.dart
     │   ├── dom.dart
     │   ├── collections.dart
     │   ├── css.dart
+    │   ├── canvas.dart
+    │   ├── file.dart
+    │   ├── geolocation.dart
+    │   ├── notification.dart
+    │   ├── permissions.dart
     │   └── window.dart
     └── browser/                # Browser implementations (wrap package:web)
         ├── factory.dart
         ├── dom.dart
         ├── collections.dart
         ├── css.dart
+        ├── canvas.dart
+        ├── file.dart
+        ├── geolocation.dart
+        ├── notification.dart
+        ├── permissions.dart
         └── window.dart
 ```
 
@@ -108,8 +123,8 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | API | Status | Notes |
 |-----|--------|-------|
 | `EventTarget` | ✅ Done | `addEventListener`, `removeEventListener`, `dispatchEvent` |
-| `Event` | ✅ Done | `type`, `target`, `currentTarget`, `preventDefault`, `stopPropagation` |
-| `MouseEvent` | ✅ Done | `clientX/Y`, `pageX/Y`, `screenX/Y`, `button`, modifier keys |
+| `Event` | ✅ Done | `type`, `target`, `currentTarget`, `bubbles`, `cancelable`, `preventDefault`, `stopPropagation`, `stopImmediatePropagation` |
+| `MouseEvent` | ✅ Done | `clientX/Y`, `pageX/Y`, `screenX/Y`, `button`, `buttons`, modifier keys |
 | `KeyboardEvent` | ✅ Done | `key`, `code`, `repeat`, `location`, modifier keys |
 | `InputEvent` | ✅ Done | `data`, `inputType`, `isComposing` |
 | `FocusEvent` | ✅ Done | `relatedTarget` |
@@ -243,8 +258,9 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | `EventSource` | ❌ TODO | Server-sent events |
 | `XMLHttpRequest` | ❌ TODO | Legacy — consider skipping |
 | `FormData` | ❌ TODO | `append`, `get`, `set`, `entries` |
-| `Blob` | ❌ TODO | `size`, `type`, `text()`, `arrayBuffer()`, `slice()` |
-| `File` | ❌ TODO | `name`, `lastModified`, `size`, `type` |
+| `Blob` | ✅ Done | `size`, `type`, `text()`, `arrayBuffer()`, `slice()`, `stream()` |
+| `File` | ✅ Done | `name`, `lastModified` (extends Blob) |
+| `FileList` | ✅ Done | `length`, `item()` |
 | `FileReader` | ❌ TODO | `readAsText()`, `readAsDataURL()`, `result` |
 
 ### Observers
@@ -260,9 +276,10 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 
 | API | Status | Notes |
 |-----|--------|-------|
-| `CanvasRenderingContext2D` | ❌ TODO | Drawing primitives |
+| `CanvasRenderingContext2D` | ✅ Done | Full 2D drawing: rect, path, arc, bezier, text, image, pixel manipulation, transforms, state save/restore, line dash, compositing |
+| `TextMetrics` | ✅ Done | `width`, `actualBoundingBoxLeft/Right/Ascent/Descent`, `fontBoundingBoxAscent/Descent` |
+| `ImageData` | ✅ Done | `width`, `height`, `data` |
 | `OffscreenCanvas` | ❌ TODO | |
-| `ImageData` | ❌ TODO | |
 | `Path2D` | ❌ TODO | |
 | `WebGLRenderingContext` | ❌ TODO | Consider out of scope |
 | `WebGL2RenderingContext` | ❌ TODO | Consider out of scope |
@@ -309,9 +326,9 @@ The table below tracks what percentage of the [MDN Web API](https://developer.mo
 | `TextDecoder` | ❌ TODO | `decode()` |
 | `structuredClone()` | ❌ TODO | |
 | `queueMicrotask()` | ❌ TODO | |
-| `Notification` | ❌ TODO | |
-| `Geolocation` | ✅ Done | |
-| `Permissions` | ✅ Done | `query()`, `PermissionStatus`, `PermissionDescriptor` |
+| `Notification` | ✅ Done | `title`, `body`, `icon`, `tag`, `close()`, `NotificationOptions`, `NotificationAction`, `requestPermission()` |
+| `Geolocation` | ✅ Done | `getCurrentPosition`, `watchPosition`, `clearWatch`, `GeolocationPosition`, `GeolocationCoordinates`, `PositionOptions` |
+| `Permissions` | ✅ Done | `query()`, `PermissionStatus`, `PermissionState`, `PermissionName`, `PermissionDescriptor` (+ Push, Midi, Device variants) |
 | `FullScreen API` | ❌ TODO | `requestFullscreen()`, `exitFullscreen()` |
 
 ---
