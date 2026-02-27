@@ -30,16 +30,22 @@ class GeolocationPage extends SparkPage<void> {
 
   @override
   Stylesheet? get inlineStyles => css({
-    'body': Style(
-      fontFamily:
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '40px 20px',
-      lineHeight: '1.6',
-      color: '#333',
+    'body': Style.typed(
+      fontFamily: CssFontFamily.stack([
+        CssFontFamily.systemUi,
+        CssFontFamily.generic('-apple-system'),
+        CssFontFamily.generic('BlinkMacSystemFont'),
+        CssFontFamily.named('Segoe UI'),
+        CssFontFamily.generic('Roboto'),
+        CssFontFamily.sansSerif,
+      ]),
+      maxWidth: CssLength.px(800),
+      margin: CssSpacing.symmetric(CssLength.zero, CssLength.auto),
+      padding: CssSpacing.symmetric(CssLength.px(40), CssLength.px(20)),
+      lineHeight: CssNumber(1.6),
+      color: CssColor.hex('#333'),
     ),
-    'h1': Style(color: '#2196f3'),
-    'p': Style(color: '#666'),
+    'h1': Style.typed(color: CssColor.hex('#2196f3')),
+    'p': Style.typed(color: CssColor.hex('#666')),
   });
 }
