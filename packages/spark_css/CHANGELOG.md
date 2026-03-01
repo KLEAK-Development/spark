@@ -13,6 +13,11 @@
 - **Feat**: Added `CssBorderCollapse` sealed class for `border-collapse` property with `.separate`, `.collapse` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `border-top-color`, `border-right-color`, `border-bottom-color`, and `border-left-color` CSS property support via `CssColor?` parameters in `Style.typed()`.
 - **Feat**: Added `CssBoxSizing` sealed class for `box-sizing` property with `.contentBox`, `.borderBox` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssContent` sealed class for `content` property with `.normal`, `.none` keywords, `.value()` for arbitrary content, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssJustifyItems` sealed class for `justify-items` property with `.normal`, `.stretch`, `.start`, `.end`, `.center`, `.left`, `.right`, `.baseline`, `.firstBaseline`, `.lastBaseline` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssListStyle` sealed class for `list-style` shorthand property with `.none` keyword, shorthand constructor with optional `type`, `position`, and `image` parameters, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssListStyleType` sealed class with `.disc`, `.circle`, `.square`, `.decimal`, `.none` keywords.
+- **Feat**: Added `CssListStylePosition` sealed class with `.inside`, `.outside` keywords.
 
 ### Changed
 
