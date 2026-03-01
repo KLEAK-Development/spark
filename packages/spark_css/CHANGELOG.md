@@ -8,6 +8,8 @@
 - **Feat**: Added `CssGridTemplateColumns` sealed class for `grid-template-columns` with `.none`, `.subgrid`, `.tracks()`, `.repeat()`, `.autoFill()`, `.autoFit()`, plus `.variable()`, `.raw()`, and `.global()`.
 - **Feat**: Added `CssTrackSize` sealed class for individual grid track sizes with `.fr()`, `.length()`, `.minmax()`, `.fitContent()`, and `.raw()`.
 - **Feat**: Added `accent-color` CSS property support via `CssColor? accentColor` parameter in `Style.typed()`.
+- **Feat**: Added `CssAnimation` sealed class for the `animation` shorthand property with `.none`, single animation (name, duration, timingFunction, delay, iterationCount, direction, fillMode, playState), `.multiple()`, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssAnimationDirection`, `CssAnimationFillMode`, `CssAnimationPlayState`, and `CssAnimationIterationCount` sealed classes for animation sub-properties. Reuses existing `CssDuration` and `CssTimingFunction` from `CssTransition`.
 
 ### Changed
 
