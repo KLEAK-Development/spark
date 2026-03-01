@@ -15,6 +15,7 @@ export 'css_border.dart';
 export 'css_border_collapse.dart';
 export 'css_border_radius.dart';
 export 'css_box_shadow.dart';
+export 'css_box_sizing.dart';
 export 'css_color.dart';
 export 'css_cursor.dart';
 export 'css_display.dart';

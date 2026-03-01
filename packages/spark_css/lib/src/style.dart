@@ -306,6 +306,7 @@ class Style implements CssStyle {
     CssZIndex? zIndex,
     CssCursor? cursor,
     CssBoxShadow? boxShadow,
+    CssBoxSizing? boxSizing,
     CssFilter? filter,
     CssFilter? backdropFilter,
     // Backgrounds
@@ -448,6 +449,7 @@ class Style implements CssStyle {
     if (zIndex != null) _properties['z-index'] = zIndex.toCss();
     if (cursor != null) _properties['cursor'] = cursor.toCss();
     if (boxShadow != null) _properties['box-shadow'] = boxShadow.toCss();
+    if (boxSizing != null) _properties['box-sizing'] = boxSizing.toCss();
     if (filter != null) _properties['filter'] = filter.toCss();
     if (backdropFilter != null) {
       _properties['backdrop-filter'] = backdropFilter.toCss();
