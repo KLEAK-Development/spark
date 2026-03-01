@@ -100,6 +100,10 @@ void main() {
           CssBorderStyle.solid,
         ),
         borderLeft: CssBorder.widthStyle(CssLength.px(1), CssBorderStyle.solid),
+        borderTopColor: CssColor.red,
+        borderRightColor: CssColor.green,
+        borderBottomColor: CssColor.blue,
+        borderLeftColor: CssColor.black,
         borderRadius: CssBorderRadius.all(CssLength.px(5)),
         outline: CssOutline(
           width: CssLength.px(1),
@@ -144,6 +148,80 @@ void main() {
       expect(css, contains('margin: 10px;'));
       expect(css, contains('background: red;'));
       expect(css, contains('grid-template-columns: 1fr 1fr;'));
+      expect(css, contains('border-top-color: red;'));
+      expect(css, contains('border-right-color: green;'));
+      expect(css, contains('border-bottom-color: blue;'));
+      expect(css, contains('border-left-color: black;'));
+    });
+
+    test('renders border-top-color property', () {
+      expect(
+        Style.typed(borderTopColor: CssColor.hex('ff0000')).toCss(),
+        contains('border-top-color: #ff0000;'),
+      );
+      expect(
+        Style.typed(borderTopColor: CssColor.variable('border-top')).toCss(),
+        contains('border-top-color: var(--border-top);'),
+      );
+      expect(
+        Style.typed(borderTopColor: CssColor.global(CssGlobal.inherit)).toCss(),
+        contains('border-top-color: inherit;'),
+      );
+    });
+
+    test('renders border-right-color property', () {
+      expect(
+        Style.typed(borderRightColor: CssColor.hex('00ff00')).toCss(),
+        contains('border-right-color: #00ff00;'),
+      );
+      expect(
+        Style.typed(
+          borderRightColor: CssColor.variable('border-right'),
+        ).toCss(),
+        contains('border-right-color: var(--border-right);'),
+      );
+      expect(
+        Style.typed(
+          borderRightColor: CssColor.global(CssGlobal.inherit),
+        ).toCss(),
+        contains('border-right-color: inherit;'),
+      );
+    });
+
+    test('renders border-bottom-color property', () {
+      expect(
+        Style.typed(borderBottomColor: CssColor.hex('0000ff')).toCss(),
+        contains('border-bottom-color: #0000ff;'),
+      );
+      expect(
+        Style.typed(
+          borderBottomColor: CssColor.variable('border-bottom'),
+        ).toCss(),
+        contains('border-bottom-color: var(--border-bottom);'),
+      );
+      expect(
+        Style.typed(
+          borderBottomColor: CssColor.global(CssGlobal.inherit),
+        ).toCss(),
+        contains('border-bottom-color: inherit;'),
+      );
+    });
+
+    test('renders border-left-color property', () {
+      expect(
+        Style.typed(borderLeftColor: CssColor.hex('000000')).toCss(),
+        contains('border-left-color: #000000;'),
+      );
+      expect(
+        Style.typed(borderLeftColor: CssColor.variable('border-left')).toCss(),
+        contains('border-left-color: var(--border-left);'),
+      );
+      expect(
+        Style.typed(
+          borderLeftColor: CssColor.global(CssGlobal.inherit),
+        ).toCss(),
+        contains('border-left-color: inherit;'),
+      );
     });
 
     test('renders accent-color property', () {

@@ -11,6 +11,7 @@
 - **Feat**: Added `CssAnimation` sealed class for the `animation` shorthand property with `.none`, single animation (name, duration, timingFunction, delay, iterationCount, direction, fillMode, playState), `.multiple()`, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssAnimationDirection`, `CssAnimationFillMode`, `CssAnimationPlayState`, and `CssAnimationIterationCount` sealed classes for animation sub-properties. Reuses existing `CssDuration` and `CssTimingFunction` from `CssTransition`.
 - **Feat**: Added `CssBorderCollapse` sealed class for `border-collapse` property with `.separate`, `.collapse` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `border-top-color`, `border-right-color`, `border-bottom-color`, and `border-left-color` CSS property support via `CssColor?` parameters in `Style.typed()`.
 
 ### Changed
 
