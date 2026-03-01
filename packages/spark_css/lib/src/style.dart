@@ -273,6 +273,8 @@ class Style implements CssStyle {
     CssLength? gap,
     CssFlexShorthand? flex,
     CssPlaceItems? placeItems,
+    CssPlaceContent? placeContent,
+    CssPlaceSelf? placeSelf,
     // Typography
     CssLength? fontSize,
     CssFontWeight? fontWeight,
@@ -314,6 +316,8 @@ class Style implements CssStyle {
     CssPointerEvents? pointerEvents,
     CssResize? resize,
     CssScrollBehavior? scrollBehavior,
+    CssIsolation? isolation,
+    CssMixBlendMode? mixBlendMode,
     CssFilter? filter,
     CssFilter? backdropFilter,
     // Backgrounds
@@ -324,6 +328,7 @@ class Style implements CssStyle {
     CssBackgroundClip? backgroundClip,
     CssBackgroundOrigin? backgroundOrigin,
     CssBackgroundAttachment? backgroundAttachment,
+    CssBackgroundBlendMode? backgroundBlendMode,
     // Effects
     CssAnimation? animation,
     CssTransition? transition,
@@ -336,6 +341,7 @@ class Style implements CssStyle {
     CssGridTemplateColumns? gridTemplateColumns,
     // Alignment
     CssJustifyItems? justifyItems,
+    CssJustifySelf? justifySelf,
     // Lists
     CssListStyle? listStyle,
     Stylesheet? css,
@@ -406,6 +412,10 @@ class Style implements CssStyle {
     if (gap != null) _properties['gap'] = gap.toCss();
     if (flex != null) _properties['flex'] = flex.toCss();
     if (placeItems != null) _properties['place-items'] = placeItems.toCss();
+    if (placeContent != null) {
+      _properties['place-content'] = placeContent.toCss();
+    }
+    if (placeSelf != null) _properties['place-self'] = placeSelf.toCss();
 
     // Typography
     if (fontSize != null) _properties['font-size'] = fontSize.toCss();
@@ -478,6 +488,10 @@ class Style implements CssStyle {
     if (scrollBehavior != null) {
       _properties['scroll-behavior'] = scrollBehavior.toCss();
     }
+    if (isolation != null) _properties['isolation'] = isolation.toCss();
+    if (mixBlendMode != null) {
+      _properties['mix-blend-mode'] = mixBlendMode.toCss();
+    }
     if (filter != null) _properties['filter'] = filter.toCss();
     if (backdropFilter != null) {
       _properties['backdrop-filter'] = backdropFilter.toCss();
@@ -505,6 +519,9 @@ class Style implements CssStyle {
     if (backgroundAttachment != null) {
       _properties['background-attachment'] = backgroundAttachment.toCss();
     }
+    if (backgroundBlendMode != null) {
+      _properties['background-blend-mode'] = backgroundBlendMode.toCss();
+    }
 
     // Effects
     if (animation != null) _properties['animation'] = animation.toCss();
@@ -525,6 +542,9 @@ class Style implements CssStyle {
     // Alignment
     if (justifyItems != null) {
       _properties['justify-items'] = justifyItems.toCss();
+    }
+    if (justifySelf != null) {
+      _properties['justify-self'] = justifySelf.toCss();
     }
 
     // Lists

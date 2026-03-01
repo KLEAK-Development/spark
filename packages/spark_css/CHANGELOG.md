@@ -25,6 +25,12 @@
 - **Feat**: Added `CssTextOverflow` sealed class for `text-overflow` property with `.clip`, `.ellipsis` keywords, `.value()` for custom strings, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssAspectRatio` sealed class for `aspect-ratio` property with `.auto` keyword, `.ratio()`, `.number()`, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssPlaceItems` sealed class for `place-items` shorthand property with align and optional justify parameters, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssPlaceContent` sealed class for `place-content` shorthand property with `CssAlignContent` and optional `CssJustifyContent` parameters, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssPlaceSelf` sealed class for `place-self` shorthand property with `CssAlignSelf` and optional `CssJustifySelf` parameters, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssJustifySelf` sealed class for `justify-self` property with `.auto`, `.normal`, `.stretch`, `.start`, `.end`, `.center`, `.left`, `.right`, `.baseline`, `.firstBaseline`, `.lastBaseline`, `.selfStart`, `.selfEnd` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssIsolation` sealed class for `isolation` property with `.auto`, `.isolate` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssMixBlendMode` sealed class for `mix-blend-mode` property with `.normal`, `.multiply`, `.screen`, `.overlay`, `.darken`, `.lighten`, `.colorDodge`, `.colorBurn`, `.hardLight`, `.softLight`, `.difference`, `.exclusion`, `.hue`, `.saturation`, `.color`, `.luminosity` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssBackgroundBlendMode` sealed class for `background-blend-mode` property with `.normal`, `.multiply`, `.screen`, `.overlay`, `.darken`, `.lighten`, `.colorDodge`, `.colorBurn`, `.hardLight`, `.softLight`, `.difference`, `.exclusion`, `.hue`, `.saturation`, `.color`, `.luminosity` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 
 ### Changed
 
