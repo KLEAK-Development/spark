@@ -18,6 +18,9 @@
 - **Feat**: Added `CssListStyle` sealed class for `list-style` shorthand property with `.none` keyword, shorthand constructor with optional `type`, `position`, and `image` parameters, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssListStyleType` sealed class with `.disc`, `.circle`, `.square`, `.decimal`, `.none` keywords.
 - **Feat**: Added `CssListStylePosition` sealed class with `.inside`, `.outside` keywords.
+- **Feat**: Added `CssObjectFit` sealed class for `object-fit` property with `.fill`, `.contain`, `.cover`, `.none`, `.scaleDown` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssPointerEvents` sealed class for `pointer-events` property with `.auto`, `.none`, `.visiblePainted`, `.visibleFill`, `.visibleStroke`, `.visible`, `.painted`, `.fill`, `.stroke`, `.all` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssResize` sealed class for `resize` property with `.none`, `.both`, `.horizontal`, `.vertical`, `.block`, `.inline` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 
 ### Changed
 

@@ -307,6 +307,9 @@ class Style implements CssStyle {
     CssCursor? cursor,
     CssBoxShadow? boxShadow,
     CssBoxSizing? boxSizing,
+    CssObjectFit? objectFit,
+    CssPointerEvents? pointerEvents,
+    CssResize? resize,
     CssFilter? filter,
     CssFilter? backdropFilter,
     // Backgrounds
@@ -456,6 +459,11 @@ class Style implements CssStyle {
     if (cursor != null) _properties['cursor'] = cursor.toCss();
     if (boxShadow != null) _properties['box-shadow'] = boxShadow.toCss();
     if (boxSizing != null) _properties['box-sizing'] = boxSizing.toCss();
+    if (objectFit != null) _properties['object-fit'] = objectFit.toCss();
+    if (pointerEvents != null) {
+      _properties['pointer-events'] = pointerEvents.toCss();
+    }
+    if (resize != null) _properties['resize'] = resize.toCss();
     if (filter != null) _properties['filter'] = filter.toCss();
     if (backdropFilter != null) {
       _properties['backdrop-filter'] = backdropFilter.toCss();
