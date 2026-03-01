@@ -1,6 +1,7 @@
 /// CSS type system for type-safe style declarations.
 library;
 
+export 'css_animation.dart';
 export 'css_angle.dart';
 export 'css_background.dart';
 export 'css_background_attachment.dart';
