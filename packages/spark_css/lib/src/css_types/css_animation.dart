@@ -5,12 +5,15 @@ import 'css_value.dart';
 sealed class CssAnimationDirection implements CssValue {
   const CssAnimationDirection._();
 
-  static const CssAnimationDirection normal =
-      _CssAnimationDirectionKeyword('normal');
-  static const CssAnimationDirection reverse =
-      _CssAnimationDirectionKeyword('reverse');
-  static const CssAnimationDirection alternate =
-      _CssAnimationDirectionKeyword('alternate');
+  static const CssAnimationDirection normal = _CssAnimationDirectionKeyword(
+    'normal',
+  );
+  static const CssAnimationDirection reverse = _CssAnimationDirectionKeyword(
+    'reverse',
+  );
+  static const CssAnimationDirection alternate = _CssAnimationDirectionKeyword(
+    'alternate',
+  );
   static const CssAnimationDirection alternateReverse =
       _CssAnimationDirectionKeyword('alternate-reverse');
 
@@ -62,14 +65,14 @@ final class _CssAnimationDirectionGlobal extends CssAnimationDirection {
 sealed class CssAnimationFillMode implements CssValue {
   const CssAnimationFillMode._();
 
-  static const CssAnimationFillMode none =
-      _CssAnimationFillModeKeyword('none');
-  static const CssAnimationFillMode forwards =
-      _CssAnimationFillModeKeyword('forwards');
-  static const CssAnimationFillMode backwards =
-      _CssAnimationFillModeKeyword('backwards');
-  static const CssAnimationFillMode both =
-      _CssAnimationFillModeKeyword('both');
+  static const CssAnimationFillMode none = _CssAnimationFillModeKeyword('none');
+  static const CssAnimationFillMode forwards = _CssAnimationFillModeKeyword(
+    'forwards',
+  );
+  static const CssAnimationFillMode backwards = _CssAnimationFillModeKeyword(
+    'backwards',
+  );
+  static const CssAnimationFillMode both = _CssAnimationFillModeKeyword('both');
 
   /// CSS variable reference.
   factory CssAnimationFillMode.variable(String varName) =
@@ -119,10 +122,12 @@ final class _CssAnimationFillModeGlobal extends CssAnimationFillMode {
 sealed class CssAnimationPlayState implements CssValue {
   const CssAnimationPlayState._();
 
-  static const CssAnimationPlayState running =
-      _CssAnimationPlayStateKeyword('running');
-  static const CssAnimationPlayState paused =
-      _CssAnimationPlayStateKeyword('paused');
+  static const CssAnimationPlayState running = _CssAnimationPlayStateKeyword(
+    'running',
+  );
+  static const CssAnimationPlayState paused = _CssAnimationPlayStateKeyword(
+    'paused',
+  );
 
   /// CSS variable reference.
   factory CssAnimationPlayState.variable(String varName) =

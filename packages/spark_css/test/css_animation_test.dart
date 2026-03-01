@@ -79,10 +79,7 @@ void main() {
 
   group('CssAnimationIterationCount', () {
     test('infinite outputs correct CSS', () {
-      expect(
-        CssAnimationIterationCount.infinite.toCss(),
-        equals('infinite'),
-      );
+      expect(CssAnimationIterationCount.infinite.toCss(), equals('infinite'));
     });
     test('count outputs correct CSS', () {
       expect(CssAnimationIterationCount.count(3).toCss(), equals('3'));
@@ -156,10 +153,7 @@ void main() {
       );
     });
     test('variable outputs correct CSS', () {
-      expect(
-        CssAnimation.variable('anim').toCss(),
-        equals('var(--anim)'),
-      );
+      expect(CssAnimation.variable('anim').toCss(), equals('var(--anim)'));
     });
     test('raw outputs value as-is', () {
       expect(
@@ -168,10 +162,7 @@ void main() {
       );
     });
     test('global outputs correct CSS', () {
-      expect(
-        CssAnimation.global(CssGlobal.inherit).toCss(),
-        equals('inherit'),
-      );
+      expect(CssAnimation.global(CssGlobal.inherit).toCss(), equals('inherit'));
     });
   });
 }
