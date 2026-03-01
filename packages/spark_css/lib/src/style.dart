@@ -237,6 +237,7 @@ class Style implements CssStyle {
     // Layout
     CssDisplay? display,
     CssPosition? position,
+    CssAspectRatio? aspectRatio,
     // Sizing
     CssLength? width,
     CssLength? height,
@@ -271,6 +272,7 @@ class Style implements CssStyle {
     CssNumber? flexShrink,
     CssLength? gap,
     CssFlexShorthand? flex,
+    CssPlaceItems? placeItems,
     // Typography
     CssLength? fontSize,
     CssFontWeight? fontWeight,
@@ -284,6 +286,7 @@ class Style implements CssStyle {
     CssNumber? lineHeight,
     CssLength? letterSpacing,
     CssTextShadow? textShadow,
+    CssTextOverflow? textOverflow,
     // Borders
     CssBorder? border,
     CssBorder? borderTop,
@@ -310,6 +313,7 @@ class Style implements CssStyle {
     CssObjectFit? objectFit,
     CssPointerEvents? pointerEvents,
     CssResize? resize,
+    CssScrollBehavior? scrollBehavior,
     CssFilter? filter,
     CssFilter? backdropFilter,
     // Backgrounds
@@ -348,6 +352,9 @@ class Style implements CssStyle {
     // Layout
     if (display != null) _properties['display'] = display.toCss();
     if (position != null) _properties['position'] = position.toCss();
+    if (aspectRatio != null) {
+      _properties['aspect-ratio'] = aspectRatio.toCss();
+    }
 
     // Sizing
     if (width != null) _properties['width'] = width.toCss();
@@ -398,6 +405,7 @@ class Style implements CssStyle {
     if (flexShrink != null) _properties['flex-shrink'] = flexShrink.toCss();
     if (gap != null) _properties['gap'] = gap.toCss();
     if (flex != null) _properties['flex'] = flex.toCss();
+    if (placeItems != null) _properties['place-items'] = placeItems.toCss();
 
     // Typography
     if (fontSize != null) _properties['font-size'] = fontSize.toCss();
@@ -418,6 +426,9 @@ class Style implements CssStyle {
       _properties['letter-spacing'] = letterSpacing.toCss();
     }
     if (textShadow != null) _properties['text-shadow'] = textShadow.toCss();
+    if (textOverflow != null) {
+      _properties['text-overflow'] = textOverflow.toCss();
+    }
 
     // Borders
     if (border != null) _properties['border'] = border.toCss();
@@ -464,6 +475,9 @@ class Style implements CssStyle {
       _properties['pointer-events'] = pointerEvents.toCss();
     }
     if (resize != null) _properties['resize'] = resize.toCss();
+    if (scrollBehavior != null) {
+      _properties['scroll-behavior'] = scrollBehavior.toCss();
+    }
     if (filter != null) _properties['filter'] = filter.toCss();
     if (backdropFilter != null) {
       _properties['backdrop-filter'] = backdropFilter.toCss();
