@@ -31,6 +31,11 @@
 - **Feat**: Added `CssIsolation` sealed class for `isolation` property with `.auto`, `.isolate` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssMixBlendMode` sealed class for `mix-blend-mode` property with `.normal`, `.multiply`, `.screen`, `.overlay`, `.darken`, `.lighten`, `.colorDodge`, `.colorBurn`, `.hardLight`, `.softLight`, `.difference`, `.exclusion`, `.hue`, `.saturation`, `.color`, `.luminosity` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssBackgroundBlendMode` sealed class for `background-blend-mode` property with `.normal`, `.multiply`, `.screen`, `.overlay`, `.darken`, `.lighten`, `.colorDodge`, `.colorBurn`, `.hardLight`, `.softLight`, `.difference`, `.exclusion`, `.hue`, `.saturation`, `.color`, `.luminosity` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssContain` sealed class for `contain` property with `.none`, `.strict`, `.content` keyword shortcuts, `.size`, `.layout`, `.style`, `.paint` individual keyword constants, and `.flags()` factory for composing individual containment values, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssWillChange` sealed class for `will-change` property with `.auto`, `.scrollPosition`, `.contents` keywords and `.properties()` factory for arbitrary CSS property names, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssTouchAction` sealed class for `touch-action` property with `.auto`, `.none`, `.manipulation` standalone keywords, `.panX`, `.panLeft`, `.panRight`, `.panY`, `.panUp`, `.panDown`, `.pinchZoom` combinable keywords, and `.combine()` factory, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssUserSelect` sealed class for `user-select` property with `.none`, `.auto`, `.text`, `.all`, `.contain` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssHyphens` sealed class for `hyphens` property with `.none`, `.manual`, `.auto` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 
 ### Changed
 
