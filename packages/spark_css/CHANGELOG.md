@@ -21,6 +21,10 @@
 - **Feat**: Added `CssObjectFit` sealed class for `object-fit` property with `.fill`, `.contain`, `.cover`, `.none`, `.scaleDown` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssPointerEvents` sealed class for `pointer-events` property with `.auto`, `.none`, `.visiblePainted`, `.visibleFill`, `.visibleStroke`, `.visible`, `.painted`, `.fill`, `.stroke`, `.all` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssResize` sealed class for `resize` property with `.none`, `.both`, `.horizontal`, `.vertical`, `.block`, `.inline` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssScrollBehavior` sealed class for `scroll-behavior` property with `.auto`, `.smooth` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssTextOverflow` sealed class for `text-overflow` property with `.clip`, `.ellipsis` keywords, `.value()` for custom strings, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssAspectRatio` sealed class for `aspect-ratio` property with `.auto` keyword, `.ratio()`, `.number()`, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssPlaceItems` sealed class for `place-items` shorthand property with align and optional justify parameters, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 
 ### Changed
 
