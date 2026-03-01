@@ -81,9 +81,9 @@ final class _CssListStyleShorthand extends CssListStyle {
   @override
   String toCss() {
     final parts = <String>[
-      if (type != null) type!.toCss(),
-      if (position != null) position!.toCss(),
-      if (image != null) image!,
+      ?type?.toCss(),
+      ?position?.toCss(),
+      ?image,
     ];
     return parts.join(' ');
   }
