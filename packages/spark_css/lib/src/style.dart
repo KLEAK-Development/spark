@@ -323,8 +323,14 @@ class Style implements CssStyle {
     CssTransform? transform,
     // Background shorthand
     CssBackground? background,
+    // Content
+    CssContent? content,
     // Grid
     CssGridTemplateColumns? gridTemplateColumns,
+    // Alignment
+    CssJustifyItems? justifyItems,
+    // Lists
+    CssListStyle? listStyle,
     Stylesheet? css,
   }) : stylesheet = css {
     // Colors
@@ -485,10 +491,22 @@ class Style implements CssStyle {
 
     // Background shorthand
     if (background != null) _properties['background'] = background.toCss();
+
+    // Content
+    if (content != null) _properties['content'] = content.toCss();
+
     // Grid
     if (gridTemplateColumns != null) {
       _properties['grid-template-columns'] = gridTemplateColumns.toCss();
     }
+
+    // Alignment
+    if (justifyItems != null) {
+      _properties['justify-items'] = justifyItems.toCss();
+    }
+
+    // Lists
+    if (listStyle != null) _properties['list-style'] = listStyle.toCss();
   }
 
   /// Adds a custom property not covered by the named arguments.
