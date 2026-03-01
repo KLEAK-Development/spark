@@ -1,6 +1,4 @@
-import 'package:spark_css/src/css_types/css_animation.dart';
-import 'package:spark_css/src/css_types/css_transition.dart';
-import 'package:spark_css/src/css_types/css_value.dart';
+import 'package:spark_css/spark_css.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -163,6 +161,16 @@ void main() {
     });
     test('global outputs correct CSS', () {
       expect(CssAnimation.global(CssGlobal.inherit).toCss(), equals('inherit'));
+    });
+    test('Style.typed renders animation property', () {
+      final style = Style.typed(
+        animation: CssAnimation(
+          name: 'fadeIn',
+          duration: CssDuration.s(1),
+          fillMode: CssAnimationFillMode.forwards,
+        ),
+      );
+      expect(style.toCss(), contains('animation: fadeIn 1s forwards;'));
     });
   });
 }
