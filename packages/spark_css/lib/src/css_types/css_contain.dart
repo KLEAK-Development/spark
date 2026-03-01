@@ -16,12 +16,8 @@ sealed class CssContain implements CssValue {
   ///
   /// Active flags are joined with spaces in the order: size, layout, style,
   /// paint. Returns `none` if no flags are true.
-  factory CssContain.flags({
-    bool size,
-    bool layout,
-    bool style,
-    bool paint,
-  }) = _CssContainFlags;
+  factory CssContain.flags({bool size, bool layout, bool style, bool paint}) =
+      _CssContainFlags;
 
   /// CSS variable reference.
   factory CssContain.variable(String varName) = _CssContainVariable;
