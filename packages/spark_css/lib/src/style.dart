@@ -290,6 +290,10 @@ class Style implements CssStyle {
     CssBorder? borderRight,
     CssBorder? borderBottom,
     CssBorder? borderLeft,
+    CssColor? borderTopColor,
+    CssColor? borderRightColor,
+    CssColor? borderBottomColor,
+    CssColor? borderLeftColor,
     CssBorderRadius? borderRadius,
     CssBorderCollapse? borderCollapse,
     CssOutline? outline,
@@ -413,6 +417,18 @@ class Style implements CssStyle {
       _properties['border-bottom'] = borderBottom.toCss();
     }
     if (borderLeft != null) _properties['border-left'] = borderLeft.toCss();
+    if (borderTopColor != null) {
+      _properties['border-top-color'] = borderTopColor.toCss();
+    }
+    if (borderRightColor != null) {
+      _properties['border-right-color'] = borderRightColor.toCss();
+    }
+    if (borderBottomColor != null) {
+      _properties['border-bottom-color'] = borderBottomColor.toCss();
+    }
+    if (borderLeftColor != null) {
+      _properties['border-left-color'] = borderLeftColor.toCss();
+    }
     if (borderRadius != null) {
       _properties['border-radius'] = borderRadius.toCss();
     }
