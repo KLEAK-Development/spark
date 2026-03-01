@@ -12,6 +12,7 @@ export 'css_background_position.dart';
 export 'css_background_repeat.dart';
 export 'css_background_size.dart';
 export 'css_border.dart';
+export 'css_border_collapse.dart';
 export 'css_border_radius.dart';
 export 'css_box_shadow.dart';
 export 'css_color.dart';

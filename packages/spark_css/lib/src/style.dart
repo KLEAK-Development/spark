@@ -291,6 +291,7 @@ class Style implements CssStyle {
     CssBorder? borderBottom,
     CssBorder? borderLeft,
     CssBorderRadius? borderRadius,
+    CssBorderCollapse? borderCollapse,
     CssOutline? outline,
     CssLength? outlineOffset,
     // Visual
@@ -414,6 +415,9 @@ class Style implements CssStyle {
     if (borderLeft != null) _properties['border-left'] = borderLeft.toCss();
     if (borderRadius != null) {
       _properties['border-radius'] = borderRadius.toCss();
+    }
+    if (borderCollapse != null) {
+      _properties['border-collapse'] = borderCollapse.toCss();
     }
     if (outline != null) _properties['outline'] = outline.toCss();
     if (outlineOffset != null) {
