@@ -312,6 +312,7 @@ class Style implements CssStyle {
     CssBackgroundOrigin? backgroundOrigin,
     CssBackgroundAttachment? backgroundAttachment,
     // Effects
+    CssAnimation? animation,
     CssTransition? transition,
     CssTransform? transform,
     // Background shorthand
@@ -456,6 +457,7 @@ class Style implements CssStyle {
     }
 
     // Effects
+    if (animation != null) _properties['animation'] = animation.toCss();
     if (transition != null) _properties['transition'] = transition.toCss();
     if (transform != null) _properties['transform'] = transform.toCss();
 
