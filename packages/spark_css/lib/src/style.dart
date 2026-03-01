@@ -289,6 +289,7 @@ class Style implements CssStyle {
     CssLength? letterSpacing,
     CssTextShadow? textShadow,
     CssTextOverflow? textOverflow,
+    CssHyphens? hyphens,
     // Borders
     CssBorder? border,
     CssBorder? borderTop,
@@ -320,6 +321,10 @@ class Style implements CssStyle {
     CssMixBlendMode? mixBlendMode,
     CssFilter? filter,
     CssFilter? backdropFilter,
+    CssContain? contain,
+    CssWillChange? willChange,
+    CssTouchAction? touchAction,
+    CssUserSelect? userSelect,
     // Backgrounds
     CssBackgroundImage? backgroundImage,
     CssBackgroundSize? backgroundSize,
@@ -439,6 +444,7 @@ class Style implements CssStyle {
     if (textOverflow != null) {
       _properties['text-overflow'] = textOverflow.toCss();
     }
+    if (hyphens != null) _properties['hyphens'] = hyphens.toCss();
 
     // Borders
     if (border != null) _properties['border'] = border.toCss();
@@ -495,6 +501,16 @@ class Style implements CssStyle {
     if (filter != null) _properties['filter'] = filter.toCss();
     if (backdropFilter != null) {
       _properties['backdrop-filter'] = backdropFilter.toCss();
+    }
+    if (contain != null) _properties['contain'] = contain.toCss();
+    if (willChange != null) {
+      _properties['will-change'] = willChange.toCss();
+    }
+    if (touchAction != null) {
+      _properties['touch-action'] = touchAction.toCss();
+    }
+    if (userSelect != null) {
+      _properties['user-select'] = userSelect.toCss();
     }
 
     // Backgrounds
