@@ -36,6 +36,9 @@
 - **Feat**: Added `CssTouchAction` sealed class for `touch-action` property with `.auto`, `.none`, `.manipulation` standalone keywords, `.panX`, `.panLeft`, `.panRight`, `.panY`, `.panUp`, `.panDown`, `.pinchZoom` combinable keywords, and `.combine()` factory, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssUserSelect` sealed class for `user-select` property with `.none`, `.auto`, `.text`, `.all`, `.contain` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssHyphens` sealed class for `hyphens` property with `.none`, `.manual`, `.auto` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssScrollPadding` sealed class for `scroll-padding` property with `.all()`, `.symmetric()`, `.only()` factories, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssOverscrollBehavior` sealed class for `overscroll-behavior` property with `.auto`, `.contain`, `.none` keywords, `.xy()` for two-value syntax, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
+- **Feat**: Added `CssAppearance` sealed class for `appearance` property with `.none`, `.auto`, `.menulistButton`, `.textfield` keywords, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssTabSize` sealed class for `tab-size` property with `.number()`, `.length()` factories, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssCaretColor` sealed class for `caret-color` property with `.auto` keyword, `.color()` factory, plus `.variable()`, `.raw()`, and `.global()` escape hatches.
 - **Feat**: Added `CssScrollSnapType` sealed class for `scroll-snap-type` property with `.none` keyword, `.axis()` factory with optional strictness, plus `.variable()`, `.raw()`, and `.global()` escape hatches.

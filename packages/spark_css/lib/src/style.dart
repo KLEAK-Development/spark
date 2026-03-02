@@ -330,6 +330,9 @@ class Style implements CssStyle {
     CssScrollSnapType? scrollSnapType,
     CssScrollSnapAlign? scrollSnapAlign,
     CssScrollMargin? scrollMargin,
+    CssScrollPadding? scrollPadding,
+    CssOverscrollBehavior? overscrollBehavior,
+    CssAppearance? appearance,
     // Backgrounds
     CssBackgroundImage? backgroundImage,
     CssBackgroundSize? backgroundSize,
@@ -529,6 +532,15 @@ class Style implements CssStyle {
     }
     if (scrollMargin != null) {
       _properties['scroll-margin'] = scrollMargin.toCss();
+    }
+    if (scrollPadding != null) {
+      _properties['scroll-padding'] = scrollPadding.toCss();
+    }
+    if (overscrollBehavior != null) {
+      _properties['overscroll-behavior'] = overscrollBehavior.toCss();
+    }
+    if (appearance != null) {
+      _properties['appearance'] = appearance.toCss();
     }
 
     // Backgrounds
