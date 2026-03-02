@@ -325,6 +325,11 @@ class Style implements CssStyle {
     CssWillChange? willChange,
     CssTouchAction? touchAction,
     CssUserSelect? userSelect,
+    CssTabSize? tabSize,
+    CssCaretColor? caretColor,
+    CssScrollSnapType? scrollSnapType,
+    CssScrollSnapAlign? scrollSnapAlign,
+    CssScrollMargin? scrollMargin,
     // Backgrounds
     CssBackgroundImage? backgroundImage,
     CssBackgroundSize? backgroundSize,
@@ -511,6 +516,19 @@ class Style implements CssStyle {
     }
     if (userSelect != null) {
       _properties['user-select'] = userSelect.toCss();
+    }
+    if (tabSize != null) _properties['tab-size'] = tabSize.toCss();
+    if (caretColor != null) {
+      _properties['caret-color'] = caretColor.toCss();
+    }
+    if (scrollSnapType != null) {
+      _properties['scroll-snap-type'] = scrollSnapType.toCss();
+    }
+    if (scrollSnapAlign != null) {
+      _properties['scroll-snap-align'] = scrollSnapAlign.toCss();
+    }
+    if (scrollMargin != null) {
+      _properties['scroll-margin'] = scrollMargin.toCss();
     }
 
     // Backgrounds
